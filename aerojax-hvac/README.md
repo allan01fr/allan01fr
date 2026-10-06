@@ -41,6 +41,11 @@ no navegador e permite:
 
 ![Clima2D](manual/img/06_resultados.png)
 
+## Apresentação das ferramentas
+
+Para entender cada biblioteca usada, veja [apresentacao/](apresentacao/README.md). São 16
+slides em Excalidraw, editáveis, com versão em PDF.
+
 ## Conteúdo
 
 ```
@@ -58,6 +63,7 @@ aerojax-hvac/
 │   └── 04_otimizacao_insuflamento.py  # otimização de vazão, ângulo e temperatura com jax.grad
 ├── app/app.py            # interface gráfica (Streamlit)
 ├── manual/MANUAL.md      # manual simplificado da interface
+├── apresentacao/         # slides (Excalidraw + PDF) sobre as ferramentas usadas
 ├── iniciar.bat / .sh     # abre a interface (instala tudo na primeira vez)
 ├── testes/test_hvac.py   # verificação contra ASHRAE, ISO 7730 e balanço de energia
 └── resultados/           # figuras geradas pelos exemplos
