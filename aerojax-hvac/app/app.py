@@ -358,6 +358,13 @@ with abas[4]:
         c[4].metric("Corrente de ar (DR máx.)", f"{ind['DR_max']:.0f} %")
         c[5].metric("Ar de retorno", f"{ind['T_retorno']:.1f} °C")
 
+        desvio = ind["T_ocupada"] - P["condicao"]["T_alvo"]
+        if abs(desvio) > 1.0:
+            st.info(f"A zona ocupada está {abs(desvio):.1f} K {'mais fria' if desvio < 0 else 'mais quente'} que o ar de "
+                    f"retorno ({ind['T_retorno']:.1f} °C), onde fica o sensor do equipamento. Para as pessoas sentirem "
+                    f"{P['condicao']['T_alvo']:.0f} °C, teste um setpoint de ~{P['condicao']['T_alvo'] - desvio:.0f} °C "
+                    "(aba 3, temperatura desejada → Usar estes valores) e/ou outro ângulo de aletas.")
+
         st.subheader("Conformidade")
         conf = pj.conformidade(r, P["criterios"])
         st.dataframe(pd.DataFrame([{**x, "atende": "✅" if x["atende"] else "❌"} for x in conf]),

@@ -2,14 +2,14 @@
 Exemplo 04 - Otimização da distribuição de ar com jax.grad.
 
 Parte do caso do exemplo 03, onde o jato frio "despenca" na zona ocupada (PMV ≈ -1,2),
-e procura a VAZÃO e o ÂNGULO DAS ALETAS que:
+e procura a VAZÃO, o ÂNGULO DAS ALETAS e o SETPOINT DO TERMOSTATO (no retorno) que:
 - levem o PMV médio da zona ocupada a ~0 com pouca variação espacial;
 - evitem corrente de ar (DR máximo < 20 %, categoria B da ISO 7730);
 - não gastem ventilador à toa (potência ~ vazão³).
 
-Para cada vazão, a temperatura e a umidade de insuflamento saem do balanço de energia e
-de umidade (como faz o termostato/controle do equipamento): o ar de retorno fica em
-24 °C / 50 % e as cargas são retiradas. A UR que o ar precisa ter na saída da
+Para cada combinação, a temperatura e a umidade de insuflamento saem do balanço de energia
+e de umidade, como faz o controle do equipamento: o ar de retorno fica no setpoint e as
+cargas são retiradas. A UR que o ar precisa ter na saída da
 serpentina é informada no final: se for menor que ~85 %, a umidade não se resolve só
 com a distribuição de ar (ver exemplo 02: reaquecimento ou desumidificação dedicada).
 
@@ -51,20 +51,20 @@ W_ALVO = psi.umidade_absoluta(T_ALVO, UR_ALVO)
 CARGA_SENS = 150.0 + 100.0 + 40.0 * 2.8 * 4.0 + 10.0 * 5.0 * 4.0
 CARGA_LAT = 110.0
 
-# Limites físicos: vazão [m³/h], ângulo [graus]
-LIM_INF = jnp.array([350.0, -10.0])
-LIM_SUP = jnp.array([1200.0, 60.0])
+# Limites físicos: vazão [m³/h], ângulo [graus], setpoint do termostato no retorno [°C]
+LIM_INF = jnp.array([350.0, -10.0, 22.0])
+LIM_SUP = jnp.array([1200.0, 60.0, 28.0])
 ESCALA = LIM_SUP - LIM_INF
 
 
 def para_insuflamento(x):
-    t_ins, w_ins = psi.estado_insuflamento(T_ALVO, W_ALVO, CARGA_SENS, CARGA_LAT, x[0])
+    t_ins, w_ins = psi.estado_insuflamento(x[2], W_ALVO, CARGA_SENS, CARGA_LAT, x[0])
     return Insuflamento(vazao_m3h=x[0], angulo_graus=x[1], temperatura=t_ins, umidade_abs=w_ins)
 
 
 def avaliar(x, tempo_total, tempo_media):
     ins = para_insuflamento(x)
-    e0 = estado_inicial(sala, T_ALVO, float(W_ALVO))
+    e0 = estado_inicial(sala, x[2], W_ALVO)
     est, med = simular(sala, geo, ins, e0, tempo_total, DT, tempo_media)
     return est, indicadores(sala, geo, ins, med, met=1.1, clo=0.5)
 
@@ -80,19 +80,19 @@ def objetivo(x):
 
 def mostrar(rotulo, x, ind):
     ins = para_insuflamento(jnp.asarray(x))
-    print(f"{rotulo:>10} | vazão {float(x[0]):5.0f} m³/h | ângulo {float(x[1]):5.1f}° | "
+    print(f"{rotulo:>10} | vazão {float(x[0]):5.0f} m³/h | ângulo {float(x[1]):5.1f}° | setpoint {float(x[2]):5.2f} °C | "
           f"T_ins {float(ins.temperatura):5.2f} °C || PMV {float(ind['PMV_medio']):+5.2f} "
           f"(±{float(ind['PMV_desvio']):.2f}) | DRmax {float(ind['DR_max']):4.1f} % | "
           f"T_occ {float(ind['T_ocupada']):5.2f} °C | UR {float(ind['UR_ocupada']) * 100:4.1f} %")
 
 
-x0 = jnp.array([600.0, 30.0])
+x0 = jnp.array([600.0, 30.0, 24.0])
 valor_e_grad = jax.jit(jax.value_and_grad(objetivo, has_aux=True))
 
 # Adam em variáveis normalizadas (0-1) com projeção nos limites
 z = (x0 - LIM_INF) / ESCALA
-m = jnp.zeros(2)
-v = jnp.zeros(2)
+m = jnp.zeros(3)
+v = jnp.zeros(3)
 lr, b1, b2 = 0.05, 0.8, 0.95
 historico = []
 print("Iteração   parâmetros                                     || indicadores na zona ocupada (20 min)")

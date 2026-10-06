@@ -436,7 +436,7 @@ def passo(estado: Estado, sala: Sala, geo: Geometria, ins: Insuflamento, dt: flo
 def estado_inicial(sala: Sala, T0=26.0, W0=0.012) -> Estado:
     nx, ny = sala.nx, sala.ny
     return Estado(u=jnp.zeros((nx + 1, ny)), v=jnp.zeros((nx, ny + 1)),
-                  T=jnp.full((nx, ny), float(T0)), W=jnp.full((nx, ny), float(W0)),
+                  T=jnp.full((nx, ny), T0, dtype=jnp.float32), W=jnp.full((nx, ny), W0, dtype=jnp.float32),
                   t=jnp.asarray(0.0))
 
 

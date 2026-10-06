@@ -227,3 +227,4 @@ Arquivos de exemplo: `exemplos/dxf/planta_escritorio.dxf` e `exemplos/dxf/corte_
 | Difusor "ignorado" ao importar planta | ele está numa parede paralela ao corte: troque a direção do corte |
 | Aviso de umidade na aba 3 | a serpentina sozinha não atinge a UR desejada: veja o Passo 3 |
 | Simulação muito lenta | use malha Rápida para testar e Precisa só no estudo final |
+| Zona ocupada bem mais fria (PMV negativo) com o retorno no setpoint | o ar frio se acumula embaixo e o sensor do equipamento fica no retorno, em cima: aumente o setpoint (aba 3) ou mude o ângulo; a aba 5 sugere o valor |
