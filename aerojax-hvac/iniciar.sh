@@ -6,4 +6,8 @@ if [ ! -d .venv ]; then
 else
   . .venv/bin/activate
 fi
+# Evita a pergunta de e-mail do Streamlit na primeira execução
+if [ ! -f "$HOME/.streamlit/credentials.toml" ]; then
+  mkdir -p "$HOME/.streamlit" && printf '[general]\nemail = ""\n' > "$HOME/.streamlit/credentials.toml"
+fi
 streamlit run app/app.py
