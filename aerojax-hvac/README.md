@@ -226,24 +226,42 @@ prever valores absolutos.
 
 ### Módulo 5 — Otimização (1 semana)
 
-`exemplos/04_otimizacao_insuflamento.py` ajusta três parâmetros: vazão, ângulo das aletas
-e temperatura de insuflamento. Ele minimiza uma função objetivo com quatro termos:
+`exemplos/04_otimizacao_insuflamento.py` ajusta três parâmetros: **vazão**, **ângulo das
+aletas** e **setpoint do termostato**, que fica no ar de retorno. Para cada combinação, a
+temperatura e a umidade de insuflamento saem do balanço de energia e de umidade, como faz
+o controle do equipamento. A função objetivo minimizada é:
 
 ```
-J = PMV_médio² + PMV_desvio²                    (conforto)
-  + 100·[violação de 40 % ≤ UR ≤ 60 %]²         (umidade)
-  + [(DR_máx − 20 %)/10]²                       (corrente de ar)
-  + 0,05·(vazão/600)³                           (energia do ventilador)
+J = PMV_médio² + PMV_desvio²          (conforto na zona ocupada)
+  + [(DR_máx − 20 %)/10]²             (corrente de ar)
+  + 0,02·(vazão/600)³                 (energia do ventilador)
 ```
 
-O ar sai da serpentina com ~90 % UR, então insuflar mais quente melhora o PMV mas
-desumidifica menos. O otimizador encontra o compromisso.
-
-O gradiente dos 3 parâmetros sai de uma única passagem reversa por ~30 mil passos de
+O gradiente dos 3 parâmetros sai de uma única passagem reversa por ~40 mil passos de
 CFD. Esse é o diferencial de ter tudo em JAX: com 30 parâmetros, como a posição de
 cada difusor, o custo seria praticamente o mesmo.
 
-_(Resultados da otimização serão adicionados após a execução completa do exemplo.)_
+**Resultado** (10 iterações, ~20 min de CPU), conferido com simulação independente de 40 min:
+
+| | Vazão | Ângulo | Setpoint no retorno | T insuflamento | T zona ocupada | PMV | PPD | DR máx. |
+|---|---|---|---|---|---|---|---|---|
+| Original | 600 m³/h | 30° | 24,0 °C | 19,6 °C | 21,8 °C | −1,18 | 34,5 % | 29,7 % |
+| Otimizado | 903 m³/h | −1° (horizontal) | 26,5 °C | 23,5 °C | 25,3 °C | −0,05 | 5,8 % | 22,1 % |
+
+Nos dois casos, o calor sensível retirado (902 W) fecha com a carga (898 W).
+
+**O que o resultado ensina:**
+- **O problema era distribuição de ar, não capacidade.** Com mais vazão, menor diferença de
+  temperatura e jato horizontal, o ar frio deixa de despencar sobre as pessoas.
+- **O setpoint ideal no retorno (26,5 °C) é diferente da temperatura que as pessoas
+  sentem.** O sensor fica no alto, onde o ar é mais quente. A interface agora sugere esse
+  ajuste automaticamente.
+- **A corrente de ar (22 %) ainda passa um pouco do limite da categoria B (20 %).** O
+  próximo passo seria testar outra posição de difusor.
+- **Aparece o conflito de umidade.** Com ar insuflado a 23,5 °C, a UR exigida na saída
+  da serpentina é de 51 %. Uma serpentina comum entrega 85–95 %. O conforto térmico
+  fica ótimo, mas a umidade só se mantém com reaquecimento ou desumidificação dedicada
+  (exemplo 02). É o tipo de compromisso que só aparece analisando os dois juntos.
 
 - Exercício: inclua a posição do insuflamento como variável de projeto. Dica: as máscaras
   de `montar_geometria` precisam virar funções suaves do parâmetro.
