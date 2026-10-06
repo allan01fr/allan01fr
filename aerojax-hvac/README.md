@@ -28,6 +28,19 @@ Esta pasta aplica essa mesma arquitetura a ambientes climatizados, no pacote `hv
 > (OpenFOAM, Ansys Fluent, ou FDS, que também tem módulo de HVAC) quando o resultado
 > entra em projeto executivo ou laudo.
 
+## Interface gráfica (Clima2D)
+
+Para usar sem programar: dê **dois cliques em `iniciar.bat`** (Windows). A interface abre
+no navegador e permite:
+- importar planta ou corte em DXF;
+- editar cargas e equipamento;
+- simular;
+- baixar um relatório técnico com verificação ISO 7730 / NBR 16401-2.
+
+**Manual simplificado, com telas: [manual/MANUAL.md](manual/MANUAL.md).**
+
+![Clima2D](manual/img/06_resultados.png)
+
 ## Conteúdo
 
 ```
@@ -35,12 +48,17 @@ aerojax-hvac/
 ├── hvac/
 │   ├── psicrometria.py   # propriedades do ar úmido (ASHRAE), mistura, serpentina, ADP/BF
 │   ├── conforto.py       # PMV/PPD (ISO 7730 / NBR 16401-2) e risco de corrente de ar (DR)
-│   └── sala2d.py         # CFD 2D de sala: velocidade + temperatura + umidade, diferenciável
+│   ├── sala2d.py         # CFD 2D de sala: velocidade + temperatura + umidade, diferenciável
+│   ├── projeto.py        # projeto (JSON), cargas, simulação, conformidade, relatório
+│   └── importar_dxf.py   # importação de planta/corte DXF por layers
 ├── exemplos/
 │   ├── 01_aerojax_cilindro.py         # usar o AeroJAX original sem a interface gráfica
 │   ├── 02_psicrometria_serpentina.py  # cargas, ar externo, serpentina, controle de umidade
 │   ├── 03_sala_ar_condicionado.py     # simulação da sala com split/fan-coil de parede
 │   └── 04_otimizacao_insuflamento.py  # otimização de vazão, ângulo e temperatura com jax.grad
+├── app/app.py            # interface gráfica (Streamlit)
+├── manual/MANUAL.md      # manual simplificado da interface
+├── iniciar.bat / .sh     # abre a interface (instala tudo na primeira vez)
 ├── testes/test_hvac.py   # verificação contra ASHRAE, ISO 7730 e balanço de energia
 └── resultados/           # figuras geradas pelos exemplos
 ```
@@ -53,7 +71,7 @@ Windows (PowerShell):
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-python -m pytest testes -q          # deve terminar com "18 passed"
+python -m pytest testes -q          # deve terminar com "23 passed"
 ```
 
 Linux/macOS: igual, mas ative o ambiente com `source .venv/bin/activate`.
@@ -236,7 +254,7 @@ _(Resultados da otimização serão adicionados após a execução completa do e
 
 ## Verificação
 
-`python -m pytest testes -q` roda 18 testes:
+`python -m pytest testes -q` roda 23 testes:
 - pressão de saturação contra a tabela da ASHRAE (−10 a 40 °C);
 - consistência entre UR, ponto de orvalho e bulbo úmido;
 - ADP e BF da serpentina (ida e volta);
@@ -245,7 +263,8 @@ _(Resultados da otimização serão adicionados após a execução completa do e
 - divergência nula do campo de velocidade;
 - **balanço de energia e de umidade em regime permanente** (erro < 2–3 %);
 - gradiente do `jax.grad` através da CFD contra diferenças finitas;
-- rejeição de aberturas que a malha não consegue resolver.
+- rejeição de aberturas que a malha não consegue resolver;
+- importação de corte e planta DXF (inclusive em milímetros), projeto JSON, cargas e validação.
 
 ## Próximos passos sugeridos
 

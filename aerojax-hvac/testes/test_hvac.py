@@ -122,3 +122,49 @@ def test_gradiente_confere_com_diferencas_finitas(caso_pequeno):
         e = jnp.zeros(3).at[i].set(h)
         fd = (float(fj(x + e)) - float(fj(x - e))) / (2 * h)
         assert float(g[i]) == pytest.approx(fd, rel=0.1, abs=1e-5)
+
+
+# ------------------------------------------------------------- projeto / interface
+from hvac import projeto as pj
+from hvac import importar_dxf as idxf
+
+PASTA_DXF = os.path.join(os.path.dirname(__file__), "..", "exemplos", "dxf")
+
+
+def test_importar_corte_dxf():
+    dados, _ = idxf.importar_corte(os.path.join(PASTA_DXF, "corte_escritorio.dxf"))
+    assert dados["sala"]["largura"] == pytest.approx(5.0)
+    assert dados["sala"]["altura"] == pytest.approx(2.8)
+    tipos = {(a["tipo"], a["parede"]) for a in dados["aberturas"]}
+    assert tipos == {("insuflamento", "esquerda"), ("retorno", "esquerda")}
+    assert len(dados["obstaculos"]) == 1
+
+
+def test_importar_planta_dxf_em_milimetros():
+    dados, avisos, _ = idxf.importar_planta(os.path.join(PASTA_DXF, "planta_escritorio.dxf"), eixo="x")
+    assert dados["sala"]["largura"] == pytest.approx(5.0)        # 5000 mm
+    assert dados["sala"]["profundidade"] == pytest.approx(4.0)
+    pessoas = [f for f in dados["fontes"] if "pessoa" in f["nome"]]
+    assert sum(f["sensivel_w"] for f in pessoas) == pytest.approx(140.0)   # 2 pessoas
+    projeto = pj.completar(dict(pj.projeto_padrao(), **dados))
+    assert pj.validar(projeto) == []
+
+
+def test_projeto_json_ida_e_volta():
+    p = pj.projeto_padrao()
+    assert pj.carregar_json(pj.salvar_json(p)) == p
+
+
+def test_cargas_totais_e_dimensionamento():
+    p = pj.projeto_padrao()
+    cg = pj.cargas_totais(p)
+    assert cg["sensivel"] == pytest.approx(150 + 100 + 40 * 2.8 * 4 + 10 * 5 * 4)
+    assert cg["latente"] == pytest.approx(110)
+    d = pj.dimensionar_insuflamento(p)
+    assert d["temperatura"] == pytest.approx(19.6, abs=0.1)
+
+
+def test_validacao_aponta_erros():
+    p = pj.projeto_padrao()
+    p["aberturas"] = [a for a in p["aberturas"] if a["tipo"] == "insuflamento"]
+    assert any("retorno" in e for e in pj.validar(p))
