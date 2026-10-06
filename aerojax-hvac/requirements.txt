@@ -1,0 +1,7 @@
+jax>=0.4.30
+numpy>=1.24
+matplotlib>=3.5
+pandas>=2.0
+streamlit>=1.50
+ezdxf>=1.1
+pytest>=7
