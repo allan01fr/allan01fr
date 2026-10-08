@@ -1,0 +1,92 @@
+[
+ {
+  "teste": "[claro] sem erro de console",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "seleção abre o painel de campo",
+  "ok": true,
+  "info": "Conforme projeto | Ponto de água fria | Água fria · Ø 20 mm (3/4\") | Lavagem de louças"
+ },
+ {
+  "teste": "painel aberto (não minimizado)",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "clique por proximidade (6 px ao lado) seleciona o ponto",
+  "ok": true,
+  "info": "HID-SS-LAVP-002 vs HID-SS-LAVP-002"
+ },
+ {
+  "teste": "filtro Esgoto esconde divergências SAN e as traz de volta",
+  "ok": true,
+  "info": "18 → 8 → 18 (SAN=13, marcadores visíveis c/ filtro: 6)"
+ },
+ {
+  "teste": "divergência só-ARQ segue a camada de arquitetura",
+  "ok": true,
+  "info": "18 → 17"
+ },
+ {
+  "teste": "clicar divergência religa a disciplina",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "corte ativo",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "medição com Shift trava em um eixo",
+  "ok": true,
+  "info": "{\"d3\": 3.007, \"dx\": -3.007, \"dy\": 0, \"dz\": 0}"
+ },
+ {
+  "teste": "Esc cancela o 1º ponto",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "Esc sai do modo Medir",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "export pontos.csv",
+  "ok": true,
+  "info": "131 linhas"
+ },
+ {
+  "teste": "export Cotas: pontos.csv + cotas.csv",
+  "ok": true,
+  "info": "['pontos.csv', 'cotas.csv']"
+ },
+ {
+  "teste": "minimizar painel",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "busca com sugestões",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "[claro] sem erro de console após interações",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "celular: sem rolagem horizontal e sem erro",
+  "ok": true,
+  "info": "[]"
+ },
+ {
+  "teste": "[escuro] sem erro de console",
+  "ok": true,
+  "info": ""
+ }
+]

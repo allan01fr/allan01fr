@@ -1,0 +1,31 @@
+﻿id;ambiente;tipo;PA;PO;z;x;y;status;fonte
+M1;porta norte da cozinha (linha de cocção);PA / PO;-2,87;-3,44;;13,157;15,433;EXTRAÍDO;marca de nível na prancha TOM001-COZ-PJ-E-R-006-R001
+M2;hall dos elevadores;PA / PO;-2,87;-3,24;;24,374;11,434;EXTRAÍDO;marca de nível na prancha TOM001-COZ-PJ-E-R-006-R001
+M3;circulação / carros quentes;PA / PO;-2,87;-3,24;;-0,771;6,148;EXTRAÍDO;marca de nível na prancha TOM001-COZ-PJ-E-R-006-R001
+M4;hall (junto ao shaft);PA / PO;-2,87;-3,24;;24,713;12,383;EXTRAÍDO;marca de nível na prancha TOM001-COZ-PJ-E-R-006-R001
+M5;ante-câmara;PA / PO;-3,07;-3,44;;16,987;3,776;EXTRAÍDO;marca de nível na prancha TOM001-COZ-PJ-E-R-006-R001
+M6;circulação junto ao Gelo;PA / PO;-2,87;-3,24;;24,984;7,537;EXTRAÍDO;marca de nível na prancha TOM001-COZ-PJ-E-R-006-R001
+M7;câmara semi-preparados 2;PA / PO;-3,07;-3,44;;3,635;2,657;EXTRAÍDO;marca de nível na prancha TOM001-COZ-PJ-E-R-006-R001
+N-REF;Refeitório;piso do ambiente;-2,87;-3,44;;;;INFERIDO;"PA sem marca no ambiente: adotado o PA −2,87 das marcas M1 (porta da cozinha) e M3 (circulação); PO −3,44 da marca M1"
+N-LAVL;Lavagem de louças;piso do ambiente;-2,87;-3,44;;;;INFERIDO;"PA sem marca no ambiente: adotado o PA −2,87 das marcas M1 (porta da cozinha) e M3 (circulação); PO −3,44 da marca M1"
+N-DIST;Distribuição;piso do ambiente;-2,87;-3,44;;;;INFERIDO;"PA sem marca no ambiente: adotado o PA −2,87 das marcas M1 (porta da cozinha) e M3 (circulação); PO −3,44 da marca M1"
+N-COZ;Cozinha / Montagem;piso do ambiente;-2,87;-3,44;;;;INFERIDO;"PA sem marca no ambiente: adotado o PA −2,87 das marcas M1 (porta da cozinha) e M3 (circulação); PO −3,44 da marca M1"
+N-LAVP;Lavagem de panelas;piso do ambiente;-2,87;-3,44;;;;INFERIDO;"PA sem marca no ambiente: adotado o PA −2,87 das marcas M1 (porta da cozinha) e M3 (circulação); PO −3,44 da marca M1"
+N-GELO;Gelo;piso do ambiente;-2,87;-3,24;;;;EXTRAÍDO;marca M6 na circulação contígua (−2,87 / −3,24)
+N-CIRC;Circulação / carros;piso do ambiente;-2,87;-3,24;;;;EXTRAÍDO;marcas M3 e M6
+N-LLMP;Louça limpa;piso do ambiente;-2,87;-3,24;;;;INFERIDO;"sem marca; adotado o nível da circulação (M3)"
+N-CARQ;Carros quentes;piso do ambiente;-2,87;-3,24;;;;INFERIDO;"sem marca; adotado o nível da circulação (M3)"
+N-CSP1;Câmara semi-preparados 1;piso do ambiente;-3,07;-3,44;;;;INFERIDO;nota 'prever rebaixo −20 cm' + marca M7 da câmara vizinha
+N-CSP2;Câmara semi-preparados 2;piso do ambiente;-3,07;-3,44;;;;EXTRAÍDO;marca M7
+N-MFRI;Montagem fria;piso do ambiente;-2,87;-3,44;;;;INFERIDO;"PA sem marca no ambiente: adotado o PA −2,87 das marcas M1 (porta da cozinha) e M3 (circulação); PO −3,44 da marca M1"
+N-PSAL;Preparo de saladas;piso do ambiente;-2,87;-3,44;;;;INFERIDO;"PA sem marca no ambiente: adotado o PA −2,87 das marcas M1 (porta da cozinha) e M3 (circulação); PO −3,44 da marca M1"
+N-PCAR;Preparo de carnes;piso do ambiente;-2,87;-3,44;;;;INFERIDO;"PA sem marca no ambiente: adotado o PA −2,87 das marcas M1 (porta da cozinha) e M3 (circulação); PO −3,44 da marca M1"
+N-CRES;Câmara de resfriados;piso do ambiente;-3,07;-3,44;;;;INFERIDO;nota 'prever rebaixo −20 cm' + marca M5
+N-ACAM;Ante-câmara;piso do ambiente;-3,07;-3,44;;;;EXTRAÍDO;marca M5
+N-CHF;Câmara hortifruti;piso do ambiente;-3,07;-3,44;;;;INFERIDO;nota 'prever rebaixo −20 cm' + marca M5
+N-CCON;Câmara de congelados;piso do ambiente;-3,07;-3,44;;;;INFERIDO;nota 'prever rebaixo −20 cm' + marca M5
+N-DESP;Despensa;piso do ambiente;-2,87;-3,24;;;;INFERIDO;"sem marca; adotado o nível da circulação (M6)"
+N-DBEB;Depósito de bebidas;piso do ambiente;-2,87;-3,24;;;;INFERIDO;"sem marca; adotado o nível da circulação (M6)"
+N-GAL;Galeria técnica;piso do ambiente;-2,87;-3,24;;;;INFERIDO;"galeria sem marca de nível; adotado −2,87 (limite da folha)"
+N-DIST;Distribuição de água/gás;tubulação;;;-0,020000000000000018;;;INFERIDO;PA + 2.85 (premissa P5)
+N-TOPO;Topo das paredes / laje;laje;;;0,1299999999999999;;;PENDENTE;PA + 3,00 (premissa P7) — fundo de laje não cotado
