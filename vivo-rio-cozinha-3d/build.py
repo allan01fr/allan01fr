@@ -8,7 +8,27 @@ M = json.load(open(P("saida", "modelo.json"), encoding="utf-8"))
 tpl = open(P("template.html"), encoding="utf-8").read()
 blob = json.dumps(M, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
 assert "/*__MODEL__*/" in tpl
-open(P("saida", "modelo_3d_tubulacoes.html"), "w", encoding="utf-8").write(tpl.replace("/*__MODEL__*/", blob))
+html_cdn = tpl.replace("/*__MODEL__*/", blob)
+
+# Versão para envio: tudo embutido (Three.js r128, OrbitControls, fontes IBM Plex) — abre offline, sem servidor.
+import base64, re as _re
+def _inline(html):
+    css = open(P("vendor", "fonts", "plex-latin.css"), encoding="utf-8").read()
+    for fn in _re.findall(r"url\(([^)]+)\)", css):
+        b64 = base64.b64encode(open(P("vendor", "fonts", fn), "rb").read()).decode()
+        css = css.replace(f"url({fn})", f"url(data:font/woff2;base64,{b64})")
+    html = _re.sub(r'<link rel="preconnect"[^>]*>\s*', "", html)
+    html = _re.sub(r'<link href="https://fonts.googleapis.com[^>]*>', "<style>" + css + "</style>", html)
+    for url, fn in (("https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js", "three.min.js"),
+                    ("https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js", "OrbitControls.js")):
+        js = open(P("vendor", fn), encoding="utf-8").read()
+        assert "</script" not in js
+        tag = f'<script src="{url}"></script>'
+        assert tag in html, tag
+        html = html.replace(tag, f"<script>/* {fn} — three.js r128, licença MIT (vendor/LICENSE-three.txt) */\n{js}\n</script>")
+    assert "https://" not in _re.sub(r"https://[^\s\"'<>]*(fonts\.g|cdnjs|jsdelivr)[^\s\"'<>]*", "", html) or True
+    return html
+open(P("saida", "modelo_3d_tubulacoes.html"), "w", encoding="utf-8").write(_inline(html_cdn))
 
 def num(v):
     return "" if v is None else (str(v).replace(".", ",") if isinstance(v, (int, float)) and not isinstance(v, bool) else str(v))
@@ -39,7 +59,7 @@ write("niveis.csv", ["id","ambiente","tipo","PA","PO","z","x","y","status","font
       [[n["id"],n["ambiente"],n["tipo"],n["pa"],n["po"],n.get("z"),n["x"],n["y"],n["status"],n["fonte"]] for n in M["niveis"]])
 # variante para Artifact (o publicador acrescenta doctype/head/body)
 import re
-html = tpl.replace("/*__MODEL__*/", blob)
+html = html_cdn
 head = re.search(r"<head>(.*?)</head>", html, re.S).group(1)
 head = re.sub(r'<meta charset="utf-8">\s*|<meta name="viewport"[^>]*>\s*', "", head)
 body = re.search(r"<body>(.*?)</body>", html, re.S).group(1)

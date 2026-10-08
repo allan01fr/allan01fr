@@ -108,5 +108,10 @@
   "teste": "[escuro] sem erro de console",
   "ok": true,
   "info": ""
+ },
+ {
+  "teste": "arquivo autocontido: nenhum acesso à rede",
+  "ok": true,
+  "info": "[]"
  }
 ]

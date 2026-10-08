@@ -9,7 +9,8 @@ Fontes:
 O projeto hidrossanitário predial (`hidráulica.zip`) não estava acessível; ver DIV-001.
 
 ## Entregáveis (`saida/`)
-- `modelo_3d_tubulacoes.html` — visualizador autocontido (Three.js r128 via CDN), abre direto no navegador.
+- `modelo_3d_tubulacoes.html` — visualizador 100 % autocontido (Three.js r128, OrbitControls e fontes embutidos; funciona offline). É o arquivo para enviar.
+- `artifact_modelo_3d.html` — mesma página com Three.js via CDN (versão leve para publicação).
 - `pontos.csv`, `trechos.csv`, `dutos.csv`, `divergencias.csv`, `niveis.csv` — separador `;`, decimal `,`.
 - `modelo.json` — fonte única de dados (o mesmo JSON embutido no HTML).
 

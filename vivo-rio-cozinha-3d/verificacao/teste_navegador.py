@@ -11,9 +11,12 @@ results = []
 def ok(name, cond, info=""):
     results.append((name, bool(cond), info)); print(("OK  " if cond else "FALHA ") + name, info)
 
+REDE = []
 async def route(page):
     async def h(r):
         u = r.request.url
+        if u.startswith("http"):   # o HTML de envio é autocontido: qualquer acesso à rede é falha
+            REDE.append(u); await r.abort(); return
         if "three.min.js" in u: await r.fulfill(path=os.path.join(VENDOR, "build", "three.min.js"), content_type="application/javascript")
         elif "OrbitControls.js" in u: await r.fulfill(path=os.path.join(VENDOR, "examples", "js", "controls", "OrbitControls.js"), content_type="application/javascript")
         elif "fonts.g" in u: await r.fulfill(body="", content_type="text/css")
@@ -178,6 +181,8 @@ async def main():
     async with async_playwright() as pw:
         await run_theme(pw, "light", "claro")
         await run_theme(pw, "dark", "escuro")
+    json.dump([dict(teste=a, ok=b, info=c) for a,b,c in results], open(os.path.join(HERE, "resultado_navegador.json"), "w"), ensure_ascii=False, indent=1)
+    ok("arquivo autocontido: nenhum acesso à rede", not REDE, str(REDE[:3]))
     json.dump([dict(teste=a, ok=b, info=c) for a,b,c in results], open(os.path.join(HERE, "resultado_navegador.json"), "w"), ensure_ascii=False, indent=1)
     print(sum(1 for r in results if r[1]), "/", len(results), "ok")
 asyncio.run(main())
