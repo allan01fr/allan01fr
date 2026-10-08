@@ -1055,7 +1055,7 @@ function frame(now){
 buildFilters(); legend(); cutUI();
 setView('persp'); themeColors(); renderTab();
 requestAnimationFrame(frame);
-window.__app = {M, state, center:(x,y,z,d)=>center(new THREE.Vector3(x,y,z),d), gotoId, gotoDiv, setView, toggleMeasure, pickAt, toScreen, ptById, applyVisibility, buildFilters, setSel, snapAt, addCota, CSV, camera:()=>camera, labels};
+window.__app = {M, state, center:(x,y,z,d)=>center(new THREE.Vector3(x,y,z),d), gotoId, gotoDiv, setView, toggleMeasure, pickAt, toScreen, ptById, applyVisibility, buildFilters, setSel, snapAt, addCota, CSV, camera:()=>camera, controls:()=>controls, labels};
 })();
 </script>
 </body>

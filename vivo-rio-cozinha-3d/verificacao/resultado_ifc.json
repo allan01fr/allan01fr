@@ -1,0 +1,112 @@
+[
+ {
+  "teste": "pontos",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "trechos de tubo",
+  "ok": true,
+  "info": "142/142"
+ },
+ {
+  "teste": "dutos",
+  "ok": true,
+  "info": "61/61"
+ },
+ {
+  "teste": "ventiladores",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "coifas + difusores + captores",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "louças",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "ambientes",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "todos os elementos com geometria tesselam",
+  "ok": true,
+  "info": "683/683"
+ },
+ {
+  "teste": "tubos: extremidades de cada segmento dentro da geometria IFC",
+  "ok": true,
+  "info": "[]"
+ },
+ {
+  "teste": "dutos: extremidades do eixo dentro da geometria IFC",
+  "ok": true,
+  "info": "[]"
+ },
+ {
+  "teste": "dutos: seção e comprimento conferem com o JSON",
+  "ok": true,
+  "info": "60 dutos alinhados aos eixos; []"
+ },
+ {
+  "teste": "pontos na posição do JSON",
+  "ok": true,
+  "info": "[]"
+ },
+ {
+  "teste": "paredes na posição do JSON",
+  "ok": true,
+  "info": "[]"
+ },
+ {
+  "teste": "todo elemento tem Pset_KaptekOrigem (situação + memória)",
+  "ok": true,
+  "info": "[]"
+ },
+ {
+  "teste": "PENDENTE filtrável por propriedade",
+  "ok": true,
+  "info": "5"
+ },
+ {
+  "teste": "sistemas de distribuição",
+  "ok": true,
+  "info": "{'HID-AF': 88, 'GAS': 22, 'SAN-ESG': 116, 'HID-AQ': 22, 'DRE': 40, 'EXA': 45, 'EXG': 5, 'INS': 31, 'AEX': 13}"
+ },
+ {
+  "teste": "todo elemento contido num pavimento",
+  "ok": true,
+  "info": "[]"
+ },
+ {
+  "teste": "BCF: um tópico por divergência",
+  "ok": true,
+  "info": "25"
+ },
+ {
+  "teste": "BCF: todos os componentes citados existem no IFC",
+  "ok": true,
+  "info": "0"
+ },
+ {
+  "teste": "BCF: aponta para o IfcProject do modelo",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "BCF: imagem em cada tópico",
+  "ok": true,
+  "info": "25/25"
+ },
+ {
+  "teste": "BCF: XML válido contra os XSD oficiais 2.1",
+  "ok": true,
+  "info": ""
+ }
+]
