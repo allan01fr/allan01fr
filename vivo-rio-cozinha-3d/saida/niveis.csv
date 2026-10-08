@@ -28,4 +28,10 @@ N-DESP;Despensa;piso do ambiente;-2,87;-3,24;;;;INFERIDO;"sem marca; adotado o n
 N-DBEB;Depósito de bebidas;piso do ambiente;-2,87;-3,24;;;;INFERIDO;"sem marca; adotado o nível da circulação (M6)"
 N-GAL;Galeria técnica;piso do ambiente;-2,87;-3,24;;;;INFERIDO;"galeria sem marca de nível; adotado −2,87 (limite da folha)"
 N-DIST;Distribuição de água/gás;tubulação;;;-0,020000000000000018;;;INFERIDO;PA + 2.85 (premissa P5)
-N-TOPO;Topo das paredes / laje;laje;;;0,1299999999999999;;;PENDENTE;PA + 3,00 (premissa P7) — fundo de laje não cotado
+N-TERREO;Térreo (topo da laje do subsolo);laje;1,5;;1,5;;;EXTRAÍDO;fluxograma TDM001-ARC-PJ-E-R-012
+N-FUNDO;Fundo da laje do térreo;laje;;;1,25;;;INFERIDO;térreo − 0.25 (espessura adotada, premissa P7)
+N-LTEC;Laje técnica (ventiladores);laje;8,36;;8,36;;;EXTRAÍDO;fluxograma / relatório PA-COZINHA-003
+N-COB;Cobertura (descarga);laje;20,93;;20,93;;;EXTRAÍDO;fluxograma / relatório PA-COZINHA-003
+N-DUTO-AE;Topo dos dutos de ar exterior e insuflamento;duto;;;1,2;;;INFERIDO;premissa P12
+N-DUTO-EX;Topo dos dutos de exaustão;duto;;;0,6;;;INFERIDO;premissa P12
+N-COIFA;Borda inferior das coifas;coifa;;;-0,87;;;INFERIDO;memorial 2006 (1,90–2,10 m)

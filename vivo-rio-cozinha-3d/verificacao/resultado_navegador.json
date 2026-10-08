@@ -22,12 +22,12 @@
  {
   "teste": "filtro Esgoto esconde divergências SAN e as traz de volta",
   "ok": true,
-  "info": "18 → 8 → 18 (SAN=13, marcadores visíveis c/ filtro: 6)"
+  "info": "25 → 15 → 25 (SAN=13, marcadores visíveis c/ filtro: 11)"
  },
  {
   "teste": "divergência só-ARQ segue a camada de arquitetura",
   "ok": true,
-  "info": "18 → 17"
+  "info": "25 → 24"
  },
  {
   "teste": "clicar divergência religa a disciplina",
@@ -71,6 +71,26 @@
  },
  {
   "teste": "busca com sugestões",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "clique por proximidade seleciona o duto e abre o registro",
+  "ok": true,
+  "info": "D-EXA-SS-002 | 'Não executar — pendente\\nDuto de exaustão\\nExaustão da cozinha · seção 3'"
+ },
+ {
+  "teste": "filtros de exaustão/ventilação escondem e trazem as divergências MEC",
+  "ok": true,
+  "info": "25 → 18 → 25 (só MEC: 7)"
+ },
+ {
+  "teste": "export dutos.csv",
+  "ok": true,
+  "info": "61 linhas"
+ },
+ {
+  "teste": "seleciona coifa pela busca",
   "ok": true,
   "info": ""
  },

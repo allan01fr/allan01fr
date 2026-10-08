@@ -1,17 +1,21 @@
 # Vivo Rio — Cozinha de banquetes (subsolo) · modelo 3D de tubulações
 
-Fonte: prancha **TOM001-COZ-PJ-E-R-006-R001** ("Cozinha – pontos elet. e hidr.", R001, 09/01/2006),
-memorial de equipamentos COZINHA-SUBSOLO. O projeto hidrossanitário predial (`hidráulica.zip`) não
-estava acessível; ver DIV-001.
+Fontes:
+- **TOM001-COZ-PJ-E-R-006-R001** ("Cozinha – pontos elet. e hidr.", R001, 09/01/2006) — pontos hidráulicos, níveis, paredes.
+- **As-built de exaustão do subsolo, Fase 2** (Anexo D do PA-COZINHA-003, 1:35, 27/08/2026) — dutos de exaustão, insuflamento e ar exterior.
+- **Fluxogramas TDM001-ARC-PJ-E-R-012** e relatório **PA-COZINHA-003/2026 rev. 02** — prumadas, ventiladores e níveis (+1,50 / +8,36 / +20,93).
+- Memorial de equipamentos COZINHA-SUBSOLO.
+
+O projeto hidrossanitário predial (`hidráulica.zip`) não estava acessível; ver DIV-001.
 
 ## Entregáveis (`saida/`)
 - `modelo_3d_tubulacoes.html` — visualizador autocontido (Three.js r128 via CDN), abre direto no navegador.
-- `pontos.csv`, `trechos.csv`, `divergencias.csv`, `niveis.csv` — separador `;`, decimal `,`.
+- `pontos.csv`, `trechos.csv`, `dutos.csv`, `divergencias.csv`, `niveis.csv` — separador `;`, decimal `,`.
 - `modelo.json` — fonte única de dados (o mesmo JSON embutido no HTML).
 
 ## Reconstruir
 ```
-python3 build_data.py   # lê fonte/ e gera saida/modelo.json (IDs estáveis em fonte/registro_ids.json)
+python3 build_data.py   # lê fonte/ (inclui fonte/dutos_subsolo.py via bloco_dutos.py) e gera saida/modelo.json
 python3 build.py        # injeta o JSON no template.html e grava HTML + CSVs
 ```
 
@@ -25,7 +29,9 @@ python3 build.py        # injeta o JSON no template.html e grava HTML + CSVs
 | Louças com folga > 3 cm | 7 (registradas como DIV-012 a DIV-018; 2 bancadas em ilha) |
 | Pontos sem parede de referência | 0 |
 | Locação × medida independente no vetor | 117 de 129 pontos com diferença ≤ 1 cm (`verificacao/locacao_independente.py`) |
-| Navegador headless (claro, escuro, celular) | 18 de 18 testes OK, sem erro de console (`verificacao/teste_navegador.py`) |
+| Dutos: pontas ligadas a outro duto, prumada, captor ou terminal declarado | 54 de 54 |
+| Dutos do modelo × as-built (sobreposição pela transformação inversa) | `verificacao/sobreposicao/sobreposicao_dutos_anexoD.png` |
+| Navegador headless (claro, escuro, celular) | 22 de 22 testes OK, sem erro de console (`verificacao/teste_navegador.py`) |
 | Escala | 1:96 medida (5 câmaras do memorial, desvio ≤ 0,3 %) — o carimbo diz 1:50 (DIV-002) |
 
 Sobreposição do modelo sobre a prancha: `verificacao/sobreposicao/`. Screenshots: `verificacao/screenshots/`.

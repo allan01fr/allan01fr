@@ -101,6 +101,58 @@
    "vetorial": "?",
    "texto": "?",
    "uso": "NÃO DISPONÍVEL — acima do limite de 10 MB do conector"
+  },
+  {
+   "codigo": "Anexo D — dutos exaustão subsolo",
+   "curta": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "disciplina": "MEC (exaustão, insuflamento, ar exterior)",
+   "pavimento": "Subsolo",
+   "escala": "1:35 (conferida)",
+   "rev": "Fase 2",
+   "data": "27/08/2026",
+   "arquivo": "PA-COZINHA-003-2026_Anexo-D_Planta-Subsolo.pdf",
+   "vetorial": "sim (30.007 objetos)",
+   "texto": "só o carimbo (rótulos vetorizados)",
+   "uso": "Traçado dos dutos, prumadas, captores e difusores"
+  },
+  {
+   "codigo": "TDM001-ARC-PJ-E-R-012",
+   "curta": "Fluxogramas de exaustão e ventilação",
+   "disciplina": "MEC",
+   "pavimento": "todos",
+   "escala": "sem escala",
+   "rev": "Projeto final",
+   "data": "2006",
+   "arquivo": "FLUXOGRAMAVENTILAÇÃO.pdf",
+   "vetorial": "sim",
+   "texto": "não (folha girada 180°)",
+   "uso": "Topologia, seções das prumadas, níveis dos pavimentos e ventiladores"
+  },
+  {
+   "codigo": "PA-COZINHA-003/2026 rev. 02",
+   "curta": "Relatório de adequação",
+   "disciplina": "MEC",
+   "pavimento": "—",
+   "escala": "—",
+   "rev": "02",
+   "data": "28/08/2026",
+   "arquivo": "PA-COZINHA-003-2026.pdf",
+   "vetorial": "—",
+   "texto": "sim",
+   "uso": "Níveis (−2,87 / +8,36 / +20,93), ventiladores e verificações de velocidade"
+  },
+  {
+   "codigo": "Anexo C — layout as-built",
+   "curta": "Layout as-built Fase 2",
+   "disciplina": "ARQ",
+   "pavimento": "Subsolo",
+   "escala": "1:45",
+   "rev": "Fase 2",
+   "data": "27/08/2026",
+   "arquivo": "PA-COZINHA-003-2026_Anexo-C_Planta-Terreo.pdf",
+   "vetorial": "sim",
+   "texto": "parcial",
+   "uso": "Conferência das coifas (8,30 m da coifa C)"
   }
  ],
  "premissas": [
@@ -130,7 +182,7 @@
   },
   {
    "id": "P7",
-   "texto": "Pé-direito não cotado: topo das paredes adotado a 3,00 m sobre o PA (INFERIDO)."
+   "texto": "Térreo a +1,50 (fluxograma de exaustão); laje adotada com 0.25 m, fundo a +1.25. Paredes do subsolo sobem até o fundo da laje (INFERIDO)."
   },
   {
    "id": "P8",
@@ -142,7 +194,19 @@
   },
   {
    "id": "P10",
-   "texto": "Ventilação e pluvial não aparecem na prancha de pontos e não foram modelados (dependem do projeto hidrossanitário)."
+   "texto": "Ventilação sanitária e pluvial não aparecem nas pranchas disponíveis e não foram modeladas (dependem do projeto hidrossanitário)."
+  },
+  {
+   "id": "P11",
+   "texto": "Dutos: planta do as-built da Fase 2 (1:35) registrada sobre o modelo por pontos de controle nas faces internas das salas de lavagem; escala conferida em 4 medidas (desvio ≤ 0,1 %)."
+  },
+  {
+   "id": "P12",
+   "texto": "Alturas dos dutos (INFERIDO): ar exterior e insuflamento com topo a +1.20; exaustão com topo a +0.60; coifas com borda inferior a 2.00 m do piso e 0,60 m de altura."
+  },
+  {
+   "id": "P13",
+   "texto": "Prumadas, ventiladores (laje técnica +8,36) e descargas (cobertura +20,93) seguem o fluxograma TDM001-ARC-PJ-E-R-012; o traçado em planta acima do térreo é INFERIDO (vertical)."
   }
  ],
  "niveis": [
@@ -467,16 +531,88 @@
    "z": -0.020000000000000018
   },
   {
-   "id": "N-TOPO",
-   "ambiente": "Topo das paredes / laje",
+   "id": "N-TERREO",
+   "ambiente": "Térreo (topo da laje do subsolo)",
+   "tipo": "laje",
+   "pa": 1.5,
+   "po": null,
+   "x": null,
+   "y": null,
+   "fonte": "fluxograma TDM001-ARC-PJ-E-R-012",
+   "status": "EXTRAÍDO",
+   "z": 1.5
+  },
+  {
+   "id": "N-FUNDO",
+   "ambiente": "Fundo da laje do térreo",
    "tipo": "laje",
    "pa": null,
    "po": null,
    "x": null,
    "y": null,
-   "fonte": "PA + 3,00 (premissa P7) — fundo de laje não cotado",
-   "status": "PENDENTE",
-   "z": 0.1299999999999999
+   "fonte": "térreo − 0.25 (espessura adotada, premissa P7)",
+   "status": "INFERIDO",
+   "z": 1.25
+  },
+  {
+   "id": "N-LTEC",
+   "ambiente": "Laje técnica (ventiladores)",
+   "tipo": "laje",
+   "pa": 8.36,
+   "po": null,
+   "x": null,
+   "y": null,
+   "fonte": "fluxograma / relatório PA-COZINHA-003",
+   "status": "EXTRAÍDO",
+   "z": 8.36
+  },
+  {
+   "id": "N-COB",
+   "ambiente": "Cobertura (descarga)",
+   "tipo": "laje",
+   "pa": 20.93,
+   "po": null,
+   "x": null,
+   "y": null,
+   "fonte": "fluxograma / relatório PA-COZINHA-003",
+   "status": "EXTRAÍDO",
+   "z": 20.93
+  },
+  {
+   "id": "N-DUTO-AE",
+   "ambiente": "Topo dos dutos de ar exterior e insuflamento",
+   "tipo": "duto",
+   "pa": null,
+   "po": null,
+   "x": null,
+   "y": null,
+   "fonte": "premissa P12",
+   "status": "INFERIDO",
+   "z": 1.2
+  },
+  {
+   "id": "N-DUTO-EX",
+   "ambiente": "Topo dos dutos de exaustão",
+   "tipo": "duto",
+   "pa": null,
+   "po": null,
+   "x": null,
+   "y": null,
+   "fonte": "premissa P12",
+   "status": "INFERIDO",
+   "z": 0.6
+  },
+  {
+   "id": "N-COIFA",
+   "ambiente": "Borda inferior das coifas",
+   "tipo": "coifa",
+   "pa": null,
+   "po": null,
+   "x": null,
+   "y": null,
+   "fonte": "memorial 2006 (1,90–2,10 m)",
+   "status": "INFERIDO",
+   "z": -0.87
   }
  ],
  "ambientes": [
@@ -1048,7 +1184,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      216.52,
@@ -1073,7 +1209,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      296.8,
@@ -1098,7 +1234,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      485.98,
@@ -1123,7 +1259,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      559.96,
@@ -1148,7 +1284,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      626.2,
@@ -1173,7 +1309,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      925.18,
@@ -1198,7 +1334,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      968.02,
@@ -1223,7 +1359,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      179.62,
@@ -1248,7 +1384,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      594.88,
@@ -1273,7 +1409,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      893.68,
@@ -1298,7 +1434,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      936.52,
@@ -1323,7 +1459,7 @@
    ],
    "esp": 0.317,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1080.7,
@@ -1348,7 +1484,7 @@
    ],
    "esp": 0.159,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1075.48,
@@ -1373,7 +1509,7 @@
    ],
    "esp": 0.177,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1096.0,
@@ -1398,7 +1534,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1200.76,
@@ -1423,7 +1559,7 @@
    ],
    "esp": 0.207,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1076.02,
@@ -1448,7 +1584,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1075.48,
@@ -1473,7 +1609,7 @@
    ],
    "esp": 0.195,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      976.66,
@@ -1498,7 +1634,7 @@
    ],
    "esp": 0.159,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1202.2,
@@ -1523,7 +1659,7 @@
    ],
    "esp": 0.159,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1228.12,
@@ -1548,7 +1684,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      316.24,
@@ -1573,7 +1709,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      416.14,
@@ -1598,7 +1734,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      464.38,
@@ -1623,7 +1759,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      485.98,
@@ -1648,7 +1784,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      660.4,
@@ -1673,7 +1809,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      823.84,
@@ -1698,7 +1834,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      976.66,
@@ -1723,7 +1859,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1075.48,
@@ -1748,7 +1884,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1126.24,
@@ -1773,7 +1909,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      433.06,
@@ -1798,7 +1934,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      792.34,
@@ -1823,7 +1959,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      892.6,
@@ -1848,7 +1984,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1053.16,
@@ -1873,7 +2009,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1094.74,
@@ -1898,7 +2034,7 @@
    ],
    "esp": 0.226,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      689.92,
@@ -1923,7 +2059,7 @@
    ],
    "esp": 0.226,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      728.62,
@@ -1948,7 +2084,7 @@
    ],
    "esp": 0.226,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      752.2,
@@ -1973,7 +2109,7 @@
    ],
    "esp": 0.226,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      676.6,
@@ -1998,7 +2134,7 @@
    ],
    "esp": 0.226,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      738.88,
@@ -2023,7 +2159,7 @@
    ],
    "esp": 0.226,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      762.64,
@@ -2048,7 +2184,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      586.06,
@@ -2073,7 +2209,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      647.62,
@@ -2098,7 +2234,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      828.7,
@@ -2123,7 +2259,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      213.28,
@@ -2148,7 +2284,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      775.96,
@@ -2173,7 +2309,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1052.26,
@@ -2198,7 +2334,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1119.22,
@@ -2223,7 +2359,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1156.66,
@@ -2248,7 +2384,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1223.08,
@@ -2273,7 +2409,7 @@
    ],
    "esp": 0.232,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      177.82,
@@ -2298,7 +2434,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      174.94,
@@ -2323,7 +2459,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1144.24,
@@ -2348,7 +2484,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1223.62,
@@ -2373,7 +2509,7 @@
    ],
    "esp": 0.201,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1072.51,
@@ -2398,7 +2534,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      313.36,
@@ -2423,7 +2559,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      483.1,
@@ -2448,7 +2584,7 @@
    ],
    "esp": 0.189,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1078.27,
@@ -2473,7 +2609,7 @@
    ],
    "esp": 0.195,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1083.94,
@@ -2498,7 +2634,7 @@
    ],
    "esp": 0.207,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1144.42,
@@ -2523,7 +2659,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1223.62,
@@ -2548,7 +2684,7 @@
    ],
    "esp": 0.311,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1091.41,
@@ -2573,7 +2709,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1072.78,
@@ -2598,7 +2734,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1144.24,
@@ -2623,7 +2759,7 @@
    ],
    "esp": 0.152,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1199.95,
@@ -2648,7 +2784,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1072.78,
@@ -2673,7 +2809,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1144.24,
@@ -2698,7 +2834,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      973.78,
@@ -2723,7 +2859,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      313.36,
@@ -2748,7 +2884,7 @@
    ],
    "esp": 0.165,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      353.95,
@@ -2773,7 +2909,7 @@
    ],
    "esp": 0.165,
    "z0": -3.07,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      435.31,
@@ -2798,7 +2934,7 @@
    ],
    "esp": 0.171,
    "z0": -3.07,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      582.1,
@@ -2823,7 +2959,7 @@
    ],
    "esp": 0.171,
    "z0": -3.07,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      844.36,
@@ -2848,7 +2984,7 @@
    ],
    "esp": 0.171,
    "z0": -3.07,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1050.28,
@@ -2873,7 +3009,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      1154.5,
@@ -2898,7 +3034,7 @@
    ],
    "esp": 0.207,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      210.76,
@@ -2923,7 +3059,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      664.9,
@@ -2948,7 +3084,7 @@
    ],
    "esp": 0.165,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      754.63,
@@ -2973,7 +3109,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      664.9,
@@ -2998,7 +3134,7 @@
    ],
    "esp": 0.165,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      754.63,
@@ -3023,7 +3159,7 @@
    ],
    "esp": 0.165,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      754.63,
@@ -3048,7 +3184,7 @@
    ],
    "esp": 0.165,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      754.63,
@@ -3073,7 +3209,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      664.9,
@@ -3098,7 +3234,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      664.9,
@@ -3123,7 +3259,7 @@
    ],
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      559.42,
@@ -3149,7 +3285,7 @@
    ],
    "esp": 0.091,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      936.52,
@@ -3175,7 +3311,7 @@
    ],
    "esp": 0.091,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      893.68,
@@ -3201,7 +3337,7 @@
    ],
    "esp": 0.098,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      936.52,
@@ -3227,7 +3363,7 @@
    ],
    "esp": 0.098,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      893.68,
@@ -3253,7 +3389,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      814.12,
@@ -3279,7 +3415,7 @@
    ],
    "esp": 0.226,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      660.94,
@@ -3305,7 +3441,7 @@
    ],
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "pt": [
     [
      973.78,
@@ -3935,7 +4071,7 @@
    "largura": 0.44,
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -3957,7 +4093,7 @@
    "largura": 0.48,
    "esp": 0.226,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -3979,7 +4115,7 @@
    "largura": 0.79,
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 0.0,
    "verga": 2.1,
    "status": "INFERIDO",
@@ -4000,7 +4136,7 @@
    "largura": 0.82,
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -4021,7 +4157,7 @@
    "largura": 0.86,
    "esp": 0.226,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -4042,7 +4178,7 @@
    "largura": 0.86,
    "esp": 0.226,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -4063,7 +4199,7 @@
    "largura": 0.91,
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -4084,7 +4220,7 @@
    "largura": 1.0,
    "esp": 0.226,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 0.0,
    "verga": 2.1,
    "status": "INFERIDO",
@@ -4105,7 +4241,7 @@
    "largura": 1.0,
    "esp": 0.091,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -4127,7 +4263,7 @@
    "largura": 1.0,
    "esp": 0.091,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -4149,7 +4285,7 @@
    "largura": 1.0,
    "esp": 0.098,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -4171,7 +4307,7 @@
    "largura": 1.0,
    "esp": 0.098,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -4193,7 +4329,7 @@
    "largura": 1.07,
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 0.0,
    "verga": 2.1,
    "status": "INFERIDO",
@@ -4214,7 +4350,7 @@
    "largura": 1.1,
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -4235,7 +4371,7 @@
    "largura": 1.11,
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -4256,7 +4392,7 @@
    "largura": 1.12,
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -4277,7 +4413,7 @@
    "largura": 1.13,
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -4298,7 +4434,7 @@
    "largura": 1.13,
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -4319,7 +4455,7 @@
    "largura": 1.13,
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -4340,7 +4476,7 @@
    "largura": 1.14,
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -4361,7 +4497,7 @@
    "largura": 1.14,
    "esp": 0.165,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -4382,7 +4518,7 @@
    "largura": 1.26,
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -4404,7 +4540,7 @@
    "largura": 1.5,
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 0.0,
    "verga": 2.1,
    "status": "INFERIDO",
@@ -4425,7 +4561,7 @@
    "largura": 1.53,
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 0.0,
    "verga": 2.1,
    "status": "INFERIDO",
@@ -4446,7 +4582,7 @@
    "largura": 1.53,
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 0.0,
    "verga": 2.1,
    "status": "INFERIDO",
@@ -4467,7 +4603,7 @@
    "largura": 1.53,
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 0.0,
    "verga": 2.1,
    "status": "INFERIDO",
@@ -4488,7 +4624,7 @@
    "largura": 1.68,
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 0.0,
    "verga": 2.1,
    "status": "INFERIDO",
@@ -4509,7 +4645,7 @@
    "largura": 1.73,
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 0.0,
    "verga": 2.1,
    "status": "INFERIDO",
@@ -4530,7 +4666,7 @@
    "largura": 1.9,
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -4552,7 +4688,7 @@
    "largura": 1.93,
    "esp": 0.201,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 0.0,
    "verga": 2.1,
    "status": "INFERIDO",
@@ -4615,7 +4751,7 @@
    "largura": 2.01,
    "esp": 0.22,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 0.0,
    "verga": 2.1,
    "status": "INFERIDO",
@@ -4636,7 +4772,7 @@
    "largura": 2.23,
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -4657,7 +4793,7 @@
    "largura": 2.34,
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 0.0,
    "verga": 2.1,
    "status": "INFERIDO",
@@ -4678,7 +4814,7 @@
    "largura": 2.4,
    "esp": 0.171,
    "z0": -2.87,
-   "z1": 0.13,
+   "z1": 1.25,
    "peitoril": 1.3,
    "verga": 2.1,
    "status": "EXTRAÍDO",
@@ -18946,11 +19082,12 @@
   {
    "id": "DIV-008",
    "tipo": "Níveis não cotados",
-   "descricao": "Pé-direito, forro e fundo de laje não estão cotados. Adotados: topo de parede = PA + 3,00 m e distribuição a 2,85 m do piso (INFERIDO). PA dos ambientes da cozinha sem marca própria: adotado −2,87.",
+   "descricao": "Forro e fundo de laje não estão cotados nas plantas. O fluxograma de exaustão dá o térreo a +1,50 (o relatório PA-COZINHA-003 usa 4,39 m de pé-direito, isto é, +1,52). Adotados: fundo de laje +1.25 (laje de 0.25 m), topo das paredes no fundo da laje e distribuição de água a 2,85 m do piso (INFERIDO). PA dos ambientes da cozinha sem marca própria: adotado −2,87.",
    "gravidade": "Média",
    "disciplinas": [
     "ARQ",
-    "HID"
+    "HID",
+    "MEC"
    ],
    "ids": [],
    "pos": [
@@ -18959,11 +19096,163 @@
     -0.020000000000000018
    ],
    "pranchas": [
-    "TOM001-COZ-PJ-E-R-006-R001"
+    "TOM001-COZ-PJ-E-R-006-R001",
+    "TDM001-ARC-PJ-E-R-012 (fluxogramas)"
    ]
   },
   {
    "id": "DIV-009",
+   "tipo": "Trecho removido",
+   "descricao": "O ramal de exaustão da lavadora de louças (EC-30x40 e captor) está marcado no as-built como 'removido / refazer'. Modelado como PENDENTE: não há duto instalado entre a coifa da lavadora e o coletor do corredor norte.",
+   "gravidade": "Alta",
+   "disciplinas": [
+    "MEC"
+   ],
+   "ids": [
+    "D-EXA-SS-001",
+    "D-EXA-SS-002",
+    "D-EXA-SS-022"
+   ],
+   "pos": [
+    -0.57,
+    10.375,
+    0.4
+   ],
+   "pranchas": [
+    "PLANTA BAIXA SUBSOLO COZINHA DUTOS EXAUSTÃO — AS BUILT PARA ADEQUAÇÕES (Kaptek, 27/08/2026, 1:35)"
+   ]
+  },
+  {
+   "id": "DIV-010",
+   "tipo": "Shaft não desenhado",
+   "descricao": "As prumadas sobem da cozinha (subsolo) até a laje técnica (+8,36) e daí à cobertura (+20,93), mas o traçado do shaft entre lajes não está em nenhuma planta disponível; a planta parcial da laje técnica (Anexo E) não tem referência comum para registro. Prumadas, ventiladores e descargas foram modelados na vertical das caixas do subsolo (INFERIDO).",
+   "gravidade": "Média",
+   "disciplinas": [
+    "MEC"
+   ],
+   "ids": [
+    "D-EXA-SH-001",
+    "D-EXA-DS-001",
+    "D-EXA-SH-002",
+    "D-EXA-DS-002",
+    "D-EXA-SH-003",
+    "D-EXA-DS-003"
+   ],
+   "pos": null,
+   "pranchas": [
+    "TDM001-ARC-PJ-E-R-012 (fluxogramas)",
+    "Anexo E — laje técnica (1:25)"
+   ]
+  },
+  {
+   "id": "DIV-011",
+   "tipo": "Exaustor não identificado",
+   "descricao": "O duto E-85x50 (exaustão geral, ligado às grelhas do Gelo e ao corredor) sobe em prumada própria, mas o exaustor correspondente não aparece no fluxograma da cozinha.",
+   "gravidade": "Média",
+   "disciplinas": [
+    "MEC"
+   ],
+   "ids": [
+    "D-EXG-SS-001",
+    "D-EXG-SS-002",
+    "D-EXG-SS-003",
+    "D-EXG-SS-004",
+    "D-EXG-SS-005"
+   ],
+   "pos": [
+    17.5,
+    8.867,
+    0.35
+   ],
+   "pranchas": [
+    "PLANTA BAIXA SUBSOLO COZINHA DUTOS EXAUSTÃO — AS BUILT PARA ADEQUAÇÕES (Kaptek, 27/08/2026, 1:35)",
+    "TDM001-ARC-PJ-E-R-012 (fluxogramas)"
+   ]
+  },
+  {
+   "id": "DIV-012",
+   "tipo": "Seção",
+   "descricao": "Coletor da coifa C: largura medida 0,50 m no as-built, rótulo 'EC-60x50' junto à descida de 0,60 m. Adotado 0,50 (largura) × 0,60 (altura); confirmar em campo.",
+   "gravidade": "Baixa",
+   "disciplinas": [
+    "MEC"
+   ],
+   "ids": [
+    "D-EXA-SS-009"
+   ],
+   "pos": [
+    12.012,
+    13.901,
+    0.3
+   ],
+   "pranchas": [
+    "PLANTA BAIXA SUBSOLO COZINHA DUTOS EXAUSTÃO — AS BUILT PARA ADEQUAÇÕES (Kaptek, 27/08/2026, 1:35)"
+   ]
+  },
+  {
+   "id": "DIV-013",
+   "tipo": "Velocidade no duto",
+   "descricao": "Relatório PA-COZINHA-003 (seção 5.4): a prumada de sucção da Exaustão 2 (E-60x50) fica acima do limite de 12,5 m/s com a vazão de projeto da adequação (13,28 m/s pelo Método I; 17,15 m/s pelo Método II). A prumada modelada é a existente.",
+   "gravidade": "Alta",
+   "disciplinas": [
+    "MEC"
+   ],
+   "ids": [
+    "D-EXA-SS-013"
+   ],
+   "pos": [
+    15.042,
+    9.691,
+    0.35
+   ],
+   "pranchas": [
+    "PA-COZINHA-003/2026 rev. 02"
+   ]
+  },
+  {
+   "id": "DIV-014",
+   "tipo": "Coifa (posição e tamanho)",
+   "descricao": "Coifas posicionadas com as dimensões da prancha de 2006 sobre os equipamentos. O as-built da Fase 2 (Anexo C) cota a coifa C com 8,30 m (2006: 6,65 m) e o relatório prevê ajustes de profundidade e de altura (coifa da lavadora a 0,50 m do equipamento). Conferir antes de fabricar.",
+   "gravidade": "Média",
+   "disciplinas": [
+    "MEC",
+    "ARQ"
+   ],
+   "ids": [
+    "COIFA-A",
+    "COIFA-C",
+    "COIFA-B",
+    "COIFA-D",
+    "COIFA-E1",
+    "COIFA-E2"
+   ],
+   "pos": [
+    12.615,
+    13.674,
+    -0.27
+   ],
+   "pranchas": [
+    "TOM001-COZ-PJ-E-R-006-R001",
+    "Anexo C — layout as-built (1:45)",
+    "PA-COZINHA-003/2026 rev. 02"
+   ]
+  },
+  {
+   "id": "DIV-015",
+   "tipo": "Camadas de duto",
+   "descricao": "Altura dos dutos não cotada. Adotado: ar exterior e insuflamento com topo a +1.20 (sob a laje), exaustão com topo a +0.60 (o desenho interrompe a exaustão onde cruza os outros dutos, isto é, ela passa por baixo). Confirmar com levantamento.",
+   "gravidade": "Média",
+   "disciplinas": [
+    "MEC"
+   ],
+   "ids": [],
+   "pos": null,
+   "pranchas": [
+    "PLANTA BAIXA SUBSOLO COZINHA DUTOS EXAUSTÃO — AS BUILT PARA ADEQUAÇÕES (Kaptek, 27/08/2026, 1:35)"
+   ]
+  },
+  {
+   "id": "DIV-016",
    "tipo": "Esquadrias",
    "descricao": "Não há quadro de esquadrias e as etiquetas dos vãos (PA…, JA…) são texto vetorizado não legível por máquina. Portas modeladas pelo vão, com verga a 2,10 m (INFERIDO); painéis de vidro fixo de 1,30 a 2,10 m conforme a legenda.",
    "gravidade": "Baixa",
@@ -18977,7 +19266,7 @@
    ]
   },
   {
-   "id": "DIV-010",
+   "id": "DIV-017",
    "tipo": "Data da prancha",
    "descricao": "A prancha de pontos é de 09/01/2006 (projeto executivo, R001). Existem as-builts posteriores (exaustão, 2026) que podem ter alterado o layout; conferir no local antes de executar.",
    "gravidade": "Média",
@@ -18993,7 +19282,7 @@
    ]
   },
   {
-   "id": "DIV-011",
+   "id": "DIV-018",
    "tipo": "Registro não posicionado",
    "descricao": "Nota da prancha: 'deixar um registro geral na entrada da tubulação de gás p/ a cozinha'. A posição do registro não está desenhada.",
    "gravidade": "Média",
@@ -19013,7 +19302,7 @@
    ]
   },
   {
-   "id": "DIV-012",
+   "id": "DIV-019",
    "tipo": "Louça x parede",
    "descricao": "Tampo / pia inox (item 07) (EQ-048): afastada 3 cm da face da parede (tolerância 3 cm) no desenho de layout.",
    "gravidade": "Baixa",
@@ -19035,7 +19324,7 @@
    ]
   },
   {
-   "id": "DIV-013",
+   "id": "DIV-020",
    "tipo": "Louça x parede",
    "descricao": "Pia lavatório de mãos (item 24) (EQ-005): afastada 5 cm da face da parede (tolerância 3 cm) no desenho de layout.",
    "gravidade": "Baixa",
@@ -19057,7 +19346,7 @@
    ]
   },
   {
-   "id": "DIV-014",
+   "id": "DIV-021",
    "tipo": "Louça x parede",
    "descricao": "Mesa de lavagem com cuba (item 40) (EQ-022): afastada 10 cm da face da parede (tolerância 3 cm) no desenho de layout.",
    "gravidade": "Baixa",
@@ -19079,7 +19368,7 @@
    ]
   },
   {
-   "id": "DIV-015",
+   "id": "DIV-022",
    "tipo": "Louça x parede",
    "descricao": "Tampo / pia inox (item 07) (EQ-029): afastada 3 cm da face da parede (tolerância 3 cm) no desenho de layout.",
    "gravidade": "Baixa",
@@ -19101,7 +19390,7 @@
    ]
   },
   {
-   "id": "DIV-016",
+   "id": "DIV-023",
    "tipo": "Louça x parede",
    "descricao": "Tampo / pia inox (item 07) (EQ-038): afastada 3 cm da face da parede (tolerância 3 cm) no desenho de layout.",
    "gravidade": "Baixa",
@@ -19123,7 +19412,7 @@
    ]
   },
   {
-   "id": "DIV-017",
+   "id": "DIV-024",
    "tipo": "Louça x parede",
    "descricao": "Caixa retentora de detritos (item 20) (EQ-063): afastada 3 cm da face da parede (tolerância 3 cm) no desenho de layout.",
    "gravidade": "Baixa",
@@ -19145,7 +19434,7 @@
    ]
   },
   {
-   "id": "DIV-018",
+   "id": "DIV-025",
    "tipo": "Louça x parede",
    "descricao": "Pia lavatório de mãos (item 24) (EQ-033): afastada 12 cm da face da parede (tolerância 3 cm) no desenho de layout.",
    "gravidade": "Baixa",
@@ -19167,6 +19456,1946 @@
    ]
   }
  ],
+ "dutos": [
+  {
+   "id": "D-EXA-SS-001",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "EC-30x40",
+   "W": 0.3,
+   "H": 0.4,
+   "a": [
+    -1.001,
+    10.375,
+    0.4
+   ],
+   "b": [
+    -0.139,
+    10.375,
+    0.4
+   ],
+   "comprimento": 0.862,
+   "tipo": "horizontal",
+   "status": "PENDENTE",
+   "nota": "Trecho em vermelho tracejado: 'EC- duto de exaustão em chapa de aço preta removido / refazer' (legenda). Liga a coifa da lavadora ao coletor.",
+   "exaustor": "VM-COZ03",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 3.47 m do piso (cota +0.60)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (362.5; 702.0) → (432.3; 702.0) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +0.60 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-EXA-SS-002",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "EC-30x40",
+   "W": 0.3,
+   "H": 0.4,
+   "a": [
+    -0.139,
+    10.375,
+    0.4
+   ],
+   "b": [
+    -0.139,
+    14.695,
+    0.4
+   ],
+   "comprimento": 4.32,
+   "tipo": "horizontal",
+   "status": "PENDENTE",
+   "nota": "Trecho em vermelho tracejado: 'EC- duto de exaustão em chapa de aço preta removido / refazer' (legenda). Liga a coifa da lavadora ao coletor.",
+   "exaustor": "VM-COZ03",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 3.47 m do piso (cota +0.60)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (432.3; 702.0) → (432.3; 352.4) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +0.60 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-EXA-SS-003",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "EC-30x40",
+   "W": 0.3,
+   "H": 0.4,
+   "a": [
+    -0.139,
+    14.695,
+    0.4
+   ],
+   "b": [
+    -0.139,
+    15.308,
+    0.4
+   ],
+   "comprimento": 0.613,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Coletor no corredor norte (linhas laranja y=290,6 e 314,9 pt).",
+   "exaustor": "VM-COZ03",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 3.47 m do piso (cota +0.60)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (432.3; 352.4) → (432.3; 302.8) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +0.60 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-EXA-SS-004",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "EC-30x40",
+   "W": 0.3,
+   "H": 0.4,
+   "a": [
+    -0.139,
+    15.308,
+    0.4
+   ],
+   "b": [
+    8.052,
+    15.308,
+    0.4
+   ],
+   "comprimento": 8.191,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Coletor no corredor norte (linhas laranja y=290,6 e 314,9 pt).",
+   "exaustor": "VM-COZ03",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 3.47 m do piso (cota +0.60)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (432.3; 302.8) → (1095.1; 302.8) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +0.60 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-EXA-SS-005",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "EC-50x40",
+   "W": 0.5,
+   "H": 0.4,
+   "a": [
+    8.052,
+    15.208,
+    0.4
+   ],
+   "b": [
+    16.325,
+    15.208,
+    0.4
+   ],
+   "comprimento": 8.273,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Coletor (y=290,6 e 331,1 pt) e descida em planta até o encontro com o EC-90x40.",
+   "exaustor": "VM-COZ03",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 3.47 m do piso (cota +0.60)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1095.1; 310.9) → (1764.6; 310.9) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +0.60 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-EXA-SS-006",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "EC-50x40",
+   "W": 0.5,
+   "H": 0.4,
+   "a": [
+    16.325,
+    15.208,
+    0.4
+   ],
+   "b": [
+    16.325,
+    13.6,
+    0.4
+   ],
+   "comprimento": 1.608,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Coletor (y=290,6 e 331,1 pt) e descida em planta até o encontro com o EC-90x40.",
+   "exaustor": "VM-COZ03",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 3.47 m do piso (cota +0.60)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1764.6; 310.9) → (1764.6; 441.0) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +0.60 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-EXA-SS-007",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "EC-90x40",
+   "W": 0.9,
+   "H": 0.4,
+   "a": [
+    16.525,
+    13.6,
+    0.4
+   ],
+   "b": [
+    16.525,
+    9.74,
+    0.4
+   ],
+   "comprimento": 3.86,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Linhas x=1744,3 e 1817,2 pt; interrompidas onde cruzam o ar exterior e o insuflamento (passa por baixo).",
+   "exaustor": "VM-COZ03",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 3.47 m do piso (cota +0.60)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1780.8; 441.0) → (1780.8; 753.4) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +0.60 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-EXA-SS-008",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "EC-40x40",
+   "W": 0.4,
+   "H": 0.4,
+   "a": [
+    19.86,
+    13.901,
+    0.4
+   ],
+   "b": [
+    16.975,
+    13.901,
+    0.4
+   ],
+   "comprimento": 2.885,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Ramal da coifa sobre os caldeirões (captor em x=2050,7–2083,1 pt).",
+   "exaustor": "VM-COZ03",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 3.47 m do piso (cota +0.60)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (2050.7; 416.7) → (1817.2; 416.7) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +0.60 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-EXA-SS-009",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "EC-60x50",
+   "W": 0.5,
+   "H": 0.6,
+   "a": [
+    8.983,
+    13.901,
+    0.3
+   ],
+   "b": [
+    15.042,
+    13.901,
+    0.3
+   ],
+   "comprimento": 6.059,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Coletor sobre a coifa de parede (y=396,4 e 437,0 pt); largura medida 0,50 m, altura adotada 0,60 m (rótulo EC-60x50).",
+   "exaustor": "VM-COZ02",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 3.47 m do piso (cota +0.60)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1170.5; 416.7) → (1660.8; 416.7) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +0.60 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-EXA-SS-010",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "EC-60x50",
+   "W": 0.6,
+   "H": 0.5,
+   "a": [
+    15.042,
+    13.901,
+    0.35
+   ],
+   "b": [
+    15.042,
+    9.691,
+    0.35
+   ],
+   "comprimento": 4.21,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Linhas x=1636,5 e 1685,1 pt até a caixa da prumada (737,1–777,6 pt).",
+   "exaustor": "VM-COZ02",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 3.47 m do piso (cota +0.60)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1660.8; 416.7) → (1660.8; 757.4) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +0.60 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-EXA-SS-011",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "EC-50x30",
+   "W": 0.5,
+   "H": 0.3,
+   "a": [
+    9.727,
+    9.691,
+    0.45
+   ],
+   "b": [
+    12.335,
+    9.691,
+    0.45
+   ],
+   "comprimento": 2.608,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Plenum/coletor sobre a coifa A (y=737,1 e 777,6 pt) até a caixa da prumada E-70x50 (x=1413,3–1470,0 pt).",
+   "exaustor": "VM-COZ01",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 3.47 m do piso (cota +0.60)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1230.7; 757.4) → (1441.7; 757.4) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +0.60 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-EXG-SS-001",
+   "sistema": "EXG",
+   "sistema_nome": "Exaustão geral (E-)",
+   "rotulo": "E-85x50",
+   "W": 0.85,
+   "H": 0.5,
+   "a": [
+    17.5,
+    9.691,
+    0.35
+   ],
+   "b": [
+    17.5,
+    8.042,
+    0.35
+   ],
+   "comprimento": 1.649,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Duto E- (exaustão geral) x=1825,3–1894,1 pt; a jusante alarga em transição para o corredor sul.",
+   "exaustor": "não identificado",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 3.47 m do piso (cota +0.60)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1859.7; 757.4) → (1859.7; 890.8) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +0.60 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-EXG-SS-002",
+   "sistema": "EXG",
+   "sistema_nome": "Exaustão geral (E-)",
+   "rotulo": "E-20x15",
+   "W": 0.2,
+   "H": 0.15,
+   "a": [
+    21.932,
+    9.659,
+    0.525
+   ],
+   "b": [
+    21.932,
+    6.526,
+    0.525
+   ],
+   "comprimento": 3.133,
+   "tipo": "horizontal",
+   "status": "INFERIDO",
+   "nota": "Grelhas do Gelo (E-20x15, x=2210,3–2226,5 pt) até o duto do corredor; o trecho do corredor e a transição até o E-85x50 foram simplificados.",
+   "exaustor": "não identificado",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 3.47 m do piso (cota +0.60)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (2218.4; 760.0) → (2218.4; 1013.5) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +0.60 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-EXG-SS-003",
+   "sistema": "EXG",
+   "sistema_nome": "Exaustão geral (E-)",
+   "rotulo": "E-20x15",
+   "W": 0.2,
+   "H": 0.15,
+   "a": [
+    21.932,
+    6.526,
+    0.525
+   ],
+   "b": [
+    18.226,
+    6.526,
+    0.525
+   ],
+   "comprimento": 3.706,
+   "tipo": "horizontal",
+   "status": "INFERIDO",
+   "nota": "Grelhas do Gelo (E-20x15, x=2210,3–2226,5 pt) até o duto do corredor; o trecho do corredor e a transição até o E-85x50 foram simplificados.",
+   "exaustor": "não identificado",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 3.47 m do piso (cota +0.60)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (2218.4; 1013.5) → (1918.5; 1013.5) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +0.60 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-EXG-SS-004",
+   "sistema": "EXG",
+   "sistema_nome": "Exaustão geral (E-)",
+   "rotulo": "E-20x15",
+   "W": 0.2,
+   "H": 0.15,
+   "a": [
+    18.226,
+    6.526,
+    0.525
+   ],
+   "b": [
+    17.5,
+    8.042,
+    0.525
+   ],
+   "comprimento": 1.681,
+   "tipo": "horizontal",
+   "status": "INFERIDO",
+   "nota": "Grelhas do Gelo (E-20x15, x=2210,3–2226,5 pt) até o duto do corredor; o trecho do corredor e a transição até o E-85x50 foram simplificados.",
+   "exaustor": "não identificado",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 3.47 m do piso (cota +0.60)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1918.5; 1013.5) → (1859.7; 890.8) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +0.60 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-INS-SS-001",
+   "sistema": "INS",
+   "sistema_nome": "Insuflamento",
+   "rotulo": "I-50x40",
+   "W": 0.5,
+   "H": 0.4,
+   "a": [
+    2.471,
+    12.514,
+    1.0
+   ],
+   "b": [
+    6.371,
+    12.514,
+    1.0
+   ],
+   "comprimento": 3.9,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Linhas magenta y=508,7 e 549,1 pt.",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (643.5; 528.9) → (959.1; 528.9) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-INS-SS-002",
+   "sistema": "INS",
+   "sistema_nome": "Insuflamento",
+   "rotulo": "I-50x50",
+   "W": 0.5,
+   "H": 0.5,
+   "a": [
+    6.371,
+    12.514,
+    0.95
+   ],
+   "b": [
+    8.466,
+    12.514,
+    0.95
+   ],
+   "comprimento": 2.095,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Continuação em azul (mesma largura).",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (959.1; 528.9) → (1128.6; 528.9) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-INS-SS-003",
+   "sistema": "INS",
+   "sistema_nome": "Insuflamento",
+   "rotulo": "I-30x50",
+   "W": 0.3,
+   "H": 0.5,
+   "a": [
+    8.466,
+    12.363,
+    0.95
+   ],
+   "b": [
+    11.346,
+    12.363,
+    0.95
+   ],
+   "comprimento": 2.88,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Linhas azuis y=529,0 e 553,2 pt.",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1128.6; 541.1) → (1361.7; 541.1) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-INS-SS-004",
+   "sistema": "INS",
+   "sistema_nome": "Insuflamento",
+   "rotulo": "I-50x40",
+   "W": 0.5,
+   "H": 0.4,
+   "a": [
+    2.471,
+    12.514,
+    1.0
+   ],
+   "b": [
+    2.471,
+    9.4,
+    1.0
+   ],
+   "comprimento": 3.114,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Linhas magenta x=623,2 e 663,8 pt.",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (643.5; 528.9) → (643.5; 780.9) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-INS-SS-005",
+   "sistema": "INS",
+   "sistema_nome": "Insuflamento",
+   "rotulo": "I-25x40",
+   "W": 0.25,
+   "H": 0.4,
+   "a": [
+    2.471,
+    9.4,
+    1.0
+   ],
+   "b": [
+    2.471,
+    8.046,
+    1.0
+   ],
+   "comprimento": 1.354,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Redução e ramal I-25x40 (y=880,3 e 900,6 pt) até a lavagem.",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (643.5; 780.9) → (643.5; 890.5) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-INS-SS-006",
+   "sistema": "INS",
+   "sistema_nome": "Insuflamento",
+   "rotulo": "I-25x40",
+   "W": 0.25,
+   "H": 0.4,
+   "a": [
+    2.471,
+    8.046,
+    1.0
+   ],
+   "b": [
+    -0.38,
+    8.046,
+    1.0
+   ],
+   "comprimento": 2.851,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Redução e ramal I-25x40 (y=880,3 e 900,6 pt) até a lavagem.",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (643.5; 890.5) → (412.8; 890.5) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-INS-SS-007",
+   "sistema": "INS",
+   "sistema_nome": "Insuflamento",
+   "rotulo": "I-80x50",
+   "W": 0.8,
+   "H": 0.5,
+   "a": [
+    8.365,
+    12.265,
+    0.95
+   ],
+   "b": [
+    8.365,
+    9.638,
+    0.95
+   ],
+   "comprimento": 2.627,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Linhas x=1088,1 e 1152,9 pt; termina em caixa com X (descida/prumada).",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1120.5; 549.1) → (1120.5; 761.7) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-INS-SS-008",
+   "sistema": "INS",
+   "sistema_nome": "Insuflamento",
+   "rotulo": "I-65x50",
+   "W": 0.65,
+   "H": 0.5,
+   "a": [
+    13.946,
+    9.691,
+    0.95
+   ],
+   "b": [
+    13.946,
+    8.941,
+    0.95
+   ],
+   "comprimento": 0.75,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Caixa com X 1545,8–1598,3 pt (prumada) e transição.",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1572.1; 757.4) → (1572.1; 818.1) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-INS-SS-009",
+   "sistema": "INS",
+   "sistema_nome": "Insuflamento",
+   "rotulo": "I-40x40",
+   "W": 0.4,
+   "H": 0.4,
+   "a": [
+    13.744,
+    8.941,
+    1.0
+   ],
+   "b": [
+    13.744,
+    7.448,
+    1.0
+   ],
+   "comprimento": 1.493,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Linhas x=1539,6 e 1572,0 pt.",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1555.8; 818.1) → (1555.8; 938.9) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-INS-SS-010",
+   "sistema": "INS",
+   "sistema_nome": "Insuflamento",
+   "rotulo": "I-35x40",
+   "W": 0.35,
+   "H": 0.4,
+   "a": [
+    13.744,
+    7.448,
+    1.0
+   ],
+   "b": [
+    6.864,
+    7.448,
+    1.0
+   ],
+   "comprimento": 6.88,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Linhas y=924,7 e 953,1 pt.",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1555.8; 938.9) → (999.0; 938.9) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-INS-SS-011",
+   "sistema": "INS",
+   "sistema_nome": "Insuflamento",
+   "rotulo": "I-55x40",
+   "W": 0.55,
+   "H": 0.4,
+   "a": [
+    15.709,
+    12.03,
+    1.0
+   ],
+   "b": [
+    15.709,
+    9.24,
+    1.0
+   ],
+   "comprimento": 2.79,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Linhas x=1692,5 e 1737,0 pt.",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1714.8; 568.1) → (1714.8; 793.9) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-INS-SS-012",
+   "sistema": "INS",
+   "sistema_nome": "Insuflamento",
+   "rotulo": "I-40x40",
+   "W": 0.4,
+   "H": 0.4,
+   "a": [
+    15.709,
+    9.24,
+    1.0
+   ],
+   "b": [
+    15.709,
+    8.639,
+    1.0
+   ],
+   "comprimento": 0.601,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Redução e ramal (y=826,3 e 858,6 pt).",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1714.8; 793.9) → (1714.8; 842.5) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-INS-SS-013",
+   "sistema": "INS",
+   "sistema_nome": "Insuflamento",
+   "rotulo": "I-40x40",
+   "W": 0.4,
+   "H": 0.4,
+   "a": [
+    15.709,
+    8.639,
+    1.0
+   ],
+   "b": [
+    13.946,
+    8.639,
+    1.0
+   ],
+   "comprimento": 1.763,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Redução e ramal (y=826,3 e 858,6 pt).",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1714.8; 842.5) → (1572.1; 842.5) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-INS-SS-014",
+   "sistema": "INS",
+   "sistema_nome": "Insuflamento",
+   "rotulo": "I-35x30",
+   "W": 0.35,
+   "H": 0.3,
+   "a": [
+    15.709,
+    10.996,
+    1.05
+   ],
+   "b": [
+    20.221,
+    10.996,
+    1.05
+   ],
+   "comprimento": 4.512,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Linhas y=637,6 e 666,0 pt.",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1714.8; 651.8) → (2079.9; 651.8) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-INS-SS-015",
+   "sistema": "INS",
+   "sistema_nome": "Insuflamento",
+   "rotulo": "I- (sem rótulo)",
+   "W": 0.5,
+   "H": 0.4,
+   "a": [
+    9.117,
+    9.638,
+    1.0
+   ],
+   "b": [
+    9.117,
+    7.235,
+    1.0
+   ],
+   "comprimento": 2.403,
+   "tipo": "horizontal",
+   "status": "INFERIDO",
+   "nota": "Duto magenta x=1161,0–1201,5 pt sem rótulo próprio; altura 0,40 m adotada.",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1181.3; 761.7) → (1181.3; 956.1) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-AEX-SS-001",
+   "sistema": "AEX",
+   "sistema_nome": "Ar exterior / compensação",
+   "rotulo": "AE-70x30",
+   "W": 0.7,
+   "H": 0.3,
+   "a": [
+    6.521,
+    12.424,
+    1.05
+   ],
+   "b": [
+    15.802,
+    12.424,
+    1.05
+   ],
+   "comprimento": 9.281,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Linhas cinza y≈500–572 pt (com flanges); largura do rótulo.",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (971.2; 536.2) → (1722.3; 536.2) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-AEX-SS-002",
+   "sistema": "AEX",
+   "sistema_nome": "Ar exterior / compensação",
+   "rotulo": "AE-40x30",
+   "W": 0.4,
+   "H": 0.3,
+   "a": [
+    15.802,
+    12.424,
+    1.05
+   ],
+   "b": [
+    16.404,
+    12.424,
+    1.05
+   ],
+   "comprimento": 0.602,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Transição 1722,3–1771,0 pt e duto y=520,1–552,4 pt.",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1722.3; 536.2) → (1771.0; 536.2) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-AEX-SS-003",
+   "sistema": "AEX",
+   "sistema_nome": "Ar exterior / compensação",
+   "rotulo": "AE-40x30",
+   "W": 0.4,
+   "H": 0.3,
+   "a": [
+    16.404,
+    12.424,
+    1.05
+   ],
+   "b": [
+    20.411,
+    12.424,
+    1.05
+   ],
+   "comprimento": 4.007,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Transição 1722,3–1771,0 pt e duto y=520,1–552,4 pt.",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1771.0; 536.2) → (2095.3; 536.2) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-AEX-SS-004",
+   "sistema": "AEX",
+   "sistema_nome": "Ar exterior / compensação",
+   "rotulo": "AE-55x25",
+   "W": 0.55,
+   "H": 0.25,
+   "a": [
+    9.96,
+    12.424,
+    1.075
+   ],
+   "b": [
+    9.96,
+    10.17,
+    1.075
+   ],
+   "comprimento": 2.254,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Descida de ar de compensação para a coifa A (x=1227,2–1271,8 pt).",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1249.5; 536.2) → (1249.5; 718.6) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-AEX-SS-005",
+   "sistema": "AEX",
+   "sistema_nome": "Ar exterior / compensação",
+   "rotulo": "AE-55x25",
+   "W": 0.55,
+   "H": 0.25,
+   "a": [
+    11.521,
+    12.424,
+    1.075
+   ],
+   "b": [
+    11.521,
+    10.16,
+    1.075
+   ],
+   "comprimento": 2.264,
+   "tipo": "horizontal",
+   "status": "EXTRAÍDO",
+   "nota": "Descida de ar de compensação para a coifa A (x=1353,6–1398,1 pt).",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "horizontal, sob a laje do térreo, topo a 4.07 m do piso (cota +1.20)",
+   "memoria": "Eixo = linha média das linhas paralelas do vetor; folha do as-built (1375.9; 536.2) → (1375.9; 719.4) pt; registro sobre o modelo por pontos de controle (1:35.0). Z = topo da camada +1.20 − H/2 (INFERIDO: dutos interrompidos no desenho passam por baixo dos que cruzam)."
+  },
+  {
+   "id": "D-EXA-SS-012",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "E-70x50",
+   "W": 0.7,
+   "H": 0.5,
+   "a": [
+    12.335,
+    9.691,
+    0.35
+   ],
+   "b": [
+    12.335,
+    9.691,
+    1.5
+   ],
+   "comprimento": 1.15,
+   "tipo": "prumada",
+   "status": "EXTRAÍDO",
+   "nota": "Caixa 1413,3–1470,0 × 737,2–777,6 pt = 0,70 × 0,50 m, igual à seção da prumada da Exaustão 1 no fluxograma.",
+   "exaustor": "VM-COZ01",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "vertical, do duto até a laje do térreo e pelo shaft até a laje técnica (+0.35 → +1.50)",
+   "memoria": "XY: centro da caixa com X no as-built (1441.7; 757.4) pt. Z: do eixo do duto até o térreo +1.50."
+  },
+  {
+   "id": "D-EXA-SH-001",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "E-70x50",
+   "W": 0.7,
+   "H": 0.5,
+   "a": [
+    12.335,
+    9.691,
+    1.5
+   ],
+   "b": [
+    12.335,
+    9.691,
+    8.36
+   ],
+   "comprimento": 6.86,
+   "tipo": "prumada",
+   "status": "INFERIDO",
+   "nota": "Traçado do shaft entre o térreo e a laje técnica não desenhado em planta; adotado vertical sobre a caixa da prumada (fluxograma: prumadas paralelas no mesmo shaft).",
+   "exaustor": "VM-COZ01",
+   "prancha": "TDM001-ARC-PJ-E-R-012 (fluxogramas)",
+   "passagem": "vertical, do duto até a laje do térreo e pelo shaft até a laje técnica (+1.50 → +8.36)",
+   "memoria": ""
+  },
+  {
+   "id": "D-EXA-DS-001",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "E-60x60",
+   "W": 0.6,
+   "H": 0.6,
+   "a": [
+    12.335,
+    9.691,
+    9.56
+   ],
+   "b": [
+    12.335,
+    9.691,
+    20.93
+   ],
+   "comprimento": 11.37,
+   "tipo": "descarga",
+   "status": "INFERIDO",
+   "nota": "Descarga do ventilador até a cobertura (+20,93) em E-60x60 (fluxograma); traçado em planta não disponível, adotado vertical.",
+   "exaustor": "VM-COZ01",
+   "prancha": "TDM001-ARC-PJ-E-R-012 (fluxogramas)",
+   "passagem": "vertical, do ventilador na laje técnica até a cobertura (+9.56 → +20.93)",
+   "memoria": ""
+  },
+  {
+   "id": "D-EXA-SS-013",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "E-60x50",
+   "W": 0.6,
+   "H": 0.5,
+   "a": [
+    15.042,
+    9.691,
+    0.35
+   ],
+   "b": [
+    15.042,
+    9.691,
+    1.5
+   ],
+   "comprimento": 1.15,
+   "tipo": "prumada",
+   "status": "EXTRAÍDO",
+   "nota": "Caixa 1636,5–1685,1 × 737,1–777,6 pt = 0,60 × 0,50 m (fluxograma: E-60x50).",
+   "exaustor": "VM-COZ02",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "vertical, do duto até a laje do térreo e pelo shaft até a laje técnica (+0.35 → +1.50)",
+   "memoria": "XY: centro da caixa com X no as-built (1660.8; 757.4) pt. Z: do eixo do duto até o térreo +1.50."
+  },
+  {
+   "id": "D-EXA-SH-002",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "E-60x50",
+   "W": 0.6,
+   "H": 0.5,
+   "a": [
+    15.042,
+    9.691,
+    1.5
+   ],
+   "b": [
+    15.042,
+    9.691,
+    8.36
+   ],
+   "comprimento": 6.86,
+   "tipo": "prumada",
+   "status": "INFERIDO",
+   "nota": "Traçado do shaft entre o térreo e a laje técnica não desenhado em planta; adotado vertical sobre a caixa da prumada (fluxograma: prumadas paralelas no mesmo shaft).",
+   "exaustor": "VM-COZ02",
+   "prancha": "TDM001-ARC-PJ-E-R-012 (fluxogramas)",
+   "passagem": "vertical, do duto até a laje do térreo e pelo shaft até a laje técnica (+1.50 → +8.36)",
+   "memoria": ""
+  },
+  {
+   "id": "D-EXA-DS-002",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "E-60x60",
+   "W": 0.6,
+   "H": 0.6,
+   "a": [
+    15.042,
+    9.691,
+    9.56
+   ],
+   "b": [
+    15.042,
+    9.691,
+    20.93
+   ],
+   "comprimento": 11.37,
+   "tipo": "descarga",
+   "status": "INFERIDO",
+   "nota": "Descarga do ventilador até a cobertura (+20,93) em E-60x60 (fluxograma); traçado em planta não disponível, adotado vertical.",
+   "exaustor": "VM-COZ02",
+   "prancha": "TDM001-ARC-PJ-E-R-012 (fluxogramas)",
+   "passagem": "vertical, do ventilador na laje técnica até a cobertura (+9.56 → +20.93)",
+   "memoria": ""
+  },
+  {
+   "id": "D-EXA-SS-014",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "E-90x40",
+   "W": 0.9,
+   "H": 0.4,
+   "a": [
+    16.525,
+    9.74,
+    0.4
+   ],
+   "b": [
+    16.525,
+    9.74,
+    1.5
+   ],
+   "comprimento": 1.1,
+   "tipo": "prumada",
+   "status": "EXTRAÍDO",
+   "nota": "Caixa 1744,3–1817,2 × 737,2–769,6 pt = 0,90 × 0,40 m (fluxograma: E-90x40).",
+   "exaustor": "VM-COZ03",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "vertical, do duto até a laje do térreo e pelo shaft até a laje técnica (+0.40 → +1.50)",
+   "memoria": "XY: centro da caixa com X no as-built (1780.8; 753.4) pt. Z: do eixo do duto até o térreo +1.50."
+  },
+  {
+   "id": "D-EXA-SH-003",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "E-90x40",
+   "W": 0.9,
+   "H": 0.4,
+   "a": [
+    16.525,
+    9.74,
+    1.5
+   ],
+   "b": [
+    16.525,
+    9.74,
+    8.36
+   ],
+   "comprimento": 6.86,
+   "tipo": "prumada",
+   "status": "INFERIDO",
+   "nota": "Traçado do shaft entre o térreo e a laje técnica não desenhado em planta; adotado vertical sobre a caixa da prumada (fluxograma: prumadas paralelas no mesmo shaft).",
+   "exaustor": "VM-COZ03",
+   "prancha": "TDM001-ARC-PJ-E-R-012 (fluxogramas)",
+   "passagem": "vertical, do duto até a laje do térreo e pelo shaft até a laje técnica (+1.50 → +8.36)",
+   "memoria": ""
+  },
+  {
+   "id": "D-EXA-DS-003",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "E-60x60",
+   "W": 0.6,
+   "H": 0.6,
+   "a": [
+    16.525,
+    9.74,
+    9.56
+   ],
+   "b": [
+    16.525,
+    9.74,
+    20.93
+   ],
+   "comprimento": 11.37,
+   "tipo": "descarga",
+   "status": "INFERIDO",
+   "nota": "Descarga do ventilador até a cobertura (+20,93) em E-60x60 (fluxograma); traçado em planta não disponível, adotado vertical.",
+   "exaustor": "VM-COZ03",
+   "prancha": "TDM001-ARC-PJ-E-R-012 (fluxogramas)",
+   "passagem": "vertical, do ventilador na laje técnica até a cobertura (+9.56 → +20.93)",
+   "memoria": ""
+  },
+  {
+   "id": "D-EXG-SS-005",
+   "sistema": "EXG",
+   "sistema_nome": "Exaustão geral (E-)",
+   "rotulo": "E-85x50",
+   "W": 0.85,
+   "H": 0.5,
+   "a": [
+    17.5,
+    9.691,
+    0.35
+   ],
+   "b": [
+    17.5,
+    9.691,
+    1.5
+   ],
+   "comprimento": 1.15,
+   "tipo": "prumada",
+   "status": "EXTRAÍDO",
+   "nota": "Caixa 1825,3–1894,1 × 737,2–777,6 pt; exaustor não identificado nas pranchas disponíveis.",
+   "exaustor": "não identificado",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "vertical, do duto até a laje do térreo e pelo shaft até a laje técnica (+0.35 → +1.50)",
+   "memoria": "XY: centro da caixa com X no as-built (1859.7; 757.4) pt. Z: do eixo do duto até o térreo +1.50."
+  },
+  {
+   "id": "D-INS-SS-016",
+   "sistema": "INS",
+   "sistema_nome": "Insuflamento",
+   "rotulo": "I-80x50",
+   "W": 0.8,
+   "H": 0.5,
+   "a": [
+    8.365,
+    9.638,
+    0.95
+   ],
+   "b": [
+    8.365,
+    9.638,
+    1.5
+   ],
+   "comprimento": 0.55,
+   "tipo": "prumada",
+   "status": "EXTRAÍDO",
+   "nota": "Caixa com X 1088,1–1152,9 pt; associação ao AC-COZ01 INFERIDA (fluxograma: 2 unidades de insuflamento).",
+   "exaustor": "AC-COZ01",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "vertical, do duto até a laje do térreo e pelo shaft até a laje técnica (+0.95 → +1.50)",
+   "memoria": "XY: centro da caixa com X no as-built (1120.5; 761.7) pt. Z: do eixo do duto até o térreo +1.50."
+  },
+  {
+   "id": "D-INS-SH-001",
+   "sistema": "INS",
+   "sistema_nome": "Insuflamento",
+   "rotulo": "I-80x50",
+   "W": 0.8,
+   "H": 0.5,
+   "a": [
+    8.365,
+    9.638,
+    1.5
+   ],
+   "b": [
+    8.365,
+    9.638,
+    8.36
+   ],
+   "comprimento": 6.86,
+   "tipo": "prumada",
+   "status": "INFERIDO",
+   "nota": "Traçado do shaft entre o térreo e a laje técnica não desenhado em planta; adotado vertical sobre a caixa da prumada (fluxograma: prumadas paralelas no mesmo shaft).",
+   "exaustor": "AC-COZ01",
+   "prancha": "TDM001-ARC-PJ-E-R-012 (fluxogramas)",
+   "passagem": "vertical, do duto até a laje do térreo e pelo shaft até a laje técnica (+1.50 → +8.36)",
+   "memoria": ""
+  },
+  {
+   "id": "D-INS-SS-017",
+   "sistema": "INS",
+   "sistema_nome": "Insuflamento",
+   "rotulo": "I-65x50",
+   "W": 0.65,
+   "H": 0.5,
+   "a": [
+    13.946,
+    9.691,
+    0.95
+   ],
+   "b": [
+    13.946,
+    9.691,
+    1.5
+   ],
+   "comprimento": 0.55,
+   "tipo": "prumada",
+   "status": "EXTRAÍDO",
+   "nota": "Caixa com X 1545,8–1598,3 pt; associação ao AC-COZ02 INFERIDA.",
+   "exaustor": "AC-COZ02",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "vertical, do duto até a laje do térreo e pelo shaft até a laje técnica (+0.95 → +1.50)",
+   "memoria": "XY: centro da caixa com X no as-built (1572.1; 757.4) pt. Z: do eixo do duto até o térreo +1.50."
+  },
+  {
+   "id": "D-INS-SH-002",
+   "sistema": "INS",
+   "sistema_nome": "Insuflamento",
+   "rotulo": "I-65x50",
+   "W": 0.65,
+   "H": 0.5,
+   "a": [
+    13.946,
+    9.691,
+    1.5
+   ],
+   "b": [
+    13.946,
+    9.691,
+    8.36
+   ],
+   "comprimento": 6.86,
+   "tipo": "prumada",
+   "status": "INFERIDO",
+   "nota": "Traçado do shaft entre o térreo e a laje técnica não desenhado em planta; adotado vertical sobre a caixa da prumada (fluxograma: prumadas paralelas no mesmo shaft).",
+   "exaustor": "AC-COZ02",
+   "prancha": "TDM001-ARC-PJ-E-R-012 (fluxogramas)",
+   "passagem": "vertical, do duto até a laje do térreo e pelo shaft até a laje técnica (+1.50 → +8.36)",
+   "memoria": ""
+  },
+  {
+   "id": "D-AEX-SS-006",
+   "sistema": "AEX",
+   "sistema_nome": "Ar exterior / compensação",
+   "rotulo": "AE-100x40",
+   "W": 1.0,
+   "H": 0.4,
+   "a": [
+    6.521,
+    12.424,
+    1.0
+   ],
+   "b": [
+    6.521,
+    12.424,
+    1.5
+   ],
+   "comprimento": 0.5,
+   "tipo": "prumada",
+   "status": "INFERIDO",
+   "nota": "Extremidade do AE-70x30 junto às setas SOBE/DESCE do corredor; descida do ar exterior (fluxograma: AE-100x40 de VM-COZ05/06) adotada neste ponto.",
+   "exaustor": "VM-COZ05/06",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "vertical, do duto até a laje do térreo e pelo shaft até a laje técnica (+1.00 → +1.50)",
+   "memoria": "XY: centro da caixa com X no as-built (971.2; 536.2) pt. Z: do eixo do duto até o térreo +1.50."
+  },
+  {
+   "id": "D-AEX-SH-001",
+   "sistema": "AEX",
+   "sistema_nome": "Ar exterior / compensação",
+   "rotulo": "AE-100x40",
+   "W": 1.0,
+   "H": 0.4,
+   "a": [
+    6.521,
+    12.424,
+    1.5
+   ],
+   "b": [
+    6.521,
+    12.424,
+    8.36
+   ],
+   "comprimento": 6.86,
+   "tipo": "prumada",
+   "status": "INFERIDO",
+   "nota": "Traçado do shaft entre o térreo e a laje técnica não desenhado em planta; adotado vertical sobre a caixa da prumada (fluxograma: prumadas paralelas no mesmo shaft).",
+   "exaustor": "VM-COZ05/06",
+   "prancha": "TDM001-ARC-PJ-E-R-012 (fluxogramas)",
+   "passagem": "vertical, do duto até a laje do térreo e pelo shaft até a laje técnica (+1.50 → +8.36)",
+   "memoria": ""
+  },
+  {
+   "id": "D-EXA-SS-015",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "EC-50x30",
+   "W": 0.5,
+   "H": 0.3,
+   "a": [
+    10.028,
+    9.159,
+    0.3
+   ],
+   "b": [
+    10.028,
+    9.159,
+    -0.27
+   ],
+   "comprimento": 0.57,
+   "tipo": "descida",
+   "status": "EXTRAÍDO",
+   "nota": "Caixa 1234,7–1275,2 × 788,2–812,6 pt (EC-50x30).",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "vertical, da rede até a coifa (3.17 → 2.60 m do piso)",
+   "memoria": "XY: centro da caixa do captor (1255.0; 800.4) pt. Z: da face inferior do duto (+0.30) ao topo da coifa (-0.27), INFERIDO."
+  },
+  {
+   "id": "D-EXA-SS-016",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "EC-50x30",
+   "W": 0.5,
+   "H": 0.3,
+   "a": [
+    11.521,
+    9.159,
+    0.3
+   ],
+   "b": [
+    11.521,
+    9.159,
+    -0.27
+   ],
+   "comprimento": 0.57,
+   "tipo": "descida",
+   "status": "EXTRAÍDO",
+   "nota": "Caixa 1355,6–1396,1 × 788,2–812,6 pt (EC-50x30).",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "vertical, da rede até a coifa (3.17 → 2.60 m do piso)",
+   "memoria": "XY: centro da caixa do captor (1375.9; 800.4) pt. Z: da face inferior do duto (+0.30) ao topo da coifa (-0.27), INFERIDO."
+  },
+  {
+   "id": "D-EXA-SS-017",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "EC-30x25",
+   "W": 0.3,
+   "H": 0.25,
+   "a": [
+    9.31,
+    13.951,
+    0.0
+   ],
+   "b": [
+    9.31,
+    13.951,
+    -0.27
+   ],
+   "comprimento": 0.27,
+   "tipo": "descida",
+   "status": "EXTRAÍDO",
+   "nota": "Caixa azul com X 1186,7–1207,0 pt (4× E-30x25 no fluxograma).",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "vertical, da rede até a coifa (2.87 → 2.60 m do piso)",
+   "memoria": "XY: centro da caixa do captor (1196.9; 412.6) pt. Z: da face inferior do duto (+0.00) ao topo da coifa (-0.27), INFERIDO."
+  },
+  {
+   "id": "D-EXA-SS-018",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "EC-30x25",
+   "W": 0.3,
+   "H": 0.25,
+   "a": [
+    10.974,
+    13.951,
+    0.3
+   ],
+   "b": [
+    10.974,
+    13.951,
+    -0.27
+   ],
+   "comprimento": 0.57,
+   "tipo": "descida",
+   "status": "EXTRAÍDO",
+   "nota": "Caixa 1321,4–1341,7 pt.",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "vertical, da rede até a coifa (3.17 → 2.60 m do piso)",
+   "memoria": "XY: centro da caixa do captor (1331.6; 412.6) pt. Z: da face inferior do duto (+0.30) ao topo da coifa (-0.27), INFERIDO."
+  },
+  {
+   "id": "D-EXA-SS-019",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "EC-30x25",
+   "W": 0.3,
+   "H": 0.25,
+   "a": [
+    12.639,
+    13.951,
+    0.3
+   ],
+   "b": [
+    12.639,
+    13.951,
+    -0.27
+   ],
+   "comprimento": 0.57,
+   "tipo": "descida",
+   "status": "EXTRAÍDO",
+   "nota": "Caixa 1456,1–1476,4 pt.",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "vertical, da rede até a coifa (3.17 → 2.60 m do piso)",
+   "memoria": "XY: centro da caixa do captor (1466.3; 412.6) pt. Z: da face inferior do duto (+0.30) ao topo da coifa (-0.27), INFERIDO."
+  },
+  {
+   "id": "D-EXA-SS-020",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "EC-30x25",
+   "W": 0.3,
+   "H": 0.25,
+   "a": [
+    14.303,
+    13.951,
+    0.3
+   ],
+   "b": [
+    14.303,
+    13.951,
+    -0.27
+   ],
+   "comprimento": 0.57,
+   "tipo": "descida",
+   "status": "EXTRAÍDO",
+   "nota": "Caixa 1590,8–1611,1 pt.",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "vertical, da rede até a coifa (3.17 → 2.60 m do piso)",
+   "memoria": "XY: centro da caixa do captor (1601.0; 412.6) pt. Z: da face inferior do duto (+0.30) ao topo da coifa (-0.27), INFERIDO."
+  },
+  {
+   "id": "D-EXA-SS-021",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "EC-40x40",
+   "W": 0.4,
+   "H": 0.4,
+   "a": [
+    20.06,
+    13.901,
+    0.2
+   ],
+   "b": [
+    20.06,
+    13.901,
+    -0.27
+   ],
+   "comprimento": 0.47,
+   "tipo": "descida",
+   "status": "EXTRAÍDO",
+   "nota": "Captor 2050,7–2083,1 pt na ponta do EC-40x40.",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "vertical, da rede até a coifa (3.07 → 2.60 m do piso)",
+   "memoria": "XY: centro da caixa do captor (2066.9; 416.7) pt. Z: da face inferior do duto (+0.20) ao topo da coifa (-0.27), INFERIDO."
+  },
+  {
+   "id": "D-EXA-SS-022",
+   "sistema": "EXA",
+   "sistema_nome": "Exaustão da cozinha",
+   "rotulo": "EC-30x30",
+   "W": 0.3,
+   "H": 0.3,
+   "a": [
+    -1.001,
+    10.375,
+    0.2
+   ],
+   "b": [
+    -1.001,
+    10.375,
+    -0.27
+   ],
+   "comprimento": 0.47,
+   "tipo": "descida",
+   "status": "PENDENTE",
+   "nota": "Caixa vermelha com X (trecho removido). Trecho removido — refazer (legenda do as-built).",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "vertical, da rede até a coifa (3.07 → 2.60 m do piso)",
+   "memoria": "XY: centro da caixa do captor (362.5; 702.0) pt. Z: da face inferior do duto (+0.20) ao topo da coifa (-0.27), INFERIDO."
+  },
+  {
+   "id": "D-AEX-SS-007",
+   "sistema": "AEX",
+   "sistema_nome": "Ar exterior / compensação",
+   "rotulo": "AE-55x25",
+   "W": 0.55,
+   "H": 0.25,
+   "a": [
+    9.96,
+    10.17,
+    0.95
+   ],
+   "b": [
+    9.96,
+    10.17,
+    -0.27
+   ],
+   "comprimento": 1.22,
+   "tipo": "descida",
+   "status": "EXTRAÍDO",
+   "nota": "Chegada do ar de compensação na coifa A (caixa azul 1227,2–1271,8 pt).",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "vertical, da rede até a coifa (3.82 → 2.60 m do piso)",
+   "memoria": "XY: centro da caixa do captor (1249.5; 718.6) pt. Z: da face inferior do duto (+0.95) ao topo da coifa (-0.27), INFERIDO."
+  },
+  {
+   "id": "D-AEX-SS-008",
+   "sistema": "AEX",
+   "sistema_nome": "Ar exterior / compensação",
+   "rotulo": "AE-55x25",
+   "W": 0.55,
+   "H": 0.25,
+   "a": [
+    11.521,
+    10.16,
+    0.95
+   ],
+   "b": [
+    11.521,
+    10.16,
+    -0.27
+   ],
+   "comprimento": 1.22,
+   "tipo": "descida",
+   "status": "EXTRAÍDO",
+   "nota": "Chegada do ar de compensação na coifa A (caixa azul 1353,6–1398,1 pt).",
+   "exaustor": "",
+   "prancha": "As-built exaustão subsolo · Fase 2 (Anexo D)",
+   "passagem": "vertical, da rede até a coifa (3.82 → 2.60 m do piso)",
+   "memoria": "XY: centro da caixa do captor (1375.9; 719.4) pt. Z: da face inferior do duto (+0.95) ao topo da coifa (-0.27), INFERIDO."
+  }
+ ],
+ "mec": {
+  "coifas": [
+   {
+    "id": "COIFA-A",
+    "nome": "Coifa A — ilha sobre os fogões",
+    "x": 11.183,
+    "y": 9.659,
+    "L": 4.15,
+    "P": 1.4,
+    "z0": -0.87,
+    "z1": -0.27,
+    "texto": "COIFA 415x140x60cm, VAZÃO 220,78 m³/min",
+    "exaustor": "VM-COZ01",
+    "status": "INFERIDO",
+    "motivo": "Dimensões do texto da prancha de pontos (2006); posição adotada no centro dos equipamentos atendidos; borda inferior a 2.00 m do piso (memorial 2006: 1,90 a 2,10 m). O as-built (Anexo C) registra a coifa C com 8,30 m."
+   },
+   {
+    "id": "COIFA-C",
+    "nome": "Coifa C — parede (fornos, chapas, fritadeiras)",
+    "x": 12.615,
+    "y": 13.674,
+    "L": 6.65,
+    "P": 1.05,
+    "z0": -0.87,
+    "z1": -0.27,
+    "texto": "COIFA 665x105x60cm, VAZÃO 169,81 m³/min",
+    "exaustor": "VM-COZ02",
+    "status": "INFERIDO",
+    "motivo": "Dimensões do texto da prancha de pontos (2006); posição adotada no centro dos equipamentos atendidos; borda inferior a 2.00 m do piso (memorial 2006: 1,90 a 2,10 m). O as-built (Anexo C) registra a coifa C com 8,30 m."
+   },
+   {
+    "id": "COIFA-B",
+    "nome": "Coifa B — forno elétrico",
+    "x": 7.837,
+    "y": 13.569,
+    "L": 1.25,
+    "P": 1.35,
+    "z0": -0.87,
+    "z1": -0.27,
+    "texto": "COIFA 125x135x60cm, VAZÃO 41,04 m³/min",
+    "exaustor": "VM-COZ03",
+    "status": "INFERIDO",
+    "motivo": "Dimensões do texto da prancha de pontos (2006); posição adotada no centro dos equipamentos atendidos; borda inferior a 2.00 m do piso (memorial 2006: 1,90 a 2,10 m). O as-built (Anexo C) registra a coifa C com 8,30 m."
+   },
+   {
+    "id": "COIFA-D",
+    "nome": "Coifa D — caldeirões",
+    "x": 19.969,
+    "y": 13.536,
+    "L": 2.7,
+    "P": 1.45,
+    "z0": -0.87,
+    "z1": -0.27,
+    "texto": "COIFA 270x145x60cm, VAZÃO 95,21 m³/min",
+    "exaustor": "VM-COZ03",
+    "status": "INFERIDO",
+    "motivo": "Dimensões do texto da prancha de pontos (2006); posição adotada no centro dos equipamentos atendidos; borda inferior a 2.00 m do piso (memorial 2006: 1,90 a 2,10 m). O as-built (Anexo C) registra a coifa C com 8,30 m."
+   },
+   {
+    "id": "COIFA-E1",
+    "nome": "Coifa E — lavadora de louças 1",
+    "x": -1.004,
+    "y": 10.374,
+    "L": 0.9,
+    "P": 0.9,
+    "z0": -0.87,
+    "z1": -0.27,
+    "texto": "COIFA 90x90x60, 20 m³/min CADA",
+    "exaustor": "VM-COZ03",
+    "status": "INFERIDO",
+    "motivo": "Dimensões do texto da prancha de pontos (2006); posição adotada no centro dos equipamentos atendidos; borda inferior a 2.00 m do piso (memorial 2006: 1,90 a 2,10 m). O as-built (Anexo C) registra a coifa C com 8,30 m."
+   },
+   {
+    "id": "COIFA-E2",
+    "nome": "Coifa E — lavadora de louças 2",
+    "x": 1.015,
+    "y": 10.374,
+    "L": 0.9,
+    "P": 0.9,
+    "z0": -0.87,
+    "z1": -0.27,
+    "texto": "COIFA 90x90x60, 20 m³/min CADA",
+    "exaustor": "VM-COZ03",
+    "status": "INFERIDO",
+    "motivo": "Dimensões do texto da prancha de pontos (2006); posição adotada no centro dos equipamentos atendidos; borda inferior a 2.00 m do piso (memorial 2006: 1,90 a 2,10 m). O as-built (Anexo C) registra a coifa C com 8,30 m."
+   }
+  ],
+  "ventiladores": [
+   {
+    "id": "VM-COZ01",
+    "nome": "Exaustão 1 — coifa A (fogões)",
+    "dados": "15.200 m³/h de placa (relatório)",
+    "sistema": "EXA",
+    "x": 12.335,
+    "y": 9.691,
+    "z0": 8.36,
+    "z1": 9.559999999999999,
+    "L": 1.2,
+    "P": 1.2,
+    "status": "INFERIDO",
+    "motivo": "Ventilador na laje técnica (+8,36, fluxograma). Posição em planta adotada sobre a prumada: a planta parcial da laje técnica (Anexo E) não tem referência comum com o subsolo."
+   },
+   {
+    "id": "VM-COZ02",
+    "nome": "Exaustão 2 — coifa C (parede)",
+    "dados": "15.200 m³/h de placa (relatório)",
+    "sistema": "EXA",
+    "x": 15.042,
+    "y": 9.691,
+    "z0": 8.36,
+    "z1": 9.559999999999999,
+    "L": 1.2,
+    "P": 1.2,
+    "status": "INFERIDO",
+    "motivo": "Ventilador na laje técnica (+8,36, fluxograma). Posição em planta adotada sobre a prumada: a planta parcial da laje técnica (Anexo E) não tem referência comum com o subsolo."
+   },
+   {
+    "id": "VM-COZ03",
+    "nome": "Exaustão 3 — lavadoras e fornos",
+    "dados": "GTS 560-9, 9.600 m³/h (relatório)",
+    "sistema": "EXA",
+    "x": 16.525,
+    "y": 9.74,
+    "z0": 8.36,
+    "z1": 9.559999999999999,
+    "L": 1.2,
+    "P": 1.2,
+    "status": "INFERIDO",
+    "motivo": "Ventilador na laje técnica (+8,36, fluxograma). Posição em planta adotada sobre a prumada: a planta parcial da laje técnica (Anexo E) não tem referência comum com o subsolo."
+   },
+   {
+    "id": "AC-COZ01",
+    "nome": "Insuflamento da cozinha",
+    "dados": "9.000 m³/h (fluxograma)",
+    "sistema": "INS",
+    "x": 8.365,
+    "y": 9.638,
+    "z0": 8.36,
+    "z1": 9.559999999999999,
+    "L": 1.2,
+    "P": 1.2,
+    "status": "INFERIDO",
+    "motivo": "Ventilador na laje técnica (+8,36, fluxograma). Posição em planta adotada sobre a prumada: a planta parcial da laje técnica (Anexo E) não tem referência comum com o subsolo."
+   },
+   {
+    "id": "AC-COZ02",
+    "nome": "Insuflamento da cozinha",
+    "dados": "9.000 m³/h (fluxograma)",
+    "sistema": "INS",
+    "x": 13.946,
+    "y": 9.691,
+    "z0": 8.36,
+    "z1": 9.559999999999999,
+    "L": 1.2,
+    "P": 1.2,
+    "status": "INFERIDO",
+    "motivo": "Ventilador na laje técnica (+8,36, fluxograma). Posição em planta adotada sobre a prumada: a planta parcial da laje técnica (Anexo E) não tem referência comum com o subsolo."
+   },
+   {
+    "id": "VM-COZ05",
+    "nome": "Ar exterior / compensação",
+    "dados": "6.500 m³/h cada (fluxograma)",
+    "sistema": "AEX",
+    "x": 5.771,
+    "y": 12.424,
+    "z0": 8.36,
+    "z1": 9.559999999999999,
+    "L": 1.2,
+    "P": 1.2,
+    "status": "INFERIDO",
+    "motivo": "Ventilador na laje técnica (+8,36, fluxograma). Posição em planta adotada sobre a prumada: a planta parcial da laje técnica (Anexo E) não tem referência comum com o subsolo."
+   },
+   {
+    "id": "VM-COZ06",
+    "nome": "Ar exterior / compensação",
+    "dados": "6.500 m³/h cada (fluxograma)",
+    "sistema": "AEX",
+    "x": 7.271,
+    "y": 12.424,
+    "z0": 8.36,
+    "z1": 9.559999999999999,
+    "L": 1.2,
+    "P": 1.2,
+    "status": "INFERIDO",
+    "motivo": "Ventilador na laje técnica (+8,36, fluxograma). Posição em planta adotada sobre a prumada: a planta parcial da laje técnica (Anexo E) não tem referência comum com o subsolo."
+   }
+  ],
+  "difusores": [
+   {
+    "id": "DIF-01",
+    "x": 4.005,
+    "y": 10.941,
+    "L": 0.6,
+    "z": 0.7,
+    "status": "INFERIDO",
+    "motivo": "Posição em planta do as-built (quadrado com X); altura adotada na face inferior da camada de insuflamento (forro não cotado)."
+   },
+   {
+    "id": "DIF-02",
+    "x": 4.005,
+    "y": 8.96,
+    "L": 0.6,
+    "z": 0.7,
+    "status": "INFERIDO",
+    "motivo": "Posição em planta do as-built (quadrado com X); altura adotada na face inferior da camada de insuflamento (forro não cotado)."
+   },
+   {
+    "id": "DIF-03",
+    "x": 12.525,
+    "y": 10.942,
+    "L": 0.6,
+    "z": 0.7,
+    "status": "INFERIDO",
+    "motivo": "Posição em planta do as-built (quadrado com X); altura adotada na face inferior da camada de insuflamento (forro não cotado)."
+   },
+   {
+    "id": "DIF-04",
+    "x": 8.294,
+    "y": 8.09,
+    "L": 0.6,
+    "z": 0.7,
+    "status": "INFERIDO",
+    "motivo": "Posição em planta do as-built (quadrado com X); altura adotada na face inferior da camada de insuflamento (forro não cotado)."
+   },
+   {
+    "id": "DIF-05",
+    "x": 12.086,
+    "y": 8.09,
+    "L": 0.6,
+    "z": 0.7,
+    "status": "INFERIDO",
+    "motivo": "Posição em planta do as-built (quadrado com X); altura adotada na face inferior da camada de insuflamento (forro não cotado)."
+   },
+   {
+    "id": "DIF-06",
+    "x": 15.324,
+    "y": 8.09,
+    "L": 0.6,
+    "z": 0.7,
+    "status": "INFERIDO",
+    "motivo": "Posição em planta do as-built (quadrado com X); altura adotada na face inferior da camada de insuflamento (forro não cotado)."
+   },
+   {
+    "id": "DIF-07",
+    "x": 19.846,
+    "y": 11.841,
+    "L": 0.6,
+    "z": 0.7,
+    "status": "INFERIDO",
+    "motivo": "Posição em planta do as-built (quadrado com X); altura adotada na face inferior da camada de insuflamento (forro não cotado)."
+   },
+   {
+    "id": "DIF-08",
+    "x": 19.846,
+    "y": 7.762,
+    "L": 0.6,
+    "z": 0.7,
+    "status": "INFERIDO",
+    "motivo": "Posição em planta do as-built (quadrado com X); altura adotada na face inferior da camada de insuflamento (forro não cotado)."
+   },
+   {
+    "id": "DIF-09",
+    "x": 17.674,
+    "y": 11.779,
+    "L": 0.6,
+    "z": 0.7,
+    "status": "INFERIDO",
+    "motivo": "Posição em planta do as-built (quadrado com X); altura adotada na face inferior da camada de insuflamento (forro não cotado)."
+   },
+   {
+    "id": "DIF-10",
+    "x": -0.103,
+    "y": 9.638,
+    "L": 0.47,
+    "z": 0.7,
+    "status": "INFERIDO",
+    "motivo": "Posição em planta do as-built (quadrado com X); altura adotada na face inferior da camada de insuflamento (forro não cotado)."
+   }
+  ],
+  "captores": [
+   {
+    "id": "CP-A1",
+    "coifa": "A",
+    "x": 10.028,
+    "y": 9.159,
+    "sistema": "EXA"
+   },
+   {
+    "id": "CP-A2",
+    "coifa": "A",
+    "x": 11.521,
+    "y": 9.159,
+    "sistema": "EXA"
+   },
+   {
+    "id": "CP-C1",
+    "coifa": "C",
+    "x": 9.31,
+    "y": 13.951,
+    "sistema": "EXA"
+   },
+   {
+    "id": "CP-C2",
+    "coifa": "C",
+    "x": 10.974,
+    "y": 13.951,
+    "sistema": "EXA"
+   },
+   {
+    "id": "CP-C3",
+    "coifa": "C",
+    "x": 12.639,
+    "y": 13.951,
+    "sistema": "EXA"
+   },
+   {
+    "id": "CP-C4",
+    "coifa": "C",
+    "x": 14.303,
+    "y": 13.951,
+    "sistema": "EXA"
+   },
+   {
+    "id": "CP-D1",
+    "coifa": "D",
+    "x": 20.06,
+    "y": 13.901,
+    "sistema": "EXA"
+   },
+   {
+    "id": "CP-E1",
+    "coifa": "E1",
+    "x": -1.001,
+    "y": 10.375,
+    "sistema": "EXA"
+   },
+   {
+    "id": "CP-AE1",
+    "coifa": "A",
+    "x": 9.96,
+    "y": 10.17,
+    "sistema": "AEX"
+   },
+   {
+    "id": "CP-AE2",
+    "coifa": "A",
+    "x": 11.521,
+    "y": 10.16,
+    "sistema": "AEX"
+   }
+  ]
+ },
  "locacao": {
   "HID-SS-COZ-001": {
    "apoio": null,
@@ -23081,7 +25310,449 @@
    "GAS": 26.7,
    "SAN-ESG": 25.6,
    "HID-AQ": 12.9,
-   "DRE": 16.81
+   "DRE": 16.81,
+   "EXA": 105.63,
+   "EXG": 11.32,
+   "INS": 54.82,
+   "AEX": 28.2
+  },
+  "dutos": {
+   "pontas": [
+    {
+     "duto": "E3-01",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-EXA-SS-022",
+     "x": -1.001,
+     "y": 10.375
+    },
+    {
+     "duto": "E3-01",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-EXA-SS-003",
+     "x": -0.139,
+     "y": 14.695
+    },
+    {
+     "duto": "E3-02",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-EXA-SS-002",
+     "x": -0.139,
+     "y": 14.695
+    },
+    {
+     "duto": "E3-02",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-EXA-SS-005",
+     "x": 8.052,
+     "y": 15.308
+    },
+    {
+     "duto": "E3-03",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-EXA-SS-004",
+     "x": 8.052,
+     "y": 15.208
+    },
+    {
+     "duto": "E3-03",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-EXA-SS-007",
+     "x": 16.325,
+     "y": 13.6
+    },
+    {
+     "duto": "E3-04",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-EXA-SS-006",
+     "x": 16.525,
+     "y": 13.6
+    },
+    {
+     "duto": "E3-04",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-EXA-SS-014",
+     "x": 16.525,
+     "y": 9.74
+    },
+    {
+     "duto": "E3-05",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-EXA-SS-021",
+     "x": 19.86,
+     "y": 13.901
+    },
+    {
+     "duto": "E3-05",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-EXA-SS-007",
+     "x": 16.975,
+     "y": 13.901
+    },
+    {
+     "duto": "E2-01",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-EXA-SS-017",
+     "x": 8.983,
+     "y": 13.901
+    },
+    {
+     "duto": "E2-01",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-EXA-SS-010",
+     "x": 15.042,
+     "y": 13.901
+    },
+    {
+     "duto": "E2-02",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-EXA-SS-009",
+     "x": 15.042,
+     "y": 13.901
+    },
+    {
+     "duto": "E2-02",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-EXA-SS-013",
+     "x": 15.042,
+     "y": 9.691
+    },
+    {
+     "duto": "E1-01",
+     "lado": "ini",
+     "ok": true,
+     "liga": "terminal: tampa do coletor sobre a coifa A",
+     "x": 9.727,
+     "y": 9.691
+    },
+    {
+     "duto": "E1-01",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-EXA-SS-012",
+     "x": 12.335,
+     "y": 9.691
+    },
+    {
+     "duto": "EG-01",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-EXG-SS-005",
+     "x": 17.5,
+     "y": 9.691
+    },
+    {
+     "duto": "EG-01",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-EXG-SS-004",
+     "x": 17.5,
+     "y": 8.042
+    },
+    {
+     "duto": "EG-02",
+     "lado": "ini",
+     "ok": true,
+     "liga": "terminal: grelha do Gelo",
+     "x": 21.932,
+     "y": 9.659
+    },
+    {
+     "duto": "EG-02",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-EXG-SS-001",
+     "x": 17.5,
+     "y": 8.042
+    },
+    {
+     "duto": "I-01",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-INS-SS-004",
+     "x": 2.471,
+     "y": 12.514
+    },
+    {
+     "duto": "I-01",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-INS-SS-002",
+     "x": 6.371,
+     "y": 12.514
+    },
+    {
+     "duto": "I-02",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-INS-SS-001",
+     "x": 6.371,
+     "y": 12.514
+    },
+    {
+     "duto": "I-02",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-INS-SS-003",
+     "x": 8.466,
+     "y": 12.514
+    },
+    {
+     "duto": "I-03",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-INS-SS-002",
+     "x": 8.466,
+     "y": 12.363
+    },
+    {
+     "duto": "I-03",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-AEX-SS-001",
+     "x": 11.346,
+     "y": 12.363
+    },
+    {
+     "duto": "I-04",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-INS-SS-001",
+     "x": 2.471,
+     "y": 12.514
+    },
+    {
+     "duto": "I-04",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-INS-SS-005",
+     "x": 2.471,
+     "y": 9.4
+    },
+    {
+     "duto": "I-05",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-INS-SS-004",
+     "x": 2.471,
+     "y": 9.4
+    },
+    {
+     "duto": "I-05",
+     "lado": "fim",
+     "ok": true,
+     "liga": "terminal: tampa do duto (desenho)",
+     "x": -0.38,
+     "y": 8.046
+    },
+    {
+     "duto": "I-06",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-INS-SS-002",
+     "x": 8.365,
+     "y": 12.265
+    },
+    {
+     "duto": "I-06",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-INS-SS-016",
+     "x": 8.365,
+     "y": 9.638
+    },
+    {
+     "duto": "I-07",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-INS-SS-017",
+     "x": 13.946,
+     "y": 9.691
+    },
+    {
+     "duto": "I-07",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-INS-SS-009",
+     "x": 13.946,
+     "y": 8.941
+    },
+    {
+     "duto": "I-08",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-INS-SS-008",
+     "x": 13.744,
+     "y": 8.941
+    },
+    {
+     "duto": "I-08",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-INS-SS-010",
+     "x": 13.744,
+     "y": 7.448
+    },
+    {
+     "duto": "I-09",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-INS-SS-009",
+     "x": 13.744,
+     "y": 7.448
+    },
+    {
+     "duto": "I-09",
+     "lado": "fim",
+     "ok": true,
+     "liga": "terminal: tampa do duto (desenho)",
+     "x": 6.864,
+     "y": 7.448
+    },
+    {
+     "duto": "I-10",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-AEX-SS-001",
+     "x": 15.709,
+     "y": 12.03
+    },
+    {
+     "duto": "I-10",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-INS-SS-012",
+     "x": 15.709,
+     "y": 9.24
+    },
+    {
+     "duto": "I-11",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-INS-SS-011",
+     "x": 15.709,
+     "y": 9.24
+    },
+    {
+     "duto": "I-11",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-INS-SS-008",
+     "x": 13.946,
+     "y": 8.639
+    },
+    {
+     "duto": "I-12",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-INS-SS-011",
+     "x": 15.709,
+     "y": 10.996
+    },
+    {
+     "duto": "I-12",
+     "lado": "fim",
+     "ok": true,
+     "liga": "terminal: tampa do duto (desenho)",
+     "x": 20.221,
+     "y": 10.996
+    },
+    {
+     "duto": "I-13",
+     "lado": "ini",
+     "ok": true,
+     "liga": "terminal: segue em prumada não identificada",
+     "x": 9.117,
+     "y": 9.638
+    },
+    {
+     "duto": "I-13",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-INS-SS-010",
+     "x": 9.117,
+     "y": 7.235
+    },
+    {
+     "duto": "AE-01",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-INS-SS-001",
+     "x": 6.521,
+     "y": 12.424
+    },
+    {
+     "duto": "AE-01",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-INS-SS-011",
+     "x": 15.802,
+     "y": 12.424
+    },
+    {
+     "duto": "AE-02",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-INS-SS-011",
+     "x": 15.802,
+     "y": 12.424
+    },
+    {
+     "duto": "AE-02",
+     "lado": "fim",
+     "ok": true,
+     "liga": "terminal: segue fora do recorte (AE-40x20 / AE-30x…)",
+     "x": 20.411,
+     "y": 12.424
+    },
+    {
+     "duto": "AE-03",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-INS-SS-003",
+     "x": 9.96,
+     "y": 12.424
+    },
+    {
+     "duto": "AE-03",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-AEX-SS-007",
+     "x": 9.96,
+     "y": 10.17
+    },
+    {
+     "duto": "AE-04",
+     "lado": "ini",
+     "ok": true,
+     "liga": "D-INS-SS-003",
+     "x": 11.521,
+     "y": 12.424
+    },
+    {
+     "duto": "AE-04",
+     "lado": "fim",
+     "ok": true,
+     "liga": "D-AEX-SS-008",
+     "x": 11.521,
+     "y": 10.16
+    }
+   ],
+   "soltas": [],
+   "resumo": "54/54 pontas ligadas ou declaradas"
   }
  }
 }

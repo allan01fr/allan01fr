@@ -33,6 +33,8 @@ write("trechos.csv", ["id","sistema","dn","no_inicio","no_fim","xa","ya","za","x
 write("divergencias.csv", ["id","tipo","gravidade","disciplinas","descricao","pranchas","x","y","z","ids"],
       [[d["id"],d["tipo"],d["gravidade"]," ".join(d["disciplinas"]),d["descricao"]," | ".join(d["pranchas"]),
         *(d["pos"] if d["pos"] else [None,None,None])," ".join(d["ids"])] for d in M["divergencias"]])
+write("dutos.csv", ["id","sistema","rotulo","largura_m","altura_m","tipo","xa","ya","za","xb","yb","zb","comprimento_m","status","ventilador","passagem","nota","prancha"],
+      [[d["id"],d["sistema"],d["rotulo"],d["W"],d["H"],d["tipo"],*d["a"],*d["b"],d["comprimento"],d["status"],d["exaustor"],d["passagem"],d["nota"],d["prancha"]] for d in M.get("dutos",[])])
 write("niveis.csv", ["id","ambiente","tipo","PA","PO","z","x","y","status","fonte"],
       [[n["id"],n["ambiente"],n["tipo"],n["pa"],n["po"],n.get("z"),n["x"],n["y"],n["status"],n["fonte"]] for n in M["niveis"]])
 # variante para Artifact (o publicador acrescenta doctype/head/body)

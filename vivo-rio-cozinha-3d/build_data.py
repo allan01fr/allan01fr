@@ -44,7 +44,10 @@ PR_CURTA = "COZ 006 · Pontos el./hidr. · Subsolo"
 # ----------------------------------------------------------------------------
 # 2. Níveis e ambientes
 # ----------------------------------------------------------------------------
-Z_TOPO_PAREDE_H = 3.00   # pé-direito adotado sobre o PA (INFERIDO)
+Z_TERREO = 1.50          # nível do térreo (fluxograma TDM001-ARC-PJ-E-R-012: "TÉRREO - NÍVEL +1,50")
+E_LAJE = 0.25            # espessura adotada da laje do térreo (INFERIDO)
+Z_FUNDO_LAJE = round(Z_TERREO - E_LAJE, 3)
+Z_TOPO_PAREDE_H = None   # paredes sobem até o fundo da laje do térreo
 H_DIST = 2.85            # altura adotada da distribuição de água/gás sobre o PA (INFERIDO)
 H_ENTERRADO = 0.30       # profundidade adotada do ramal de esgoto sob o PA (INFERIDO)
 
@@ -403,7 +406,7 @@ for i, m in enumerate(sorted(merged, key=lambda m: (round(m["a"], 2), m["p0"][1]
     pa = min(AMB_D[l[0]]["pa"] for l in lados)
     pa_alto = max(AMB_D[l[0]]["pa"] for l in lados)
     PAREDES.append(dict(id=f"PAR-{len(PAREDES)+1:03d}", a=list(M(ax, ay)), b=list(M(bx, by)),
-                        esp=round(m["t"] * MPP, 3), z0=pa, z1=round(pa_alto + Z_TOPO_PAREDE_H, 3),
+                        esp=round(m["t"] * MPP, 3), z0=pa, z1=Z_FUNDO_LAJE,
                         pt=[[round(ax, 2), round(ay, 2)], [round(bx, 2), round(by, 2)]],
                         fonte="par de linhas paralelas da camada de paredes (vetor), eixo = linha média"))
 
@@ -415,7 +418,7 @@ for c in PAINEIS:
     l1, l2 = ambiente_de(mid[0]+nx*off, mid[1]+ny*off), ambiente_de(mid[0]-nx*off, mid[1]-ny*off)
     pa = min(AMB_D[l1[0]]["pa"], AMB_D[l2[0]]["pa"]); pa_alto = max(AMB_D[l1[0]]["pa"], AMB_D[l2[0]]["pa"])
     w = dict(id=f"PAR-{len(PAREDES)+1:03d}", a=list(M(*c["A"])), b=list(M(*c["B"])), esp=round(c["t"]*MPP, 3),
-             z0=pa, z1=round(pa_alto + Z_TOPO_PAREDE_H, 3), pt=[[round(v, 2) for v in c["A"]], [round(v, 2) for v in c["B"]]],
+             z0=pa, z1=Z_FUNDO_LAJE, pt=[[round(v, 2) for v in c["A"]], [round(v, 2) for v in c["B"]]],
              fonte="painel de vidro fixo (par de linhas ciano); peitoril até 1,30 m e verga a partir de 2,10 m (legenda da prancha)", vidro=True)
     PAREDES.append(w)
 
@@ -605,6 +608,8 @@ LOC = {}
 for p in PONTOS:
     LOC[p["id"]] = locacao(p)
 
+exec(open(F("bloco_dutos.py"), encoding="utf-8").read())
+
 # ----------------------------------------------------------------------------
 # 8. Divergências
 # ----------------------------------------------------------------------------
@@ -646,8 +651,10 @@ if seco:
     q = PID[seco[0]]
     div("Ralo em ambiente seco", "Ralos no Refeitório (ambiente seco). Os dos balcões de distribuição (itens 44/45) se justificam pelo banho-maria; "
         "confirmar o ralo seco junto à bancada de duas cubas.", "Baixa", ["SAN", "ARQ"], seco, pos=[q["x"], q["y"], q["z"]])
-div("Níveis não cotados", "Pé-direito, forro e fundo de laje não estão cotados. Adotados: topo de parede = PA + 3,00 m e distribuição a 2,85 m do piso (INFERIDO). "
-    "PA dos ambientes da cozinha sem marca própria: adotado −2,87.", "Média", ["ARQ", "HID"], pos=[cx, cy, -2.87 + 2.85])
+div("Níveis não cotados", "Forro e fundo de laje não estão cotados nas plantas. O fluxograma de exaustão dá o térreo a +1,50 (o relatório PA-COZINHA-003 usa 4,39 m de pé-direito, isto é, +1,52). "
+    f"Adotados: fundo de laje +{Z_FUNDO_LAJE:.2f} (laje de {E_LAJE:.2f} m), topo das paredes no fundo da laje e distribuição de água a 2,85 m do piso (INFERIDO). "
+    "PA dos ambientes da cozinha sem marca própria: adotado −2,87.", "Média", ["ARQ", "HID", "MEC"], pos=[cx, cy, -2.87 + 2.85], pranchas=[PRANCHA, FLUXO])
+for d in DIV_DUTOS: div(**d)
 div("Esquadrias", "Não há quadro de esquadrias e as etiquetas dos vãos (PA…, JA…) são texto vetorizado não legível por máquina. "
     "Portas modeladas pelo vão, com verga a 2,10 m (INFERIDO); painéis de vidro fixo de 1,30 a 2,10 m conforme a legenda.", "Baixa", ["ARQ"])
 div("Data da prancha", "A prancha de pontos é de 09/01/2006 (projeto executivo, R001). Existem as-builts posteriores (exaustão, 2026) que podem ter alterado o layout; "
@@ -673,10 +680,11 @@ PREMISSAS = [
     dict(id="P4", texto="Alturas h dos pontos lidas nos textos 'H=…' da prancha (sobre o piso acabado). Ralos no piso (h = 0)."),
     dict(id="P5", texto=f"Distribuição de água e gás adotada a {H_DIST:.2f} m sobre o piso (acima dos aquecedores, H=2,75 m). Valor INFERIDO: confirmar no projeto hidrossanitário."),
     dict(id="P6", texto=f"Esgoto: descida até {H_ENTERRADO:.2f} m abaixo do piso acabado, dentro do enchimento de 0,57 m (PA −2,87 a PO −3,44). INFERIDO."),
-    dict(id="P7", texto="Pé-direito não cotado: topo das paredes adotado a 3,00 m sobre o PA (INFERIDO)."),
+    dict(id="P7", texto=f"Térreo a +1,50 (fluxograma de exaustão); laje adotada com {E_LAJE:.2f} m, fundo a +{Z_FUNDO_LAJE:.2f}. Paredes do subsolo sobem até o fundo da laje (INFERIDO)."),
     dict(id="P8", texto="Cores: a prancha usa um único verde para todos os pontos hidráulicos; as cores por sistema seguem a convenção usual (AF azul, AQ vermelho, esgoto marrom, dreno ciano, gás amarelo)."),
     dict(id="P9", texto="Faixa de declividade adotada para verificação: 2–5% para Ø<100 e 1–5% para Ø≥100 (a prancha de pontos não traz nota de declividade)."),
-    dict(id="P10", texto="Ventilação e pluvial não aparecem na prancha de pontos e não foram modelados (dependem do projeto hidrossanitário)."),
+    dict(id="P10", texto="Ventilação sanitária e pluvial não aparecem nas pranchas disponíveis e não foram modeladas (dependem do projeto hidrossanitário)."),
+    *PREMISSAS_DUTOS,
 ]
 PRANCHAS = [
     dict(codigo=PRANCHA, curta=PR_CURTA, disciplina="ARQ / HID / SAN / GÁS (pontos)", pavimento="Subsolo — Cozinha de banquetes",
@@ -692,6 +700,7 @@ PRANCHAS = [
     dict(codigo="hidráulica.zip", curta="Projeto hidrossanitário", disciplina="HID / SAN / DRE", pavimento="todos",
          escala="—", rev="—", data="—", arquivo="PLANTAS/hidráulica.zip (21 MB)", vetorial="?", texto="?",
          uso="NÃO DISPONÍVEL — acima do limite de 10 MB do conector"),
+    *PRANCHAS_DUTOS,
 ]
 NIVEIS = []
 for m in MARCAS:
@@ -702,14 +711,19 @@ for a in AMB:
     NIVEIS.append(dict(id=f"N-{a[0]}", ambiente=a[1], tipo="piso do ambiente", pa=a[3], po=a[4], x=None, y=None, fonte=a[6], status=a[5]))
 NIVEIS.append(dict(id="N-DIST", ambiente="Distribuição de água/gás", tipo="tubulação", pa=None, po=None, x=None, y=None,
                    fonte=f"PA + {H_DIST:.2f} (premissa P5)", status="INFERIDO", z=-2.87 + H_DIST))
-NIVEIS.append(dict(id="N-TOPO", ambiente="Topo das paredes / laje", tipo="laje", pa=None, po=None, x=None, y=None,
-                   fonte="PA + 3,00 (premissa P7) — fundo de laje não cotado", status="PENDENTE", z=-2.87 + 3.0))
+NIVEIS.append(dict(id="N-TERREO", ambiente="Térreo (topo da laje do subsolo)", tipo="laje", pa=Z_TERREO, po=None, x=None, y=None,
+                   fonte="fluxograma TDM001-ARC-PJ-E-R-012", status="EXTRAÍDO", z=Z_TERREO))
+NIVEIS.append(dict(id="N-FUNDO", ambiente="Fundo da laje do térreo", tipo="laje", pa=None, po=None, x=None, y=None,
+                   fonte=f"térreo − {E_LAJE:.2f} (espessura adotada, premissa P7)", status="INFERIDO", z=Z_FUNDO_LAJE))
+NIVEIS.extend(NIVEIS_DUTOS)
 
 AMBIENTES = [dict(id=a[0], nome=a[1], poly=Mpoly(a[2]), pa=a[3], po=a[4], status=a[5], fonte=a[6]) for a in AMB]
 
 ext = {}
 for t in TRECHOS:
     ext[t["sistema"]] = round(ext.get(t["sistema"], 0) + t["comprimento"], 2)
+for d in DUTOS_M:
+    ext[d["sistema"]] = round(ext.get(d["sistema"], 0) + d["comprimento"], 2)
 
 modelo = dict(
     meta=dict(projeto="Vivo Rio — Cozinha de banquetes (subsolo)", obra="Casa de espetáculos — instalações da cozinha de banquetes",
@@ -718,6 +732,7 @@ modelo = dict(
     origem=dict(texto=PREMISSAS[0]["texto"], pt=[OX, OY], mpp=MPP, calibracao=[dict(desc=d, memorial=m, pt=round(p, 2), mpp=round(m / p, 6)) for d, m, p in CAL]),
     pranchas=PRANCHAS, premissas=PREMISSAS, niveis=NIVEIS, ambientes=AMBIENTES, paredes=PAREDES, vaos=VAOS,
     equipamentos=EQUIP, loucas=LOUCAS, nos=list(NOS.values()), pontos=PONTOS, trechos=TRECHOS, divergencias=DIV,
+    dutos=DUTOS_M, mec=MEC, 
     locacao=LOC,
     verificacoes=dict(
         pontas_soltas=soltas, pontas_soltas_nao_aceitas=[s for s in soltas if not s["aceita"]],
@@ -725,6 +740,7 @@ modelo = dict(
         loucas=[dict(id=l["id"], nome=l["nome"], invasao_m2=l["invasao_m2"], folga_m=l["folga_m"], ilha=l["ilha"], ok=l["ok"]) for l in LOUCAS],
         locacao_sem_referencia=[k for k, v in LOC.items() if not v["A"]],
         extensao=ext,
+        dutos=VER_DUTOS,
     ),
 )
 os.makedirs(F("saida"), exist_ok=True)
@@ -736,3 +752,4 @@ print("pontas soltas (não aceitas):", len(modelo["verificacoes"]["pontas_soltas
 print("declividades fora:", len(modelo["verificacoes"]["declividades_fora"]), "/", len(decl))
 print("louças:", [(l["id"], l["invasao_m2"], l["folga_m"]) for l in LOUCAS])
 print("locação sem referência:", modelo["verificacoes"]["locacao_sem_referencia"])
+print("dutos:", len(DUTOS_M), "mec:", {k: len(v) for k, v in MEC.items()}, "pontas de duto:", VER_DUTOS["resumo"])
