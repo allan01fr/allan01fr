@@ -1,0 +1,21 @@
+[submodule "lidar-scanner/referencias/mandeye_controller"]
+	path = lidar-scanner/referencias/mandeye_controller
+	url = https://github.com/JanuszBedkowski/mandeye_controller.git
+[submodule "lidar-scanner/referencias/HDMapping"]
+	path = lidar-scanner/referencias/HDMapping
+	url = https://github.com/MapsHD/HDMapping.git
+[submodule "lidar-scanner/referencias/livo-handheld"]
+	path = lidar-scanner/referencias/livo-handheld
+	url = https://github.com/RomanStadlhuber/livo-handheld.git
+[submodule "lidar-scanner/referencias/atlas-scanner"]
+	path = lidar-scanner/referencias/atlas-scanner
+	url = https://github.com/Eecornwell/atlas-scanner.git
+[submodule "lidar-scanner/referencias/FAST_LIO"]
+	path = lidar-scanner/referencias/FAST_LIO
+	url = https://github.com/hku-mars/FAST_LIO.git
+[submodule "lidar-scanner/referencias/livox_ros_driver2"]
+	path = lidar-scanner/referencias/livox_ros_driver2
+	url = https://github.com/Livox-SDK/livox_ros_driver2.git
+[submodule "lidar-scanner/referencias/Livox-SDK2"]
+	path = lidar-scanner/referencias/Livox-SDK2
+	url = https://github.com/Livox-SDK/Livox-SDK2.git
