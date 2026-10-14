@@ -1,0 +1,8 @@
+# Configuração do Streamlit para o Clima2D
+[browser]
+# Não envia estatísticas de uso para o Streamlit
+gatherUsageStats = false
+
+[client]
+# Esconde o menu de desenvolvedor (Deploy etc.)
+toolbarMode = "viewer"
