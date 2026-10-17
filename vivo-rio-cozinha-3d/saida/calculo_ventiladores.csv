@@ -1,0 +1,17 @@
+﻿ventilador;cenario;vazao_placa_m3h;vazao_calculo_m3h;pressao_requerida_baixo_Pa;pressao_requerida_base_Pa;pressao_requerida_alto_Pa;caminho_ate_folha_base_Pa;descarga_base_Pa;caminho_critico
+VM-COZ01;exaustão: vazão das coifas (2006);15200,0;13246,8;351,718;624,814;1155,855;542,95;81,864;D-EXA-SS-016
+VM-COZ02;exaustão: vazão das coifas (2006);15200,0;10188,6;185,021;303,726;526,194;255,011;48,715;D-EXA-SS-020
+VM-COZ03;exaustão: vazão das coifas (2006);9600,0;10575,0;193,544;303,824;509,582;251,391;52,433;D-EXA-SS-022
+VM-COZ01;exaustão: vazão de placa;15200,0;15200,0;436,941;782,412;1458,048;674,919;107,492;D-EXA-SS-016
+VM-COZ02;exaustão: vazão de placa;15200,0;15200,0;310,584;520,168;924,123;412,676;107,492;D-EXA-SS-020
+VM-COZ03;exaustão: vazão de placa;9600,0;9600,0;174,123;272,847;455,491;229,534;43,313;D-EXA-SS-022
+VM-COZ01;exaustão 2: relatório, Método I;15200,0;13246,8;351,718;624,814;1155,855;542,95;81,864;D-EXA-SS-016
+VM-COZ02;exaustão 2: relatório, Método I;15200,0;14342,4;285,667;477,135;844,927;381,323;95,812;D-EXA-SS-020
+VM-COZ03;exaustão 2: relatório, Método I;9600,0;10575,0;193,544;303,824;509,582;251,391;52,433;D-EXA-SS-022
+VM-COZ01;exaustão 2: relatório, Método II;15200,0;13246,8;351,718;624,814;1155,855;542,95;81,864;D-EXA-SS-016
+VM-COZ02;exaustão 2: relatório, Método II;15200,0;18522,0;420,454;710,219;1274,155;551,164;159,055;D-EXA-SS-020
+VM-COZ03;exaustão 2: relatório, Método II;9600,0;10575,0;193,544;303,824;509,582;251,391;52,433;D-EXA-SS-022
+AC-COZ01;insuflamento: vazão de placa igual por difusor;9000,0;9000,0;102,58;183,476;345,322;183,476;0,0;DIF-02
+AC-COZ02;insuflamento: vazão de placa igual por difusor;9000,0;9000,0;105,142;188,027;353,822;188,027;0,0;DIF-09
+VM-COZ05 + VM-COZ06;ar exterior: igual por terminal;13000,0;13000,0;187,545;337,034;635,894;337,034;0,0;D-AEX-SS-007
+VM-COZ05 + VM-COZ06;ar exterior: tudo nas descidas da coifa A;13000,0;13000,0;214,133;381,585;716,305;381,585;0,0;D-AEX-SS-007

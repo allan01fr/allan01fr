@@ -1,0 +1,317 @@
+[
+ {
+  "teste": "fator de atrito = Colebrook por bisseção (< 0,1 %)",
+  "ok": true,
+  "info": "pior desvio 4.44e-16"
+ },
+ {
+  "teste": "laminar: f = 64/Re",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "Δp de atrito num duto de referência",
+  "ok": true,
+  "info": "37.66 Pa (ref. 37.66)"
+ },
+ {
+  "teste": "diâmetro hidráulico 0,5 x 0,3",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "13,28 m/s e 17,15 m/s reproduzidos pelas vazões implícitas",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "prumada E-70x50 na placa de 15.200 m³/h = 12,06 m/s",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "EXA: sem ciclos e todos os dutos alcançados a partir do shaft",
+  "ok": true,
+  "info": "34 nós, 31 arestas, 3 raiz(es)"
+ },
+ {
+  "teste": "EXA: floresta (nós − arestas = nº de árvores)",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "EXG: sem ciclos e todos os dutos alcançados a partir do shaft",
+  "ok": true,
+  "info": "6 nós, 5 arestas, 1 raiz(es)"
+ },
+ {
+  "teste": "EXG: floresta (nós − arestas = nº de árvores)",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "INS: sem ciclos e todos os dutos alcançados a partir do shaft",
+  "ok": true,
+  "info": "33 nós, 31 arestas, 2 raiz(es)"
+ },
+ {
+  "teste": "INS: floresta (nós − arestas = nº de árvores)",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "AEX: sem ciclos e todos os dutos alcançados a partir do shaft",
+  "ok": true,
+  "info": "12 nós, 11 arestas, 1 raiz(es)"
+ },
+ {
+  "teste": "AEX: floresta (nós − arestas = nº de árvores)",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "conservação de vazão em todos os nós (S1)",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "S1 VM-COZ01: soma das folhas = vazão da árvore",
+  "ok": true,
+  "info": "13247 m³/h"
+ },
+ {
+  "teste": "S1 VM-COZ02: soma das folhas = vazão da árvore",
+  "ok": true,
+  "info": "10189 m³/h"
+ },
+ {
+  "teste": "S1 VM-COZ03: soma das folhas = vazão da árvore",
+  "ok": true,
+  "info": "10575 m³/h"
+ },
+ {
+  "teste": "conservação de vazão em todos os nós (S2)",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "S2 VM-COZ01: soma das folhas = vazão da árvore",
+  "ok": true,
+  "info": "15200 m³/h"
+ },
+ {
+  "teste": "S2 VM-COZ02: soma das folhas = vazão da árvore",
+  "ok": true,
+  "info": "15200 m³/h"
+ },
+ {
+  "teste": "S2 VM-COZ03: soma das folhas = vazão da árvore",
+  "ok": true,
+  "info": "9600 m³/h"
+ },
+ {
+  "teste": "conservação de vazão em todos os nós (S3a)",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "S3a VM-COZ01: soma das folhas = vazão da árvore",
+  "ok": true,
+  "info": "13247 m³/h"
+ },
+ {
+  "teste": "S3a VM-COZ02: soma das folhas = vazão da árvore",
+  "ok": true,
+  "info": "14342 m³/h"
+ },
+ {
+  "teste": "S3a VM-COZ03: soma das folhas = vazão da árvore",
+  "ok": true,
+  "info": "10575 m³/h"
+ },
+ {
+  "teste": "conservação de vazão em todos os nós (S3b)",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "S3b VM-COZ01: soma das folhas = vazão da árvore",
+  "ok": true,
+  "info": "13247 m³/h"
+ },
+ {
+  "teste": "S3b VM-COZ02: soma das folhas = vazão da árvore",
+  "ok": true,
+  "info": "18522 m³/h"
+ },
+ {
+  "teste": "S3b VM-COZ03: soma das folhas = vazão da árvore",
+  "ok": true,
+  "info": "10575 m³/h"
+ },
+ {
+  "teste": "conservação de vazão em todos os nós (INS)",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "INS AC-COZ01: soma das folhas = vazão da árvore",
+  "ok": true,
+  "info": "9000 m³/h"
+ },
+ {
+  "teste": "INS AC-COZ02: soma das folhas = vazão da árvore",
+  "ok": true,
+  "info": "9000 m³/h"
+ },
+ {
+  "teste": "conservação de vazão em todos os nós (AEX)",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "AEX VM-COZ05 + VM-COZ06: soma das folhas = vazão da árvore",
+  "ok": true,
+  "info": "13000 m³/h"
+ },
+ {
+  "teste": "conservação de vazão em todos os nós (AEX_alt)",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "AEX_alt VM-COZ05 + VM-COZ06: soma das folhas = vazão da árvore",
+  "ok": true,
+  "info": "13000 m³/h"
+ },
+ {
+  "teste": "cada duto de exaustão cai na árvore do ventilador que o desenho declara",
+  "ok": true,
+  "info": "[]"
+ },
+ {
+  "teste": "S1 VM-COZ01: baixo ≤ base ≤ alto",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "S1 VM-COZ01: total = atrito + singularidades + coifa + descarga",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "S1 VM-COZ02: baixo ≤ base ≤ alto",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "S1 VM-COZ02: total = atrito + singularidades + coifa + descarga",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "S1 VM-COZ03: baixo ≤ base ≤ alto",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "S1 VM-COZ03: total = atrito + singularidades + coifa + descarga",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "S2 VM-COZ01: baixo ≤ base ≤ alto",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "S2 VM-COZ01: total = atrito + singularidades + coifa + descarga",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "S2 VM-COZ02: baixo ≤ base ≤ alto",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "S2 VM-COZ02: total = atrito + singularidades + coifa + descarga",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "S2 VM-COZ03: baixo ≤ base ≤ alto",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "S2 VM-COZ03: total = atrito + singularidades + coifa + descarga",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "INS AC-COZ01: baixo ≤ base ≤ alto",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "INS AC-COZ01: total = atrito + singularidades + coifa + descarga",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "INS AC-COZ02: baixo ≤ base ≤ alto",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "INS AC-COZ02: total = atrito + singularidades + coifa + descarga",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "AEX VM-COZ05 + VM-COZ06: baixo ≤ base ≤ alto",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "AEX VM-COZ05 + VM-COZ06: total = atrito + singularidades + coifa + descarga",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "pressão sobe com a vazão (S2 ≥ S1 nos ventiladores 1 e 2)",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "coletor A maior reduz a pressão da Exaustão 1",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "troca temporária de seção foi revertida",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "CSV tem os 61 dutos do modelo",
+  "ok": true,
+  "info": "61"
+ },
+ {
+  "teste": "JSON: peças cobrem todos os dutos",
+  "ok": true,
+  "info": "81 peças"
+ },
+ {
+  "teste": "JSON: nenhuma peça de comprimento nulo",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "JSON: peças somam o comprimento de cada duto",
+  "ok": true,
+  "info": "[]"
+ }
+]
