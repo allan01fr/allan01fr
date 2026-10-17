@@ -81,10 +81,11 @@ h2:first-child{margin-top:2px}
 .hint{color:var(--text2);font-size:12px}
 input[type=range]{width:100%;accent-color:var(--accent)}
 /* legenda */
-#legend{left:10px;bottom:10px;padding:8px 10px;font-size:11px;max-width:560px;display:flex;flex-wrap:wrap;gap:4px 14px}
+#legend{left:290px;bottom:10px;padding:8px 10px;font-size:11px;max-width:min(560px,calc(100vw - 720px));display:flex;flex-wrap:wrap;gap:4px 14px}
 #legend .lg{display:flex;align-items:center;gap:6px;white-space:nowrap}
 #legend svg{flex:none}
 #legend .lt{color:var(--text2);margin-right:2px}
+@media (max-width:1100px){#legend{display:none}}
 /* rodapé */
 #foot{display:grid;grid-template-columns:2.4fr .9fr 1.1fr 1.4fr 1.9fr;border-top:1px solid var(--line);background:var(--bg2);padding-bottom:env(safe-area-inset-bottom,0px)}
 #foot div{padding:5px 10px;border-right:1px solid var(--line);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -205,6 +206,7 @@ td.n{font-family:var(--mono);text-align:right;white-space:nowrap}
   <footer id="foot"></footer>
 </div>
 <script id="model" type="application/json">/*__MODEL__*/</script>
+<script id="calc" type="application/json">/*__CALC__*/</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
@@ -240,7 +242,7 @@ const state = {
   sis: Object.fromEntries(sisPresent.map(k=>[k,true])),
   st: {'EXTRAÍDO':true,'INFERIDO':true,'PENDENTE':true},
   pav: {'Subsolo':true},
-  lay: {arq:true, nomes:true, div:true, equip:true, grade:true},
+  lay: {arq:true, nomes:true, div:true, equip:true, grade:true, fluxo:false},
   view: 'persp', cut:false, cutZ:-1.6, sel:null, measure:false, m1:null, cotas:[], cotasVis:true, decomp:false, tab:'reg'
 };
 
@@ -452,6 +454,54 @@ M.mec.coifas.forEach(c=>mecBox(c,'coifa',c.L,c.P,c.z0,c.z1,colorOf('EXA'),.18));
 M.mec.ventiladores.forEach(f=>mecBox(f,'ventilador',f.L,f.P,f.z0,f.z1,colorOf(f.sistema),.35));
 M.mec.difusores.forEach(f=>mecBox(f,'difusor',f.L,f.L,f.z-.03,f.z,colorOf('INS'),.45));
 
+/* ---------- animação do escoamento (estudo 1D: vazão e velocidade por duto) ---------- */
+const CALC = (()=>{ try{ return JSON.parse(document.getElementById('calc').textContent||'{}'); }catch(e){ return {}; } })();
+const calcDuto = id => (CALC.dutos||{})[id];
+G.flow = new THREE.Group(); scene.add(G.flow);
+const flow = {pts:null, parts:[], total:0, cen:'base'};
+const VISUAL = 0.14;   // m/s na tela por m/s calculado: 10 m/s de ar viram 1,4 m/s na animação (só para dar para ver)
+function velCor(sis, v){
+  const lim = (sis==='EXA'||sis==='EXG') ? 12.5 : 10;      // exaustão: limite do relatório PA-COZINHA-003; ar: referência usual
+  if(v > lim) return new THREE.Color(css('--pend'));
+  if(v > 0.8*lim) return new THREE.Color(css('--warn'));
+  return new THREE.Color(0x14213d);                          // núcleo escuro com halo branco: lê bem sobre dutos laranja, magenta e cinza
+}
+function buildFlow(){
+  while(G.flow.children.length) G.flow.remove(G.flow.children[0]);
+  flow.parts = []; flow.pts = null; if(!CALC.pecas || !CALC.pecas.length) return;
+  const cen = flow.cen==='placa' ? 'placa' : 'base'; let total = 0;
+  CALC.pecas.forEach(p=>{
+    const v = p['v_'+cen], Q = p['Q_'+cen]; if(!v || v<=0) return;
+    const A = new THREE.Vector3(...p.a), B = new THREE.Vector3(...p.b), L = A.distanceTo(B); if(L<0.05) return;
+    const up = p.sentido>=0 ? A : B, dn = p.sentido>=0 ? B : A;
+    const n = Math.max(2, Math.min(40, Math.round(L*(1.2 + 0.0004*Q))));     // mais partículas onde passa mais ar
+    flow.parts.push({sis:p.sis, duto:p.duto, up, dn, L, v, n, col:velCor(p.sis, v), off:total, u0:Array.from({length:n},(_,i)=>(i+Math.random()*.6)/n)});
+    total += n;
+  });
+  const pos = new Float32Array(total*3), colr = new Float32Array(total*3);
+  flow.parts.forEach(pt=>{ for(let i=0;i<pt.n;i++){ const k=(pt.off+i)*3; colr[k]=pt.col.r; colr[k+1]=pt.col.g; colr[k+2]=pt.col.b; } });
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos,3)); g.setAttribute('color', new THREE.BufferAttribute(colr,3));
+  const halo = new THREE.Points(g, new THREE.PointsMaterial({size:0.2, color:0xffffff, sizeAttenuation:true, transparent:true, opacity:.8, depthTest:false}));
+  const m = new THREE.Points(g, new THREE.PointsMaterial({size:0.11, vertexColors:true, sizeAttenuation:true, transparent:true, opacity:1, depthTest:false}));
+  halo.renderOrder = 9; m.renderOrder = 10; halo.frustumCulled = m.frustumCulled = false; G.flow.add(halo); G.flow.add(m); flow.pts = m; flow.total = total; stepFlow(0);
+}
+function stepFlow(t){
+  if(!flow.pts) return;
+  const pos = flow.pts.geometry.attributes.position.array;
+  flow.parts.forEach(pt=>{
+    const vis = state.lay.fluxo && !!state.sis[pt.sis], d = pt.v*VISUAL*t/pt.L;
+    for(let i=0;i<pt.n;i++){
+      const k=(pt.off+i)*3;
+      if(!vis){ pos[k]=0; pos[k+1]=0; pos[k+2]=-1e3; continue; }
+      const u = (pt.u0[i] + d) % 1;
+      pos[k]=pt.up.x+(pt.dn.x-pt.up.x)*u; pos[k+1]=pt.up.y+(pt.dn.y-pt.up.y)*u; pos[k+2]=pt.up.z+(pt.dn.z-pt.up.z)*u;
+    }
+  });
+  flow.pts.geometry.attributes.position.needsUpdate = true;
+}
+buildFlow();
+
+
 /* ---------- divergências ---------- */
 const divMarkers=[];
 M.divergencias.forEach(d=>{
@@ -558,7 +608,7 @@ function applyVisibility(){
   G.arq.visible = state.lay.arq; G.floor.visible = state.lay.arq; G.equip.visible = state.lay.equip;
   G.grid.visible = state.lay.grade && state.view!=='under';
   divMarkers.forEach(m=>m.visible = state.lay.div && divVisible(m.userData.d));
-  G.cot.visible = state.cotasVis;
+  G.cot.visible = state.cotasVis; G.flow.visible = !!state.lay.fluxo; stepFlow(RM ? 0 : performance.now()/1000);
   renderer.clippingPlanes = state.cut ? [cutPlane] : [];
   if(state.tab==='div') renderTab();
 }
@@ -576,8 +626,10 @@ function buildFilters(){
       <span class="cnt"><b>${cntP(p=>p.pav===k)}</b>·${M.trechos.length+M.dutos.length}·<span style="color:var(--pend)">${M.divergencias.length}</span></span></div>`).join('');
   $('#fSt').innerHTML = Object.keys(state.st).map(k=>`<div class="row"><label><input type="checkbox" data-st="${k}" ${state.st[k]?'checked':''}>${ST[k]}</label>
       <span class="cnt"><b>${cntP(p=>p.status===k)}</b>·${cntT(t=>t.status===k)+M.dutos.filter(d=>d.status===k).length}</span></div>`).join('');
-  const L = [['arq','Arquitetura (paredes, pisos, vãos)'],['nomes','Nomes de ambientes'],['div','Marcadores de divergência'],['equip','Louças e equipamentos'],['grade','Grade de base']];
-  $('#fLay').innerHTML = L.map(([k,n])=>`<div class="row"><label><input type="checkbox" data-lay="${k}" ${state.lay[k]?'checked':''}>${n}</label></div>`).join('');
+  const L = [['arq','Arquitetura (paredes, pisos, vãos)'],['nomes','Nomes de ambientes'],['div','Marcadores de divergência'],['equip','Louças e equipamentos'],['grade','Grade de base'],['fluxo','Escoamento animado (estudo 1D)']];
+  $('#fLay').innerHTML = L.map(([k,n])=>`<div class="row"><label><input type="checkbox" data-lay="${k}" ${state.lay[k]?'checked':''}>${n}</label></div>`).join('')
+    + (CALC.pecas ? `<div class="row"><label style="gap:6px">Vazão da animação <select data-fluxocen><option value="base" ${flow.cen==='base'?'selected':''}>coifas (prancha 2006)</option><option value="placa" ${flow.cen==='placa'?'selected':''}>placa do ventilador</option></select></label></div>` : '');
+  const sel = $('#fLay').querySelector('[data-fluxocen]'); if(sel) sel.addEventListener('change', e=>{ flow.cen=e.target.value; buildFlow(); applyVisibility(); });
   $('#left').querySelectorAll('input[type=checkbox]').forEach(i=>i.addEventListener('change', e=>{
     const d=e.target.dataset;
     if(d.sis) state.sis[d.sis]=e.target.checked; if(d.st) state.st[d.st]=e.target.checked;
@@ -600,6 +652,7 @@ function legend(){
      <span class="lg"><svg width="22" height="10"><rect x="1" y="1" width="20" height="8" fill="var(--c-exa)" fill-opacity=".75" stroke="var(--c-exa)"/></svg>duto extraído</span>
      <span class="lg"><svg width="22" height="10"><rect x="1" y="1" width="20" height="8" fill="var(--c-exa)" fill-opacity=".18" stroke="var(--c-exa)" stroke-dasharray="3 2"/></svg>duto inferido</span>
      <span class="lg"><svg width="16" height="10"><rect x="1" y="1" width="14" height="8" fill="none" stroke="var(--text2)"/></svg>louça/equip./coifa</span>
+     ${CALC.pecas?`<span class="lg"><span class="lt">Escoamento:</span><svg width="12" height="10"><circle cx="6" cy="5" r="4.5" fill="#fff" stroke="#bbb" stroke-width=".5"/><circle cx="6" cy="5" r="2.6" fill="#14213d"/></svg>normal<svg width="12" height="10"><circle cx="6" cy="5" r="3.5" fill="var(--warn)"/></svg>&gt; 80 % do limite<svg width="12" height="10"><circle cx="6" cy="5" r="3.5" fill="var(--pend)"/></svg>acima (12,5 m/s exaustão · 10 m/s ar)</span>`:''}
      <span class="lg"><svg width="34" height="10"><line x1="2" y1="5" x2="32" y2="5" stroke="var(--accent)" stroke-width="1.4"/><line x1="0" y1="8" x2="4" y2="2" stroke="var(--accent)" stroke-width="1.4"/><line x1="30" y1="8" x2="34" y2="2" stroke="var(--accent)" stroke-width="1.4"/></svg>cota</span>`;
   const m=M.meta;
   $('#foot').innerHTML = `<div><span>Projeto</span><b>${esc(m.projeto)}</b></div><div><span>Rev.</span><b>${esc(m.rev)}</b></div>
@@ -707,6 +760,18 @@ function center(pos, dist){
 function openPanel(o){ $('#right').classList.toggle('min', !o); $('#minbtn').textContent = o?'Minimizar':'Abrir'; viewOffset(); }
 $('#minbtn').addEventListener('click', ()=>{ const isMin=$('#right').classList.contains('min'); openPanel(isMin); if(isMin) renderTab(); });
 document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click', ()=>{ state.tab=b.dataset.tab; openPanel(true); renderTab(); }));
+function calcBloco(d){
+  const c = calcDuto(d.id); if(!c) return '';
+  const br0 = x => Math.round(x).toLocaleString('pt-BR'), br1 = x => x.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
+  const ar = d.sistema==='INS' || d.sistema==='AEX';
+  if(c.Q_base==null) return `<div class="wide"><span>Vazão e velocidade do ar (estudo 1D)</span><b style="font-size:14px">sem vazão atribuída${c.Qmax?`<br>cabem até ${br0(c.Qmax)} m³/h a 12,5 m/s`:''}</b></div>`;
+  const dif = Math.abs((c.v_placa||0)-(c.v_base||0)) > 0.05;
+  const base = ar ? 'vazão de placa do ventilador, dividida entre os difusores (hipótese)' : 'vazão das coifas da prancha de 2006';
+  return `<div><span>Vazão do ar</span><b>${br0(c.Q_base)}<small>m³/h</small></b></div>
+    <div><span>Velocidade do ar</span><b>${br1(c.v_base)}<small>m/s</small></b></div>
+    <div class="wide"><span>Faixa de velocidade · estudo 1D</span><b style="font-size:14px">${esc(c.faixa_base)}</b>
+      <small style="display:block;color:var(--text2);margin-top:3px">Base: ${base}.${dif?` Com a vazão de placa do ventilador: ${br1(c.v_placa)} m/s, ${esc(c.faixa_placa)}.`:''}${c.Qmax?` A 12,5 m/s esta seção leva até ${br0(c.Qmax)} m³/h.`:''}</small></div>`;
+}
 function situacao(st){ return st==='EXTRAÍDO' ? '<span class="sit ok">Conforme projeto</span>' :
   st==='INFERIDO' ? '<span class="sit inf">Confirmar antes de executar</span>' : '<span class="sit pend">Não executar — pendente</span>'; }
 function divsOf(id){ return M.divergencias.filter(d=>d.ids.includes(id)); }
@@ -768,6 +833,7 @@ function renderReg(){
         <div><span>Comprimento</span><b>${fmt(d.comprimento)}<small>m</small></b></div>
         <div><span>${d.tipo==='horizontal'?'Topo do duto acima do piso':'Topo acima do piso'}</span><b>${fmt(zt-PA0)}<small>m</small></b></div>
         <div class="wide"><span>Por onde passa</span><b>${esc(d.passagem)}</b></div>
+        ${calcBloco(d)}
       </div>
       ${d.status!=='EXTRAÍDO'?`<div class="why ${d.status==='PENDENTE'?'p':''}">${esc(d.nota)}</div>`:`<p class="hint" style="margin:10px 0 0">${esc(d.nota)}</p>`}
       <div class="ref">Ver na prancha: <b>${esc(d.prancha)}</b></div>
@@ -1031,6 +1097,7 @@ function frame(now){
   requestAnimationFrame(frame);
   if(anim) anim(now);
   if(controls) controls.update();
+  if(state.lay.fluxo && !RM) stepFlow(now/1000);
   // anel pulsante voltado à câmera
   ptMeshes.forEach(m=>{ const r=m.userData.ring; if(!r) return; r.quaternion.copy(camera.quaternion); m.updateMatrixWorld();
     r.quaternion.premultiply(m.getWorldQuaternion(new THREE.Quaternion()).invert());
@@ -1055,7 +1122,7 @@ function frame(now){
 buildFilters(); legend(); cutUI();
 setView('persp'); themeColors(); renderTab();
 requestAnimationFrame(frame);
-window.__app = {M, state, center:(x,y,z,d)=>center(new THREE.Vector3(x,y,z),d), gotoId, gotoDiv, setView, toggleMeasure, pickAt, toScreen, ptById, applyVisibility, buildFilters, setSel, snapAt, addCota, CSV, camera:()=>camera, controls:()=>controls, labels};
+window.__app = {M, state, flow, CALC, calcDuto, center:(x,y,z,d)=>center(new THREE.Vector3(x,y,z),d), gotoId, gotoDiv, setView, toggleMeasure, pickAt, toScreen, ptById, applyVisibility, buildFilters, setSel, snapAt, addCota, CSV, camera:()=>camera, controls:()=>controls, labels};
 })();
 </script>
 </body>

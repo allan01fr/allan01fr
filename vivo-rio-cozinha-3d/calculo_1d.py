@@ -402,10 +402,10 @@ def faixa(sis, v, Q):
     if Q is None: return "sem vazão (exaustor não identificado)"
     if Q <= 0: return "sem vazão atribuída"
     if sis in ("EXA", "EXG"):
-        if v > LIM["exa_max"]: return "ACIMA de 12,5 m/s"
-        if v < LIM["exa_min"]: return "abaixo de 7,5 m/s (referência adotada, a confirmar)"
+        if v > LIM["exa_max"]: return "acima do limite de 12,5 m/s"
+        if v < LIM["exa_min"]: return "abaixo da referência de 7,5 m/s, a confirmar"
         return "dentro da faixa"
-    return "acima de 10 m/s (referência usual)" if v > LIM["ref_ar"] else "ok"
+    return "acima da referência de 10 m/s" if v > LIM["ref_ar"] else "dentro da faixa"
 def eixo(d, t): return [round(d["a"][i] + (d["b"][i] - d["a"][i]) * t, 3) for i in range(3)]
 
 def tabelas(o):
@@ -440,6 +440,12 @@ def balanco(o):
     ins = FAN_Q["AC-COZ01"] + FAN_Q["AC-COZ02"]; aex = FAN_Q["VM-COZ05"] + FAN_Q["VM-COZ06"]
     return dict(exaustao_coifas=ex1, exaustao_placa=exp_, insuflamento=ins, ar_exterior=aex, razao_coifas=(ins + aex) / ex1, razao_placa=(ins + aex) / exp_)
 
+def arred(x, nd=3):
+    if isinstance(x, float): return round(x, nd)
+    if isinstance(x, dict): return {k: arred(v, nd) for k, v in x.items()}
+    if isinstance(x, (list, tuple)): return [arred(v, nd) for v in x]
+    return x
+
 def escrever(o):
     linhas, pecas = tabelas(o); B = balanco(o)
     def num(v): return "" if v is None else (str(round(v, 3) if isinstance(v, float) else v).replace(".", ",") if not isinstance(v, bool) else str(v))
@@ -462,10 +468,12 @@ def escrever(o):
                           b["caminho"], b["descarga"], b["critico"]])
     w("calculo_ventiladores.csv", ["ventilador", "cenario", "vazao_placa_m3h", "vazao_calculo_m3h", "pressao_requerida_baixo_Pa", "pressao_requerida_base_Pa",
                                    "pressao_requerida_alto_Pa", "caminho_ate_folha_base_Pa", "descarga_base_Pa", "caminho_critico"], frows)
-    json.dump(dict(parametros=dict(ar=AR, limites=LIM, K=K0, casos=CASOS), inferencias=INFERENCIAS, balanco=B, pecas=pecas,
+    dutos_j = {r["id"]: dict(sistema=r["sistema"], Q_base=r["Q_base"], v_base=r["v_base"], faixa_base=r["faixa_base"], Q_placa=r["Q_placa"], v_placa=r["v_placa"],
+                             faixa_placa=r["faixa_placa"], Qmax=r["Qmax"], atrito_Pa=r["atr_base"]) for r in linhas}
+    json.dump(arred(dict(parametros=dict(ar=AR, limites=LIM, K=K0, casos=CASOS), inferencias=INFERENCIAS, balanco=B, pecas=pecas, dutos=dutos_j,
                    ventiladores={f: dict(placa=FAN_Q[f]) for f in FAN_Q}, coifas={k: dict(Q=COIFA_Q[k], area=COIFA_AREA[k]) for k in COIFA_Q},
                    cenarios={cod: {f: dict(Q=d["Q"], P={c: v["total"] for c, v in d["casos"].items()}, critico=d["casos"]["base"]["critico"]) for f, d in c["fans"].items()}
-                             for cod, c in o["cen"].items()}),
+                             for cod, c in o["cen"].items()})),
               open(os.path.join(SAIDA, "calculo_dutos.json"), "w", encoding="utf-8"), ensure_ascii=False)
     return linhas, pecas, B
 

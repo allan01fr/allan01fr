@@ -1,62 +1,62 @@
 ﻿id;sistema;rotulo;tipo;situacao;ventilador;largura_m;altura_m;area_m2;comprimento_m;diametro_hidraulico_m;vazao_base_m3h;vel_base_ms;faixa_base;vazao_placa_m3h;vel_placa_ms;faixa_placa;vazao_max_12_5ms_m3h;perda_atrito_base_Pa;perda_atrito_Pa_por_m
-D-EXA-SS-001;EXA;EC-30x40;horizontal;PENDENTE;VM-COZ03;0,3;0,4;0,12;0,862;0,343;2400,0;5,556;abaixo de 7,5 m/s (referência adotada, a confirmar);2178,723;5,043;abaixo de 7,5 m/s (referência adotada, a confirmar);5400,0;0,906;1,051
-D-EXA-SS-002;EXA;EC-30x40;horizontal;PENDENTE;VM-COZ03;0,3;0,4;0,12;4,32;0,343;2400,0;5,556;abaixo de 7,5 m/s (referência adotada, a confirmar);2178,723;5,043;abaixo de 7,5 m/s (referência adotada, a confirmar);5400,0;4,542;1,051
-D-EXA-SS-003;EXA;EC-30x40;horizontal;EXTRAÍDO;VM-COZ03;0,3;0,4;0,12;0,613;0,343;2400,0;5,556;abaixo de 7,5 m/s (referência adotada, a confirmar);2178,723;5,043;abaixo de 7,5 m/s (referência adotada, a confirmar);5400,0;0,644;1,051
-D-EXA-SS-004;EXA;EC-30x40;horizontal;EXTRAÍDO;VM-COZ03;0,3;0,4;0,12;8,191;0,343;2400,0;5,556;abaixo de 7,5 m/s (referência adotada, a confirmar);2178,723;5,043;abaixo de 7,5 m/s (referência adotada, a confirmar);5400,0;8,611;1,051
-D-EXA-SS-005;EXA;EC-50x40;horizontal;EXTRAÍDO;VM-COZ03;0,5;0,4;0,2;8,273;0,444;4862,4;6,753;abaixo de 7,5 m/s (referência adotada, a confirmar);4414,094;6,131;abaixo de 7,5 m/s (referência adotada, a confirmar);9000,0;8,942;1,081
-D-EXA-SS-006;EXA;EC-50x40;horizontal;EXTRAÍDO;VM-COZ03;0,5;0,4;0,2;1,608;0,444;4862,4;6,753;abaixo de 7,5 m/s (referência adotada, a confirmar);4414,094;6,131;abaixo de 7,5 m/s (referência adotada, a confirmar);9000,0;1,777;1,105
-D-EXA-SS-007;EXA;EC-90x40;horizontal;EXTRAÍDO;VM-COZ03;0,9;0,4;0,36;3,86;0,554;10575,0;8,16;dentro da faixa;9600,0;7,407;abaixo de 7,5 m/s (referência adotada, a confirmar);16200,0;4,67;1,21
+D-EXA-SS-001;EXA;EC-30x40;horizontal;PENDENTE;VM-COZ03;0,3;0,4;0,12;0,862;0,343;2400,0;5,556;abaixo da referência de 7,5 m/s, a confirmar;2178,723;5,043;abaixo da referência de 7,5 m/s, a confirmar;5400,0;0,906;1,051
+D-EXA-SS-002;EXA;EC-30x40;horizontal;PENDENTE;VM-COZ03;0,3;0,4;0,12;4,32;0,343;2400,0;5,556;abaixo da referência de 7,5 m/s, a confirmar;2178,723;5,043;abaixo da referência de 7,5 m/s, a confirmar;5400,0;4,542;1,051
+D-EXA-SS-003;EXA;EC-30x40;horizontal;EXTRAÍDO;VM-COZ03;0,3;0,4;0,12;0,613;0,343;2400,0;5,556;abaixo da referência de 7,5 m/s, a confirmar;2178,723;5,043;abaixo da referência de 7,5 m/s, a confirmar;5400,0;0,644;1,051
+D-EXA-SS-004;EXA;EC-30x40;horizontal;EXTRAÍDO;VM-COZ03;0,3;0,4;0,12;8,191;0,343;2400,0;5,556;abaixo da referência de 7,5 m/s, a confirmar;2178,723;5,043;abaixo da referência de 7,5 m/s, a confirmar;5400,0;8,611;1,051
+D-EXA-SS-005;EXA;EC-50x40;horizontal;EXTRAÍDO;VM-COZ03;0,5;0,4;0,2;8,273;0,444;4862,4;6,753;abaixo da referência de 7,5 m/s, a confirmar;4414,094;6,131;abaixo da referência de 7,5 m/s, a confirmar;9000,0;8,942;1,081
+D-EXA-SS-006;EXA;EC-50x40;horizontal;EXTRAÍDO;VM-COZ03;0,5;0,4;0,2;1,608;0,444;4862,4;6,753;abaixo da referência de 7,5 m/s, a confirmar;4414,094;6,131;abaixo da referência de 7,5 m/s, a confirmar;9000,0;1,777;1,105
+D-EXA-SS-007;EXA;EC-90x40;horizontal;EXTRAÍDO;VM-COZ03;0,9;0,4;0,36;3,86;0,554;10575,0;8,16;dentro da faixa;9600,0;7,407;abaixo da referência de 7,5 m/s, a confirmar;16200,0;4,67;1,21
 D-EXA-SS-008;EXA;EC-40x40;horizontal;EXTRAÍDO;VM-COZ03;0,4;0,4;0,16;2,885;0,4;5712,6;9,918;dentro da faixa;5185,906;9,003;dentro da faixa;7200,0;7,521;2,607
-D-EXA-SS-009;EXA;EC-60x50;horizontal;EXTRAÍDO;VM-COZ02;0,5;0,6;0,3;6,059;0,545;10188,6;9,434;dentro da faixa;15200,0;14,074;ACIMA de 12,5 m/s;13500,0;3,738;0,617
-D-EXA-SS-010;EXA;EC-60x50;horizontal;EXTRAÍDO;VM-COZ02;0,6;0,5;0,3;4,21;0,545;10188,6;9,434;dentro da faixa;15200,0;14,074;ACIMA de 12,5 m/s;13500,0;6,84;1,625
-D-EXA-SS-011;EXA;EC-50x30;horizontal;EXTRAÍDO;VM-COZ01;0,5;0,3;0,15;2,608;0,375;13246,8;24,531;ACIMA de 12,5 m/s;15200,0;28,148;ACIMA de 12,5 m/s;6750,0;19,513;7,482
+D-EXA-SS-009;EXA;EC-60x50;horizontal;EXTRAÍDO;VM-COZ02;0,5;0,6;0,3;6,059;0,545;10188,6;9,434;dentro da faixa;15200,0;14,074;acima do limite de 12,5 m/s;13500,0;3,738;0,617
+D-EXA-SS-010;EXA;EC-60x50;horizontal;EXTRAÍDO;VM-COZ02;0,6;0,5;0,3;4,21;0,545;10188,6;9,434;dentro da faixa;15200,0;14,074;acima do limite de 12,5 m/s;13500,0;6,84;1,625
+D-EXA-SS-011;EXA;EC-50x30;horizontal;EXTRAÍDO;VM-COZ01;0,5;0,3;0,15;2,608;0,375;13246,8;24,531;acima do limite de 12,5 m/s;15200,0;28,148;acima do limite de 12,5 m/s;6750,0;19,513;7,482
 D-EXG-SS-001;EXG;E-85x50;horizontal;EXTRAÍDO;não identificado;0,85;0,5;0,425;1,649;0,63;;;sem vazão (exaustor não identificado);;;sem vazão (exaustor não identificado);19125,0;;
 D-EXG-SS-002;EXG;E-20x15;horizontal;INFERIDO;não identificado;0,2;0,15;0,03;3,133;0,171;;;sem vazão (exaustor não identificado);;;sem vazão (exaustor não identificado);1350,0;;
 D-EXG-SS-003;EXG;E-20x15;horizontal;INFERIDO;não identificado;0,2;0,15;0,03;3,706;0,171;;;sem vazão (exaustor não identificado);;;sem vazão (exaustor não identificado);1350,0;;
 D-EXG-SS-004;EXG;E-20x15;horizontal;INFERIDO;não identificado;0,2;0,15;0,03;1,681;0,171;;;sem vazão (exaustor não identificado);;;sem vazão (exaustor não identificado);1350,0;;
-D-INS-SS-001;INS;I-50x40;horizontal;EXTRAÍDO;;0,5;0,4;0,2;3,9;0,444;6750,0;9,375;ok;6750,0;9,375;ok;;8,031;2,059
-D-INS-SS-002;INS;I-50x50;horizontal;EXTRAÍDO;;0,5;0,5;0,25;2,095;0,5;6750,0;7,5;ok;6750,0;7,5;ok;;2,446;1,168
-D-INS-SS-003;INS;I-30x50;horizontal;EXTRAÍDO;;0,3;0,5;0,15;2,88;0,375;2250,0;4,167;ok;2250,0;4,167;ok;;1,537;0,534
-D-INS-SS-004;INS;I-50x40;horizontal;EXTRAÍDO;;0,5;0,4;0,2;3,114;0,444;6750,0;9,375;ok;6750,0;9,375;ok;;4,711;1,513
-D-INS-SS-005;INS;I-25x40;horizontal;EXTRAÍDO;;0,25;0,4;0,1;1,354;0,308;4500,0;12,5;acima de 10 m/s (referência usual);4500,0;12,5;acima de 10 m/s (referência usual);;3,831;2,83
-D-INS-SS-006;INS;I-25x40;horizontal;EXTRAÍDO;;0,25;0,4;0,1;2,851;0,308;2250,0;6,25;ok;2250,0;6,25;ok;;3,856;1,353
-D-INS-SS-007;INS;I-80x50;horizontal;EXTRAÍDO;;0,8;0,5;0,4;2,627;0,615;9000,0;6,25;ok;9000,0;6,25;ok;;1,689;0,643
-D-INS-SS-008;INS;I-65x50;horizontal;EXTRAÍDO;;0,65;0,5;0,325;0,75;0,565;9000,0;7,692;ok;9000,0;7,692;ok;;0,792;1,055
-D-INS-SS-009;INS;I-40x40;horizontal;EXTRAÍDO;;0,4;0,4;0,16;1,493;0,4;3000,0;5,208;ok;3000,0;5,208;ok;;1,151;0,771
-D-INS-SS-010;INS;I-35x40;horizontal;EXTRAÍDO;;0,35;0,4;0,14;6,88;0,373;3000,0;5,952;ok;3000,0;5,952;ok;;2,913;0,423
-D-INS-SS-011;INS;I-55x40;horizontal;EXTRAÍDO;;0,55;0,4;0,22;2,79;0,463;4500,0;5,682;ok;4500,0;5,682;ok;;1,333;0,478
-D-INS-SS-012;INS;I-40x40;horizontal;EXTRAÍDO;;0,4;0,4;0,16;0,601;0,4;4500,0;7,812;ok;4500,0;7,812;ok;;0,995;1,656
-D-INS-SS-013;INS;I-40x40;horizontal;EXTRAÍDO;;0,4;0,4;0,16;1,763;0,4;6000,0;10,417;acima de 10 m/s (referência usual);6000,0;10,417;acima de 10 m/s (referência usual);;4,583;2,599
-D-INS-SS-014;INS;I-35x30;horizontal;EXTRAÍDO;;0,35;0,3;0,105;4,512;0,323;4500,0;11,905;acima de 10 m/s (referência usual);4500,0;11,905;acima de 10 m/s (referência usual);;14,002;3,103
+D-INS-SS-001;INS;I-50x40;horizontal;EXTRAÍDO;;0,5;0,4;0,2;3,9;0,444;6750,0;9,375;dentro da faixa;6750,0;9,375;dentro da faixa;;8,031;2,059
+D-INS-SS-002;INS;I-50x50;horizontal;EXTRAÍDO;;0,5;0,5;0,25;2,095;0,5;6750,0;7,5;dentro da faixa;6750,0;7,5;dentro da faixa;;2,446;1,168
+D-INS-SS-003;INS;I-30x50;horizontal;EXTRAÍDO;;0,3;0,5;0,15;2,88;0,375;2250,0;4,167;dentro da faixa;2250,0;4,167;dentro da faixa;;1,537;0,534
+D-INS-SS-004;INS;I-50x40;horizontal;EXTRAÍDO;;0,5;0,4;0,2;3,114;0,444;6750,0;9,375;dentro da faixa;6750,0;9,375;dentro da faixa;;4,711;1,513
+D-INS-SS-005;INS;I-25x40;horizontal;EXTRAÍDO;;0,25;0,4;0,1;1,354;0,308;4500,0;12,5;acima da referência de 10 m/s;4500,0;12,5;acima da referência de 10 m/s;;3,831;2,83
+D-INS-SS-006;INS;I-25x40;horizontal;EXTRAÍDO;;0,25;0,4;0,1;2,851;0,308;2250,0;6,25;dentro da faixa;2250,0;6,25;dentro da faixa;;3,856;1,353
+D-INS-SS-007;INS;I-80x50;horizontal;EXTRAÍDO;;0,8;0,5;0,4;2,627;0,615;9000,0;6,25;dentro da faixa;9000,0;6,25;dentro da faixa;;1,689;0,643
+D-INS-SS-008;INS;I-65x50;horizontal;EXTRAÍDO;;0,65;0,5;0,325;0,75;0,565;9000,0;7,692;dentro da faixa;9000,0;7,692;dentro da faixa;;0,792;1,055
+D-INS-SS-009;INS;I-40x40;horizontal;EXTRAÍDO;;0,4;0,4;0,16;1,493;0,4;3000,0;5,208;dentro da faixa;3000,0;5,208;dentro da faixa;;1,151;0,771
+D-INS-SS-010;INS;I-35x40;horizontal;EXTRAÍDO;;0,35;0,4;0,14;6,88;0,373;3000,0;5,952;dentro da faixa;3000,0;5,952;dentro da faixa;;2,913;0,423
+D-INS-SS-011;INS;I-55x40;horizontal;EXTRAÍDO;;0,55;0,4;0,22;2,79;0,463;4500,0;5,682;dentro da faixa;4500,0;5,682;dentro da faixa;;1,333;0,478
+D-INS-SS-012;INS;I-40x40;horizontal;EXTRAÍDO;;0,4;0,4;0,16;0,601;0,4;4500,0;7,812;dentro da faixa;4500,0;7,812;dentro da faixa;;0,995;1,656
+D-INS-SS-013;INS;I-40x40;horizontal;EXTRAÍDO;;0,4;0,4;0,16;1,763;0,4;6000,0;10,417;acima da referência de 10 m/s;6000,0;10,417;acima da referência de 10 m/s;;4,583;2,599
+D-INS-SS-014;INS;I-35x30;horizontal;EXTRAÍDO;;0,35;0,3;0,105;4,512;0,323;4500,0;11,905;acima da referência de 10 m/s;4500,0;11,905;acima da referência de 10 m/s;;14,002;3,103
 D-INS-SS-015;INS;I- (sem rótulo);horizontal;INFERIDO;;0,5;0,4;0,2;2,403;0,444;0,0;0,0;sem vazão atribuída;0,0;0,0;sem vazão atribuída;;0,0;0,0
-D-AEX-SS-001;AEX;AE-70x30;horizontal;EXTRAÍDO;;0,7;0,3;0,21;9,281;0,42;13000,0;17,196;acima de 10 m/s (referência usual);13000,0;17,196;acima de 10 m/s (referência usual);;33,115;3,568
-D-AEX-SS-002;AEX;AE-40x30;horizontal;EXTRAÍDO;;0,4;0,3;0,12;0,602;0,343;4333,333;10,031;acima de 10 m/s (referência usual);4333,333;10,031;acima de 10 m/s (referência usual);;1,936;3,216
-D-AEX-SS-003;AEX;AE-40x30;horizontal;EXTRAÍDO;;0,4;0,3;0,12;4,007;0,343;4333,333;10,031;acima de 10 m/s (referência usual);4333,333;10,031;acima de 10 m/s (referência usual);;12,887;3,216
-D-AEX-SS-004;AEX;AE-55x25;horizontal;EXTRAÍDO;;0,55;0,25;0,138;2,254;0,344;4333,333;8,754;ok;4333,333;8,754;ok;;5,576;2,474
-D-AEX-SS-005;AEX;AE-55x25;horizontal;EXTRAÍDO;;0,55;0,25;0,138;2,264;0,344;4333,333;8,754;ok;4333,333;8,754;ok;;5,6;2,474
+D-AEX-SS-001;AEX;AE-70x30;horizontal;EXTRAÍDO;;0,7;0,3;0,21;9,281;0,42;13000,0;17,196;acima da referência de 10 m/s;13000,0;17,196;acima da referência de 10 m/s;;33,115;3,568
+D-AEX-SS-002;AEX;AE-40x30;horizontal;EXTRAÍDO;;0,4;0,3;0,12;0,602;0,343;4333,333;10,031;acima da referência de 10 m/s;4333,333;10,031;acima da referência de 10 m/s;;1,936;3,216
+D-AEX-SS-003;AEX;AE-40x30;horizontal;EXTRAÍDO;;0,4;0,3;0,12;4,007;0,343;4333,333;10,031;acima da referência de 10 m/s;4333,333;10,031;acima da referência de 10 m/s;;12,887;3,216
+D-AEX-SS-004;AEX;AE-55x25;horizontal;EXTRAÍDO;;0,55;0,25;0,138;2,254;0,344;4333,333;8,754;dentro da faixa;4333,333;8,754;dentro da faixa;;5,576;2,474
+D-AEX-SS-005;AEX;AE-55x25;horizontal;EXTRAÍDO;;0,55;0,25;0,138;2,264;0,344;4333,333;8,754;dentro da faixa;4333,333;8,754;dentro da faixa;;5,6;2,474
 D-EXA-SS-012;EXA;E-70x50;prumada;EXTRAÍDO;VM-COZ01;0,7;0,5;0,35;1,15;0,583;13246,8;10,513;dentro da faixa;15200,0;12,063;dentro da faixa;15750,0;2,118;1,842
 D-EXA-SH-001;EXA;E-70x50;prumada;INFERIDO;VM-COZ01;0,7;0,5;0,35;6,86;0,583;13246,8;10,513;dentro da faixa;15200,0;12,063;dentro da faixa;15750,0;12,636;1,842
 D-EXA-DS-001;EXA;E-60x60;descarga;INFERIDO;VM-COZ01;0,6;0,6;0,36;11,37;0,6;13246,8;10,221;dentro da faixa;15200,0;11,728;dentro da faixa;16200,0;19,179;1,687
-D-EXA-SS-013;EXA;E-60x50;prumada;EXTRAÍDO;VM-COZ02;0,6;0,5;0,3;1,15;0,545;10188,6;9,434;dentro da faixa;15200,0;14,074;ACIMA de 12,5 m/s;13500,0;1,868;1,625
-D-EXA-SH-002;EXA;E-60x50;prumada;INFERIDO;VM-COZ02;0,6;0,5;0,3;6,86;0,545;10188,6;9,434;dentro da faixa;15200,0;14,074;ACIMA de 12,5 m/s;13500,0;11,145;1,625
+D-EXA-SS-013;EXA;E-60x50;prumada;EXTRAÍDO;VM-COZ02;0,6;0,5;0,3;1,15;0,545;10188,6;9,434;dentro da faixa;15200,0;14,074;acima do limite de 12,5 m/s;13500,0;1,868;1,625
+D-EXA-SH-002;EXA;E-60x50;prumada;INFERIDO;VM-COZ02;0,6;0,5;0,3;6,86;0,545;10188,6;9,434;dentro da faixa;15200,0;14,074;acima do limite de 12,5 m/s;13500,0;11,145;1,625
 D-EXA-DS-002;EXA;E-60x60;descarga;INFERIDO;VM-COZ02;0,6;0,6;0,36;11,37;0,6;10188,6;7,862;dentro da faixa;15200,0;11,728;dentro da faixa;16200,0;11,632;1,023
-D-EXA-SS-014;EXA;E-90x40;prumada;EXTRAÍDO;VM-COZ03;0,9;0,4;0,36;1,1;0,554;10575,0;8,16;dentro da faixa;9600,0;7,407;abaixo de 7,5 m/s (referência adotada, a confirmar);16200,0;1,331;1,21
-D-EXA-SH-003;EXA;E-90x40;prumada;INFERIDO;VM-COZ03;0,9;0,4;0,36;6,86;0,554;10575,0;8,16;dentro da faixa;9600,0;7,407;abaixo de 7,5 m/s (referência adotada, a confirmar);16200,0;8,3;1,21
-D-EXA-DS-003;EXA;E-60x60;descarga;INFERIDO;VM-COZ03;0,6;0,6;0,36;11,37;0,6;10575,0;8,16;dentro da faixa;9600,0;7,407;abaixo de 7,5 m/s (referência adotada, a confirmar);16200,0;12,484;1,098
+D-EXA-SS-014;EXA;E-90x40;prumada;EXTRAÍDO;VM-COZ03;0,9;0,4;0,36;1,1;0,554;10575,0;8,16;dentro da faixa;9600,0;7,407;abaixo da referência de 7,5 m/s, a confirmar;16200,0;1,331;1,21
+D-EXA-SH-003;EXA;E-90x40;prumada;INFERIDO;VM-COZ03;0,9;0,4;0,36;6,86;0,554;10575,0;8,16;dentro da faixa;9600,0;7,407;abaixo da referência de 7,5 m/s, a confirmar;16200,0;8,3;1,21
+D-EXA-DS-003;EXA;E-60x60;descarga;INFERIDO;VM-COZ03;0,6;0,6;0,36;11,37;0,6;10575,0;8,16;dentro da faixa;9600,0;7,407;abaixo da referência de 7,5 m/s, a confirmar;16200,0;12,484;1,098
 D-EXG-SS-005;EXG;E-85x50;prumada;EXTRAÍDO;não identificado;0,85;0,5;0,425;1,15;0,63;;;sem vazão (exaustor não identificado);;;sem vazão (exaustor não identificado);19125,0;;
-D-INS-SS-016;INS;I-80x50;prumada;EXTRAÍDO;AC-COZ01;0,8;0,5;0,4;0,55;0,615;9000,0;6,25;ok;9000,0;6,25;ok;;0,354;0,643
-D-INS-SH-001;INS;I-80x50;prumada;INFERIDO;AC-COZ01;0,8;0,5;0,4;6,86;0,615;9000,0;6,25;ok;9000,0;6,25;ok;;4,409;0,643
-D-INS-SS-017;INS;I-65x50;prumada;EXTRAÍDO;AC-COZ02;0,65;0,5;0,325;0,55;0,565;9000,0;7,692;ok;9000,0;7,692;ok;;0,58;1,055
-D-INS-SH-002;INS;I-65x50;prumada;INFERIDO;AC-COZ02;0,65;0,5;0,325;6,86;0,565;9000,0;7,692;ok;9000,0;7,692;ok;;7,24;1,055
-D-AEX-SS-006;AEX;AE-100x40;prumada;INFERIDO;VM-COZ05/06;1,0;0,4;0,4;0,5;0,571;13000,0;9,028;ok;13000,0;9,028;ok;;0,706;1,412
-D-AEX-SH-001;AEX;AE-100x40;prumada;INFERIDO;VM-COZ05/06;1,0;0,4;0,4;6,86;0,571;13000,0;9,028;ok;13000,0;9,028;ok;;9,686;1,412
-D-EXA-SS-015;EXA;EC-50x30;descida;EXTRAÍDO;;0,5;0,3;0,15;0,57;0,375;6623,4;12,266;dentro da faixa;7600,0;14,074;ACIMA de 12,5 m/s;6750,0;2,414;4,236
-D-EXA-SS-016;EXA;EC-50x30;descida;EXTRAÍDO;;0,5;0,3;0,15;0,57;0,375;6623,4;12,266;dentro da faixa;7600,0;14,074;ACIMA de 12,5 m/s;6750,0;2,414;4,236
-D-EXA-SS-017;EXA;EC-30x25;descida;EXTRAÍDO;;0,3;0,25;0,075;0,27;0,273;2547,15;9,434;dentro da faixa;3800,0;14,074;ACIMA de 12,5 m/s;3375,0;1,023;3,789
-D-EXA-SS-018;EXA;EC-30x25;descida;EXTRAÍDO;;0,3;0,25;0,075;0,57;0,273;2547,15;9,434;dentro da faixa;3800,0;14,074;ACIMA de 12,5 m/s;3375,0;2,16;3,789
-D-EXA-SS-019;EXA;EC-30x25;descida;EXTRAÍDO;;0,3;0,25;0,075;0,57;0,273;2547,15;9,434;dentro da faixa;3800,0;14,074;ACIMA de 12,5 m/s;3375,0;2,16;3,789
-D-EXA-SS-020;EXA;EC-30x25;descida;EXTRAÍDO;;0,3;0,25;0,075;0,57;0,273;2547,15;9,434;dentro da faixa;3800,0;14,074;ACIMA de 12,5 m/s;3375,0;2,16;3,789
+D-INS-SS-016;INS;I-80x50;prumada;EXTRAÍDO;AC-COZ01;0,8;0,5;0,4;0,55;0,615;9000,0;6,25;dentro da faixa;9000,0;6,25;dentro da faixa;;0,354;0,643
+D-INS-SH-001;INS;I-80x50;prumada;INFERIDO;AC-COZ01;0,8;0,5;0,4;6,86;0,615;9000,0;6,25;dentro da faixa;9000,0;6,25;dentro da faixa;;4,409;0,643
+D-INS-SS-017;INS;I-65x50;prumada;EXTRAÍDO;AC-COZ02;0,65;0,5;0,325;0,55;0,565;9000,0;7,692;dentro da faixa;9000,0;7,692;dentro da faixa;;0,58;1,055
+D-INS-SH-002;INS;I-65x50;prumada;INFERIDO;AC-COZ02;0,65;0,5;0,325;6,86;0,565;9000,0;7,692;dentro da faixa;9000,0;7,692;dentro da faixa;;7,24;1,055
+D-AEX-SS-006;AEX;AE-100x40;prumada;INFERIDO;VM-COZ05/06;1,0;0,4;0,4;0,5;0,571;13000,0;9,028;dentro da faixa;13000,0;9,028;dentro da faixa;;0,706;1,412
+D-AEX-SH-001;AEX;AE-100x40;prumada;INFERIDO;VM-COZ05/06;1,0;0,4;0,4;6,86;0,571;13000,0;9,028;dentro da faixa;13000,0;9,028;dentro da faixa;;9,686;1,412
+D-EXA-SS-015;EXA;EC-50x30;descida;EXTRAÍDO;;0,5;0,3;0,15;0,57;0,375;6623,4;12,266;dentro da faixa;7600,0;14,074;acima do limite de 12,5 m/s;6750,0;2,414;4,236
+D-EXA-SS-016;EXA;EC-50x30;descida;EXTRAÍDO;;0,5;0,3;0,15;0,57;0,375;6623,4;12,266;dentro da faixa;7600,0;14,074;acima do limite de 12,5 m/s;6750,0;2,414;4,236
+D-EXA-SS-017;EXA;EC-30x25;descida;EXTRAÍDO;;0,3;0,25;0,075;0,27;0,273;2547,15;9,434;dentro da faixa;3800,0;14,074;acima do limite de 12,5 m/s;3375,0;1,023;3,789
+D-EXA-SS-018;EXA;EC-30x25;descida;EXTRAÍDO;;0,3;0,25;0,075;0,57;0,273;2547,15;9,434;dentro da faixa;3800,0;14,074;acima do limite de 12,5 m/s;3375,0;2,16;3,789
+D-EXA-SS-019;EXA;EC-30x25;descida;EXTRAÍDO;;0,3;0,25;0,075;0,57;0,273;2547,15;9,434;dentro da faixa;3800,0;14,074;acima do limite de 12,5 m/s;3375,0;2,16;3,789
+D-EXA-SS-020;EXA;EC-30x25;descida;EXTRAÍDO;;0,3;0,25;0,075;0,57;0,273;2547,15;9,434;dentro da faixa;3800,0;14,074;acima do limite de 12,5 m/s;3375,0;2,16;3,789
 D-EXA-SS-021;EXA;EC-40x40;descida;EXTRAÍDO;;0,4;0,4;0,16;0,47;0,4;5712,6;9,918;dentro da faixa;5185,906;9,003;dentro da faixa;7200,0;1,225;2,607
-D-EXA-SS-022;EXA;EC-30x30;descida;PENDENTE;;0,3;0,3;0,09;0,47;0,3;2400,0;7,407;abaixo de 7,5 m/s (referência adotada, a confirmar);2178,723;6,724;abaixo de 7,5 m/s (referência adotada, a confirmar);4050,0;1,001;2,129
-D-AEX-SS-007;AEX;AE-55x25;descida;EXTRAÍDO;;0,55;0,25;0,138;1,22;0,344;4333,333;8,754;ok;4333,333;8,754;ok;;3,018;2,474
-D-AEX-SS-008;AEX;AE-55x25;descida;EXTRAÍDO;;0,55;0,25;0,138;1,22;0,344;4333,333;8,754;ok;4333,333;8,754;ok;;3,018;2,474
+D-EXA-SS-022;EXA;EC-30x30;descida;PENDENTE;;0,3;0,3;0,09;0,47;0,3;2400,0;7,407;abaixo da referência de 7,5 m/s, a confirmar;2178,723;6,724;abaixo da referência de 7,5 m/s, a confirmar;4050,0;1,001;2,129
+D-AEX-SS-007;AEX;AE-55x25;descida;EXTRAÍDO;;0,55;0,25;0,138;1,22;0,344;4333,333;8,754;dentro da faixa;4333,333;8,754;dentro da faixa;;3,018;2,474
+D-AEX-SS-008;AEX;AE-55x25;descida;EXTRAÍDO;;0,55;0,25;0,138;1,22;0,344;4333,333;8,754;dentro da faixa;4333,333;8,754;dentro da faixa;;3,018;2,474

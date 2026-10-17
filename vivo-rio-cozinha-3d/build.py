@@ -9,6 +9,13 @@ tpl = open(P("template.html"), encoding="utf-8").read()
 blob = json.dumps(M, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
 assert "/*__MODEL__*/" in tpl
 html_cdn = tpl.replace("/*__MODEL__*/", blob)
+# estudo 1D (calculo_1d.py): peças com vazão/velocidade, resumo por duto e balanço de ar — alimenta a animação e o painel de campo
+try:
+    _c = json.load(open(P("saida", "calculo_dutos.json"), encoding="utf-8"))
+    _c = {k: _c[k] for k in ("pecas", "dutos", "balanco", "inferencias") if k in _c}
+except FileNotFoundError:
+    _c = {}
+html_cdn = html_cdn.replace("/*__CALC__*/", json.dumps(_c, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/"))
 
 # Versão para envio: tudo embutido (Three.js r128, OrbitControls, fontes IBM Plex) — abre offline, sem servidor.
 import base64, re as _re

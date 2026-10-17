@@ -80,6 +80,41 @@
   "info": "D-EXA-SS-002 | 'Não executar — pendente\\nDuto de exaustão\\nExaustão da cozinha · seção 3'"
  },
  {
+  "teste": "painel do duto traz vazão e velocidade do estudo 1D",
+  "ok": true,
+  "info": "Vazão do ar | 2.400m³/h | Velocidade do ar | 5,6m/s | Faixa de veloc"
+ },
+ {
+  "teste": "camada de escoamento começa desligada",
+  "ok": true,
+  "info": "716 partículas"
+ },
+ {
+  "teste": "partículas se movem ao longo dos dutos",
+  "ok": true,
+  "info": "100 coordenadas mudaram em 0,7 s"
+ },
+ {
+  "teste": "cenário 'placa do ventilador' troca as velocidades da animação",
+  "ok": true,
+  "info": "24.5 → 28.1 m/s"
+ },
+ {
+  "teste": "trechos acima do limite aparecem na cor de alerta",
+  "ok": true,
+  "info": "19 trechos"
+ },
+ {
+  "teste": "filtro de sistema esconde as partículas da exaustão",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "desligar a camada oculta o escoamento",
+  "ok": true,
+  "info": ""
+ },
+ {
   "teste": "filtros de exaustão/ventilação escondem e trazem as divergências MEC",
   "ok": true,
   "info": "25 → 18 → 25 (só MEC: 7)"
