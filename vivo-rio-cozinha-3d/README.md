@@ -15,15 +15,21 @@ O projeto hidrossanitário predial (`hidráulica.zip`) não estava acessível; v
 - `modelo.ifc` — modelo BIM IFC4 (Design Transfer View) com o mesmo conteúdo: pavimentos (subsolo −2,87, térreo +1,50, laje técnica +8,36, cobertura +20,93), paredes, vãos, ambientes (`IfcSpace`), tubos (`IfcPipeSegment`), pontos (`IfcPipeFitting` / `IfcWasteTerminal`), louças (`IfcSanitaryTerminal`), dutos (`IfcDuctSegment`), coifas, captores e difusores (`IfcAirTerminal`), ventiladores (`IfcFan`) e 9 sistemas (`IfcDistributionSystem`). Cada elemento leva o conjunto de propriedades `Pset_KaptekOrigem` (situação EXTRAÍDO/INFERIDO/PENDENTE, memória de cálculo, motivo, prancha, DIVs). GlobalIds estáveis entre builds (derivados do ID).
 - `divergencias.bcf` — BCF 2.1 com um tópico por divergência (DIV-001 a DIV-025): prioridade = gravidade, rótulos = disciplinas, câmera, elementos destacados no IFC e imagem.
 - `ifc_guids.json` — ID do modelo → GlobalId do IFC.
+- `calculo_dutos.md`, `calculo_dutos.csv`, `calculo_ventiladores.csv`, `calculo_dutos.json` — **cálculo 1D da rede de dutos** (`calculo_1d.py`): vazão, velocidade e perda de carga por duto, pressão que cada ventilador precisa vencer e balanço de ar, com Darcy-Weisbach/Colebrook e coeficientes K, em três cenários de vazão e três casos de rugosidade/singularidade. Os achados (coletor da coifa A a 24,5 m/s, prumada da Exaustão 2, ar exterior) e todas as premissas estão em `calculo_dutos.md`. O mesmo JSON alimenta o visualizador: o painel de cada duto mostra vazão, velocidade e faixa, e a camada **Escoamento animado** move partículas ao longo dos dutos com a cor pela faixa de velocidade.
+- `estimativa_cfd.md` — **custo do caso 3D completo** da coifa A (OpenFOAM) na máquina do usuário, estimado sem rodá-lo até o fim: malha, tempo por iteração, memória e iterações até convergir medidos aqui, extrapolação com faixa de incerteza e calibração (`openfoam/bench_maquina.py`).
+- `animacao_cfd_coifa_A.mp4` (1920×1080) e `animacao_cfd_coifa_A_720p.mp4` — **animação em quadros de CFD** da fumaça da ilha de fogões sendo capturada pela coifa A (4 cortes, linhas de corrente, coluna lateral com relógio e dados do caso). A versão 720p vai embutida no HTML (botão **Animação CFD**). É ilustrativa: carga térmica, reposição e difusividade são hipóteses do caso.
 - `modelo.json` — fonte única de dados (o mesmo JSON embutido no HTML e convertido para o IFC).
 
 ## Reconstruir
 ```
 python3 build_data.py   # lê fonte/ (inclui fonte/dutos_subsolo.py via bloco_dutos.py) e gera saida/modelo.json
-python3 build.py        # injeta o JSON no template.html e grava HTML + CSVs
+python3 calculo_1d.py   # estudo 1D dos dutos: saida/calculo_dutos.* e calculo_ventiladores.csv
+python3 build.py        # injeta o modelo, o estudo 1D e a animação CFD (se existir) no template.html e grava HTML + CSVs
 python3 build_ifc.py    # grava modelo.ifc e divergencias.bcf (pip install ifcopenshell)
 python3 verificacao/bcf_snapshots.py && python3 build_ifc.py   # imagens dos tópicos do BCF (Playwright) e reempacota
 ```
+Estudo 3D em OpenFOAM (opcional, Linux/WSL2): `openfoam/README.md` descreve o caso, as hipóteses, o teste de custo, a calibração na máquina do usuário e a geração da animação.
+
 Geometria do IFC: tubos com seção circular no DN nominal, dutos com a seção do rótulo, louças/equipamentos como caixas, paredes sem camadas nem material; pontos de espera como cilindros curtos simbólicos. Serve para coordenação e verificação de interferências, não para quantitativo de conexões.
 
 ## Verificações (última execução)
@@ -38,7 +44,9 @@ Geometria do IFC: tubos com seção circular no DN nominal, dutos com a seção 
 | Locação × medida independente no vetor | 117 de 129 pontos com diferença ≤ 1 cm (`verificacao/locacao_independente.py`) |
 | Dutos: pontas ligadas a outro duto, prumada, captor ou terminal declarado | 54 de 54 |
 | Dutos do modelo × as-built (sobreposição pela transformação inversa) | `verificacao/sobreposicao/sobreposicao_dutos_anexoD.png` |
-| Navegador headless (claro, escuro, celular, sem rede) | 23 de 23 testes OK, sem erro de console (`verificacao/teste_navegador.py`) |
+| Navegador headless (claro, escuro, celular, sem rede; camada de escoamento, painel de velocidades, janela do vídeo CFD) | 36 de 36 testes OK, sem erro de console (`verificacao/teste_navegador.py`) |
+| Cálculo 1D: Colebrook × bisseção, Δp de referência, redes em árvore sem ciclos, conservação de vazão em todos os nós de cada cenário, baixo ≤ base ≤ alto, soma das parcelas, CSV/JSON × modelo | 63 de 63 testes OK (`verificacao/teste_calculo_1d.py`) |
+| Scripts do OpenFOAM: leitura de campos, busca da célula que contém cada ponto, patamar dos resíduos, estimativa e calibração | 22 de 22 testes OK (`verificacao/teste_openfoam_scripts.py`) |
 | IFC: esquema IFC4 + regras WHERE (`ifcopenshell.validate --rules`) | 0 erros |
 | IFC × JSON (contagens, posição de pontos/paredes, extremidades de tubos e dutos, seção dos dutos, Pset em todo elemento, sistemas) | 22 de 22 testes OK (`verificacao/teste_ifc.py`) |
 | BCF: XML contra os XSD oficiais 2.1, componentes existentes no IFC | OK (`verificacao/teste_ifc.py <pasta_xsd>`) |

@@ -165,6 +165,34 @@ async def run_theme(pw, scheme, tag):
     ok("filtro de sistema esconde as partículas da exaustão", ocultas)
     await page.click("input[data-sis='EXA']"); await page.click("input[data-lay='fluxo']"); await page.select_option("select[data-fluxocen]", "base"); await page.wait_for_timeout(200)
     ok("desligar a camada oculta o escoamento", await page.evaluate("__app.state.lay.fluxo===false"))
+    # ---- animação CFD da coifa A (vídeo embutido em base64)
+    cfd = await page.evaluate("__app.cfd")
+    ok("botão da animação CFD aparece quando o vídeo está embutido", cfd["tem"] and await page.is_visible("#cfdOpen"), f"{cfd['bytes'] // 1024} KB embutidos")
+    ok("janela do vídeo começa fechada", not await page.is_visible("#cfd"))
+    await page.click("#cfdOpen"); await page.wait_for_timeout(700)
+    ok("janela do vídeo abre com a nota de hipóteses e o botão Fechar", await page.is_visible("#cfd") and "Ilustrativo" in await page.inner_text("#cfdCap") and await page.is_visible("#cfdClose"))
+    src = await page.evaluate("document.querySelector('#cfdVideo').src")
+    ok("vídeo é servido como Blob local (nenhum acesso à rede)", src.startswith("blob:"), src[:28])
+    await page.screenshot(path=os.path.join(OUT, "14_animacao_cfd.png"))
+    h264 = await page.evaluate("document.querySelector('#cfdVideo').canPlayType('video/mp4; codecs=\"avc1.42E01E\"')")
+    if h264:
+        await page.wait_for_function("document.querySelector('#cfdVideo').readyState>=1", timeout=10000)
+        dim = await page.evaluate("[document.querySelector('#cfdVideo').videoWidth, document.querySelector('#cfdVideo').videoHeight, document.querySelector('#cfdVideo').duration]")
+        ok("o navegador decodifica o MP4 embutido", dim[0] == 1280 and dim[1] == 720 and dim[2] > 1, str(dim))
+    else:
+        print("INFO  este Chromium não traz H.264: a decodificação no navegador não é testada aqui (o MP4 é validado com ffprobe, abaixo)")
+    import base64, shutil, subprocess, tempfile
+    dados = json.loads(await page.evaluate("document.getElementById('cfdv').textContent"))
+    ff = shutil.which("ffprobe")
+    if ff:
+        with tempfile.NamedTemporaryFile(suffix=".mp4") as f:
+            f.write(base64.b64decode(dados["mp4"])); f.flush()
+            r = subprocess.run([ff, "-v", "error", "-select_streams", "v:0", "-count_frames", "-show_entries", "stream=codec_name,width,height,nb_read_frames,pix_fmt", "-of", "json", f.name], capture_output=True, text=True)
+            info = json.loads(r.stdout)["streams"][0]
+        ok("MP4 embutido é H.264 yuv420p 1280×720 e decodifica por inteiro (ffprobe)", info["codec_name"] == "h264" and info["pix_fmt"] == "yuv420p" and info["width"] == 1280 and info["height"] == 720 and int(info["nb_read_frames"]) > 10,
+           f"{info['nb_read_frames']} quadros")
+    await page.keyboard.press("Escape"); await page.wait_for_timeout(250)
+    ok("Esc fecha a janela do vídeo e pausa a reprodução", not await page.is_visible("#cfd") and await page.evaluate("document.querySelector('#cfdVideo').paused"))
     await page.evaluate("document.querySelector('[data-tab=div]').click()"); await page.wait_for_timeout(150)
     n0 = await page.evaluate("document.querySelectorAll('#rbody .dv').length")
     nmec = await page.evaluate("__app.M.divergencias.filter(d=>d.disciplinas.includes('MEC') && !d.disciplinas.some(x=>x!=='MEC'&&x!=='ARQ')).length")

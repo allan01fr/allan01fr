@@ -155,6 +155,13 @@ td.n{font-family:var(--mono);text-align:right;white-space:nowrap}
   #foot{grid-template-columns:1fr 1fr}
   #foot div:nth-child(n+3){display:none}
 }
+#cfd{position:absolute;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(10,12,16,.62)}
+#cfd.on{display:flex}
+#cfd .box{background:var(--bg);border:1px solid var(--line);width:min(1120px,100%);max-height:100%;display:flex;flex-direction:column;overflow:auto}
+#cfd .bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 6px 6px 12px;border-bottom:1px solid var(--line);background:var(--bg2)}
+#cfd .bar b{font-weight:600}
+#cfd video{display:block;width:100%;height:auto;background:#0b0e13;max-height:calc(100vh - 200px)}
+#cfd .cap{padding:8px 12px;color:var(--text2);font-size:12px;line-height:1.5}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -171,6 +178,7 @@ td.n{font-family:var(--mono);text-align:right;white-space:nowrap}
     <button class="btn" id="measure" aria-pressed="false">Medir</button>
     <button class="btn" id="theme">Tema</button>
     <button class="btn" id="toggleLeft" aria-pressed="false">Filtros</button>
+    <button class="btn" id="cfdOpen" hidden>Animação CFD</button>
     <span class="spacer"></span>
     <div id="search"><input id="q" placeholder="Buscar ID (ex.: HID-SS-COZ-001)" autocomplete="off" aria-label="Buscar por ID"><div id="sugg" role="listbox"></div></div>
   </header>
@@ -202,11 +210,19 @@ td.n{font-family:var(--mono);text-align:right;white-space:nowrap}
       <div class="rbody" id="rbody"></div>
     </aside>
     <div id="legend" class="panel" aria-label="Legenda"></div>
+    <div id="cfd" role="dialog" aria-modal="true" aria-labelledby="cfdTtl">
+      <div class="box">
+        <div class="bar"><b id="cfdTtl">Coifa A · transporte de fumaça (CFD, ilustrativo)</b><button class="btn" id="cfdClose">Fechar</button></div>
+        <video id="cfdVideo" controls loop muted playsinline preload="none"></video>
+        <div class="cap" id="cfdCap"></div>
+      </div>
+    </div>
   </main>
   <footer id="foot"></footer>
 </div>
 <script id="model" type="application/json">/*__MODEL__*/</script>
 <script id="calc" type="application/json">/*__CALC__*/</script>
+<script id="cfdv" type="application/json">/*__CFDV__*/</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
@@ -1026,6 +1042,7 @@ canvas.addEventListener('pointermove', e=>{
 });
 canvas.addEventListener('pointerleave', ()=>{ tip.style.display='none'; mh.style.display='none'; });
 window.addEventListener('keydown', e=>{
+  if(e.key==='Escape' && $('#cfd').classList.contains('on')){ cfdFechar(); return; }
   if(e.key==='Escape'){ if(state.measure){ if(state.m1){ state.m1=null; if(mLine){G.meas.remove(mLine); mLine=null;} } else toggleMeasure(false); } else { $('#sugg').style.display='none'; } }
 });
 
@@ -1122,7 +1139,27 @@ function frame(now){
 buildFilters(); legend(); cutUI();
 setView('persp'); themeColors(); renderTab();
 requestAnimationFrame(frame);
-window.__app = {M, state, flow, CALC, calcDuto, center:(x,y,z,d)=>center(new THREE.Vector3(x,y,z),d), gotoId, gotoDiv, setView, toggleMeasure, pickAt, toScreen, ptById, applyVisibility, buildFilters, setSel, snapAt, addCota, CSV, camera:()=>camera, controls:()=>controls, labels};
+/* ---------- animação CFD (vídeo embutido) ---------- */
+const CFDV = JSON.parse(document.getElementById('cfdv').textContent);
+let cfdUrl = null;
+function cfdAbrir(){
+  const v = $('#cfdVideo');
+  if(!cfdUrl){   // converte o base64 em Blob uma vez: busca no vídeo e rebobinar funcionam em todos os navegadores
+    const bin = atob(CFDV.mp4), u8 = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
+    cfdUrl = URL.createObjectURL(new Blob([u8], {type:'video/mp4'})); v.src = cfdUrl;
+    if(CFDV.poster) v.poster = 'data:image/jpeg;base64,' + CFDV.poster;
+  }
+  $('#cfd').classList.add('on'); $('#cfdClose').focus();
+  const p = v.play(); if(p && p.catch) p.catch(()=>{});
+}
+function cfdFechar(){ $('#cfdVideo').pause(); $('#cfd').classList.remove('on'); $('#cfdOpen').focus(); }
+if(CFDV.mp4){
+  $('#cfdOpen').hidden = false; $('#cfdCap').textContent = CFDV.nota || '';
+  $('#cfdOpen').addEventListener('click', cfdAbrir); $('#cfdClose').addEventListener('click', cfdFechar);
+  $('#cfd').addEventListener('click', e=>{ if(e.target.id==='cfd') cfdFechar(); });
+}
+
+window.__app = {M, state, flow, CALC, calcDuto, cfd:{tem:!!CFDV.mp4, bytes:Math.round((CFDV.mp4||'').length*3/4), abrir:cfdAbrir, fechar:cfdFechar}, center:(x,y,z,d)=>center(new THREE.Vector3(x,y,z),d), gotoId, gotoDiv, setView, toggleMeasure, pickAt, toScreen, ptById, applyVisibility, buildFilters, setSel, snapAt, addCota, CSV, camera:()=>camera, controls:()=>controls, labels};
 })();
 </script>
 </body>

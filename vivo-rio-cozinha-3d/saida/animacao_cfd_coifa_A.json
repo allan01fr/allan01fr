@@ -1,0 +1,14 @@
+{
+ "celulas": 719017,
+ "nivel": "media",
+ "solver": "boussinesq",
+ "instantes": 140,
+ "t_fim": 90.0,
+ "quadros": 140,
+ "fps": 15,
+ "duracao_s": 9.33,
+ "dt_fumaca": 0.01,
+ "mp4_kb": 600,
+ "mp4_720p_kb": 271,
+ "nota": "Ilustrativo: o escoamento é estacionário (Boussinesq + k-ε, malha de 0,72 M células) e só a fumaça evolui no tempo; carga térmica dos fogões, ar de reposição e difusividade são hipóteses do caso (openfoam/README.md), não dados do projeto. Cortes: elevação pelo centro da coifa, elevação pelo captor 1 e duas plantas. O vídeo roda a 3,8× o tempo real até 30 s e a 45× depois (o fator aparece sob o relógio)."
+}

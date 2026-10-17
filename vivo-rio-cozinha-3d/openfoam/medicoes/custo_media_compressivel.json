@@ -1,0 +1,69 @@
+{
+ "nivel": "media",
+ "solver": "compressivel",
+ "iter": 40,
+ "nprocs": 4,
+ "malha_s": {
+  "blockMesh": 0.4035985469818115,
+  "snappyHexMesh": 39.35717844963074,
+  "snappy_pico_MB": 1021.50390625,
+  "topoSet_createPatch": 2.4098563194274902
+ },
+ "celulas": 719017,
+ "faces": 2254400,
+ "nao_ortogonalidade_max": 25.666985,
+ "checkMesh_ok": true,
+ "execucoes": [
+  {
+   "np": 1,
+   "rc": 0,
+   "parede_total_s": 124.51337027549744,
+   "pico_memoria_MB": 1233.546875,
+   "iteracoes_medidas": 39,
+   "tempo_primeira_iter_s": 4.58,
+   "s_por_iter_mediana": 2.9299999999999997,
+   "s_por_iter_media": 3.005294117647059,
+   "s_por_iter_min": 2.6500000000000057,
+   "s_por_iter_max": 3.6900000000000013
+  },
+  {
+   "np": 2,
+   "decomposePar_s": 2.4098904132843018,
+   "rc": 0,
+   "parede_total_s": 64.69158434867859,
+   "pico_memoria_MB": 1295.78515625,
+   "iteracoes_medidas": 39,
+   "tempo_primeira_iter_s": 2.54,
+   "s_por_iter_mediana": 1.5299999999999994,
+   "s_por_iter_media": 1.5373529411764704,
+   "s_por_iter_min": 1.2999999999999972,
+   "s_por_iter_max": 1.959999999999999
+  },
+  {
+   "np": 3,
+   "decomposePar_s": 2.41037654876709,
+   "rc": 0,
+   "parede_total_s": 42.20805358886719,
+   "pico_memoria_MB": 1342.609375,
+   "iteracoes_medidas": 39,
+   "tempo_primeira_iter_s": 1.95,
+   "s_por_iter_mediana": 0.945000000000003,
+   "s_por_iter_media": 0.9770588235294118,
+   "s_por_iter_min": 0.8699999999999974,
+   "s_por_iter_max": 1.1999999999999993
+  },
+  {
+   "np": 4,
+   "decomposePar_s": 2.008406162261963,
+   "rc": 0,
+   "parede_total_s": 33.41347694396973,
+   "pico_memoria_MB": 1406.23828125,
+   "iteracoes_medidas": 39,
+   "tempo_primeira_iter_s": 1.34,
+   "s_por_iter_mediana": 0.7599999999999989,
+   "s_por_iter_media": 0.7749999999999999,
+   "s_por_iter_min": 0.6700000000000017,
+   "s_por_iter_max": 1.0900000000000034
+  }
+ ]
+}

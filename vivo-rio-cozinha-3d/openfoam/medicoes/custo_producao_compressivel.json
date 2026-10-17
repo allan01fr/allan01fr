@@ -1,0 +1,69 @@
+{
+ "nivel": "producao",
+ "solver": "compressivel",
+ "iter": 30,
+ "nprocs": 4,
+ "malha_s": {
+  "blockMesh": 0.4022672176361084,
+  "snappyHexMesh": 171.91508531570435,
+  "snappy_pico_MB": 3858.140625,
+  "topoSet_createPatch": 9.63560152053833
+ },
+ "celulas": 3132008,
+ "faces": 9733630,
+ "nao_ortogonalidade_max": 25.666985,
+ "checkMesh_ok": true,
+ "execucoes": [
+  {
+   "np": 1,
+   "rc": 0,
+   "parede_total_s": 830.3695921897888,
+   "pico_memoria_MB": 4792.90234375,
+   "iteracoes_medidas": 29,
+   "tempo_primeira_iter_s": 46.39,
+   "s_por_iter_mediana": 25.99000000000001,
+   "s_por_iter_media": 26.410833333333333,
+   "s_por_iter_min": 24.409999999999968,
+   "s_por_iter_max": 31.269999999999982
+  },
+  {
+   "np": 2,
+   "decomposePar_s": 10.85062289237976,
+   "rc": 0,
+   "parede_total_s": 321.4464190006256,
+   "pico_memoria_MB": 4919.8671875,
+   "iteracoes_medidas": 29,
+   "tempo_primeira_iter_s": 22.86,
+   "s_por_iter_mediana": 9.365000000000023,
+   "s_por_iter_media": 9.787083333333335,
+   "s_por_iter_min": 8.569999999999993,
+   "s_por_iter_max": 12.450000000000003
+  },
+  {
+   "np": 3,
+   "decomposePar_s": 9.241910219192505,
+   "rc": 0,
+   "parede_total_s": 184.60647797584534,
+   "pico_memoria_MB": 5229.08203125,
+   "iteracoes_medidas": 29,
+   "tempo_primeira_iter_s": 12.77,
+   "s_por_iter_mediana": 5.534999999999997,
+   "s_por_iter_media": 5.538333333333334,
+   "s_por_iter_min": 4.77000000000001,
+   "s_por_iter_max": 7.109999999999999
+  },
+  {
+   "np": 4,
+   "decomposePar_s": 8.040015697479248,
+   "rc": 0,
+   "parede_total_s": 143.4332673549652,
+   "pico_memoria_MB": 5395.25,
+   "iteracoes_medidas": 29,
+   "tempo_primeira_iter_s": 10.54,
+   "s_por_iter_mediana": 4.305,
+   "s_por_iter_media": 4.311249999999999,
+   "s_por_iter_min": 3.5999999999999943,
+   "s_por_iter_max": 5.0
+  }
+ ]
+}

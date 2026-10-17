@@ -1,0 +1,32 @@
+{
+ "nivel": "media",
+ "solver": "compressivel",
+ "np": 4,
+ "rc": 0,
+ "iteracoes": 3500,
+ "parede_s": 3532.2197313308716,
+ "pico_MB": 1431.8984375,
+ "s_por_iter": 0.75,
+ "s_por_iter_inicio": 0.7199999999999989,
+ "s_por_iter_fim": 0.7399999999997817,
+ "iter_convergencia_folgado": null,
+ "iter_convergencia_rigoroso": null,
+ "residuo_final": {
+  "Ux": 0.00028776447,
+  "Uy": 0.00030557724,
+  "Uz": 8.8888806e-05,
+  "h": 0.00036226324,
+  "p_rgh": 0.0008111735,
+  "k": 7.2169115e-05,
+  "epsilon": 2.2071415e-05
+ },
+ "inclinacao_decadas_por_1000": {
+  "Ux": 0.022857582024632173,
+  "Uy": -0.025346938914529105,
+  "Uz": -0.025331554870731132,
+  "h": 0.044087324547612994,
+  "p_rgh": -0.12847869999992279,
+  "k": 0.04037422713399508,
+  "epsilon": 0.08655986252284098
+ }
+}

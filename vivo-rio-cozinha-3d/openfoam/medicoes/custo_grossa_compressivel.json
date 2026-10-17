@@ -1,0 +1,63 @@
+{
+ "nivel": "grossa",
+ "solver": "compressivel",
+ "iter": 40,
+ "nprocs": 4,
+ "celulas": 122318,
+ "faces": 392516,
+ "nao_ortogonalidade_max": 25.666985,
+ "checkMesh_ok": true,
+ "execucoes": [
+  {
+   "np": 1,
+   "rc": 0,
+   "parede_total_s": 15.260144710540771,
+   "pico_memoria_MB": 254.37109375,
+   "iteracoes_medidas": 39,
+   "tempo_primeira_iter_s": 0.69,
+   "s_por_iter_mediana": 0.355,
+   "s_por_iter_media": 0.3602941176470588,
+   "s_por_iter_min": 0.33000000000000007,
+   "s_por_iter_max": 0.43000000000000016
+  },
+  {
+   "np": 2,
+   "decomposePar_s": 0.4020388126373291,
+   "rc": 0,
+   "parede_total_s": 8.838895559310913,
+   "pico_memoria_MB": 319.203125,
+   "iteracoes_medidas": 39,
+   "tempo_primeira_iter_s": 0.39,
+   "s_por_iter_mediana": 0.1900000000000004,
+   "s_por_iter_media": 0.19794117647058826,
+   "s_por_iter_min": 0.16999999999999993,
+   "s_por_iter_max": 0.25
+  },
+  {
+   "np": 3,
+   "decomposePar_s": 0.4018874168395996,
+   "rc": 0,
+   "parede_total_s": 6.829888343811035,
+   "pico_memoria_MB": 375.55078125,
+   "iteracoes_medidas": 39,
+   "tempo_primeira_iter_s": 0.52,
+   "s_por_iter_mediana": 0.13000000000000012,
+   "s_por_iter_media": 0.13794117647058823,
+   "s_por_iter_min": 0.11000000000000032,
+   "s_por_iter_max": 0.16999999999999993
+  },
+  {
+   "np": 4,
+   "decomposePar_s": 0.40255117416381836,
+   "rc": 0,
+   "parede_total_s": 5.235799312591553,
+   "pico_memoria_MB": 429.74609375,
+   "iteracoes_medidas": 39,
+   "tempo_primeira_iter_s": 0.24,
+   "s_por_iter_mediana": 0.10000000000000009,
+   "s_por_iter_media": 0.10441176470588234,
+   "s_por_iter_min": 0.07000000000000006,
+   "s_por_iter_max": 0.16000000000000014
+  }
+ ]
+}

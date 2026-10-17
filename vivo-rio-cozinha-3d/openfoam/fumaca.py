@@ -3,7 +3,7 @@
 """Transporte de fumaça (escalar passivo) sobre o campo de escoamento estacionário já calculado (scalarTransportFoam).
 A superfície de cocção (patch hotTop) libera concentração 1; a exaustão (inletOutlet) e o ar de reposição (0) fecham o balanço.
 O escoamento fica congelado: o que anima é a fumaça, não o escoamento (que é estacionário). Isso é pós-processamento, não uma simulação transiente.
-Uso: python3 fumaca.py <caso_estacionario> <destino> [--t-fim 60] [--dt 0.05] [--DT 0.01]"""
+Uso: python3 fumaca.py <caso_estacionario> <destino> [--t-fim 60] [--dt 0.05] [--DT 0.01] [--np 4]"""
 import argparse, os, re, shutil, sys, time
 AQUI = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, AQUI)
 import rodar_teste as RT, gerar_caso as G
@@ -13,6 +13,7 @@ def cab(cls, obj, loc): return G.cab(cls, obj, loc)
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("caso"); ap.add_argument("dest"); ap.add_argument("--t-fim", type=float, default=60.0)
     ap.add_argument("--dt", type=float, default=0.05); ap.add_argument("--DT", type=float, default=0.01); ap.add_argument("--escreve", type=float, default=1.0)
+    ap.add_argument("--np", type=int, default=1, help="processos (decomposePar + mpirun + reconstructPar do T)")
     a = ap.parse_args()
     tempos = sorted((d for d in os.listdir(a.caso) if re.fullmatch(r"\d+(\.\d+)?", d) and float(d) > 0), key=float)
     if not tempos: sys.exit("o caso estacionário não tem tempo > 0 gravado")
@@ -60,6 +61,16 @@ snGradSchemes   { default corrected; }
 }
 SIMPLE { nNonOrthogonalCorrectors 0; }
 """)
-    t0 = time.time(); seg, mem, rc = RT.sh("scalarTransportFoam", d, "log.fumaca"); print(f"scalarTransportFoam: rc={rc}, {seg:.0f} s, pico {mem:.0f} MB, campo de partida = tempo {ult}")
+    if a.np > 1:
+        open(os.path.join(d, "system/decomposeParDict"), "w").write(G.decompor(a.np)); RT.sh("decomposePar -force", d, "log.decompose")
+        seg, mem, rc = RT.sh(f"mpirun -np {a.np} scalarTransportFoam -parallel", d, "log.fumaca", mpi=True)
+        if rc == 0:
+            seg2, _, rc2 = RT.sh("reconstructPar -fields '(T)'", d, "log.reconstruct"); seg += seg2; rc = rc or rc2
+            if rc == 0:
+                for x in os.listdir(d):
+                    if x.startswith("processor"): shutil.rmtree(os.path.join(d, x), ignore_errors=True)
+    else: seg, mem, rc = RT.sh("scalarTransportFoam", d, "log.fumaca")
+    print(f"scalarTransportFoam: rc={rc}, {seg:.0f} s, pico {mem:.0f} MB, np={a.np}, campo de partida = tempo {ult}")
+    if rc: sys.exit(rc)
 
 if __name__ == "__main__": main()

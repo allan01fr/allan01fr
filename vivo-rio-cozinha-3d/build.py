@@ -17,6 +17,16 @@ except FileNotFoundError:
     _c = {}
 html_cdn = html_cdn.replace("/*__CALC__*/", json.dumps(_c, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/"))
 
+# animação CFD da coifa A (openfoam/quadros.py): vídeo leve + quadro de capa + nota, embutidos em base64; sem os arquivos a janela do vídeo não aparece
+import base64
+def _b64(nome): return base64.b64encode(open(P("saida", nome), "rb").read()).decode()
+try:
+    _meta = json.load(open(P("saida", "animacao_cfd_coifa_A.json"), encoding="utf-8"))
+    _v = {"mp4": _b64("animacao_cfd_coifa_A_720p.mp4"), "poster": _b64("animacao_cfd_coifa_A_capa.jpg"), "nota": _meta["nota"]}
+except FileNotFoundError:
+    _v = {}
+html_cdn = html_cdn.replace("/*__CFDV__*/", json.dumps(_v, ensure_ascii=False, separators=(",", ":")))
+
 # Versão para envio: tudo embutido (Three.js r128, OrbitControls, fontes IBM Plex) — abre offline, sem servidor.
 import base64, re as _re
 def _inline(html):

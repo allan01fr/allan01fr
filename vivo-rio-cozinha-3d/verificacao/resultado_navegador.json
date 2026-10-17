@@ -115,6 +115,36 @@
   "info": ""
  },
  {
+  "teste": "botão da animação CFD aparece quando o vídeo está embutido",
+  "ok": true,
+  "info": "271 KB embutidos"
+ },
+ {
+  "teste": "janela do vídeo começa fechada",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "janela do vídeo abre com a nota de hipóteses e o botão Fechar",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "teste": "vídeo é servido como Blob local (nenhum acesso à rede)",
+  "ok": true,
+  "info": "blob:null/663f24b5-b468-4c0f"
+ },
+ {
+  "teste": "MP4 embutido é H.264 yuv420p 1280×720 e decodifica por inteiro (ffprobe)",
+  "ok": true,
+  "info": "140 quadros"
+ },
+ {
+  "teste": "Esc fecha a janela do vídeo e pausa a reprodução",
+  "ok": true,
+  "info": ""
+ },
+ {
   "teste": "filtros de exaustão/ventilação escondem e trazem as divergências MEC",
   "ok": true,
   "info": "25 → 18 → 25 (só MEC: 7)"

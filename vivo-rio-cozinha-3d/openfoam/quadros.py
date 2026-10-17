@@ -17,6 +17,8 @@ from scipy.spatial import cKDTree
 AQUI = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, AQUI)
 import ler_vtu
 
+ACENTO = {"grossa": "grossa", "media": "média", "producao": "produção"}
+
 def br(v, n=2): return f"{v:.{n}f}".replace(".", ",")
 def eixo_br(v, _): return f"{v:g}".replace(".", ",")
 
@@ -28,19 +30,22 @@ def exportar_u(caso):
     pasta = next(d for d in sorted(os.listdir(base)) if os.path.isdir(os.path.join(base, d)))
     return ler_vtu.ler_completo(os.path.join(base, pasta, "internal.vtu"))
 
-def campo_escalar(path, n):
-    """internalField de um volScalarField do OpenFOAM, ascii ou binário (uniform ou nonuniform)."""
-    b = open(path, "rb").read(); cab = b[:b.find(b"internalField")]
-    m = re.search(rb"internalField\s+uniform\s+([^;\s]+)\s*;", b)
-    if m: return np.full(n, float(m.group(1)))
-    m = re.search(rb"internalField\s+nonuniform\s+List<scalar>\s*(\d+)\s*\(", b)
+def campo_foam(path, n, vetor=False):
+    """internalField de um volScalarField (ou volVectorField, com vetor=True) do OpenFOAM, ascii ou binário (uniform ou nonuniform)."""
+    b = open(path, "rb").read(); cab = b[:b.find(b"internalField")]; k = 3 if vetor else 1
+    m = re.search(rb"internalField\s+uniform\s+(\([^)]*\)|[^;\s]+)\s*;", b)
+    if m:
+        v = np.array(m.group(1).strip(b"()").split(), dtype=float); return np.tile(v, (n, 1)) if vetor else np.full(n, v[0])
+    m = re.search(rb"internalField\s+nonuniform\s+List<%s>\s*(\d+)\s*\(" % (b"vector" if vetor else b"scalar"), b)
     N = int(m.group(1)); i = m.end()
     if re.search(rb"format\s+binary", cab):
-        a = np.frombuffer(b, dtype="<f8" if b"scalar=64" in cab else "<f4", count=N, offset=i).astype(float)
+        a = np.frombuffer(b, dtype="<f8" if b"scalar=64" in cab else "<f4", count=N * k, offset=i).astype(float)
     else:
-        a = np.array(b[i:b.index(b"\n)", i)].split(), dtype=float)
+        a = np.array(b[i:b.index(b"\n)", i)].replace(b"(", b" ").replace(b")", b" ").split(), dtype=float)
     if N != n: raise SystemExit(f"{path}: {N} valores para {n} células")
-    return a
+    return a.reshape(N, 3) if vetor else a
+
+def campo_escalar(path, n): return campo_foam(path, n)
 
 def celula_que_contem(P, arvore, C, meia, ks=(12, 48, 192)):
     """Índice da célula (caixa) que contém cada ponto, ou -1 se nenhuma contém (sólido). A busca cresce com k porque, na interface entre níveis de refino,
@@ -64,6 +69,8 @@ def main():
     ap = argparse.ArgumentParser(); ap.add_argument("caso"); ap.add_argument("saida"); ap.add_argument("--caso-json", required=True)
     ap.add_argument("--fps", type=int, default=15); ap.add_argument("--passo", type=float, default=0.03, help="passo da grade dos cortes (m)")
     ap.add_argument("--sub", type=int, default=1, help="quadros por instante gravado (interpolação linear do campo entre instantes)")
+    ap.add_argument("--t-lento", type=float, default=0.0, help="até este instante (s) usa todos os instantes gravados; depois só os múltiplos de --passo-rapido (avanço rápido)")
+    ap.add_argument("--passo-rapido", type=float, default=3.0, help="espaçamento (s) dos quadros depois de --t-lento")
     ap.add_argument("--max-quadros", type=int, default=0, help="só os primeiros N instantes (teste de layout)"); ap.add_argument("--dpi", type=int, default=150)
     ap.add_argument("--crf", type=int, default=24)
     ap.add_argument("--titulo", default="Coifa A (ilha dos fogões): transporte de fumaça sobre o escoamento estacionário"); a = ap.parse_args()
@@ -72,7 +79,8 @@ def main():
     geo = exportar_u(a.caso); LO, HI = geo["lo"], geo["hi"]; U = geo["campos"]["U"]; n = len(LO)
     # centro da caixa, não a média dos vértices: nas células com nós pendurados (interface entre níveis de refino) a média dos vértices é deslocada
     C = (LO + HI) / 2; meia = (HI - LO) / 2; vol = np.prod(HI - LO, axis=1); arvore = cKDTree(C)
-    tempos = tempos_gravados(a.caso)
+    tempos = tempos_gravados(a.caso); todos = tempos      # a fumaça acumulada é calculada em todos os instantes; os quadros usam os selecionados
+    if a.t_lento: tempos = [(t, d) for t, d in tempos if t <= a.t_lento + 1e-9 or abs(t / a.passo_rapido - round(t / a.passo_rapido)) < 1e-6]
     if a.max_quadros: tempos = tempos[:a.max_quadros]
     xc, yc = cap[0]["x"], (hood["y0"] + hood["y1"]) / 2; h = a.passo
     def grade(eixos, fixo):
@@ -93,18 +101,17 @@ def main():
         u = (U[idx][:, :, i1] * w).sum(1) / w.sum(1); v = (U[idx][:, :, i2] * w).sum(1) / w.sum(1)
         c["u"] = np.where(fluido, u, 0).reshape(G1.shape); c["v"] = np.where(fluido, v, 0).reshape(G1.shape)
     # 1ª passada: campos dos cortes e fumaça acumulada (∫T dV) em cada instante gravado
-    paineis, inv = [], []
-    for t, nome in tempos:
-        T = campo_escalar(os.path.join(a.caso, nome, "T"), n)
-        paineis.append([np.clip((T[c["idx"]] * c["w"]).sum(1) / c["w"].sum(1), 1e-6, 1.0).reshape(c["G1"].shape).astype(np.float32) for c in cortes])
-        inv.append(float((T * vol).sum()))
-    ts = np.array([t for t, _ in tempos]); inv = np.array(inv)
+    paineis, inv_todos, usados = [], [], {t for t, _ in tempos}
+    for t, nome in todos:
+        T = campo_escalar(os.path.join(a.caso, nome, "T"), n); inv_todos.append(float((T * vol).sum()))
+        if t in usados: paineis.append([np.clip((T[c["idx"]] * c["w"]).sum(1) / c["w"].sum(1), 1e-6, 1.0).reshape(c["G1"].shape).astype(np.float32) for c in cortes])
+    ts = np.array([t for t, _ in tempos]); inv = np.array([v for (t, _), v in zip(todos, inv_todos) if t in usados]); ts_todos = np.array([t for t, _ in todos]); inv_todos = np.array(inv_todos)
     # quadros a desenhar: sub-quadros por interpolação linear entre instantes gravados
     quadros = []
     for k in range(len(ts)):
         for s in range(a.sub if k < len(ts) - 1 else 1):
             f = s / a.sub; k2 = min(k + 1, len(ts) - 1)
-            quadros.append((ts[k] + f * (ts[k2] - ts[k]), [(1 - f) * p + f * q for p, q in zip(paineis[k], paineis[k2])], inv[k] + f * (inv[k2] - inv[k])))
+            quadros.append((ts[k] + f * (ts[k2] - ts[k]), [(1 - f) * p + f * q for p, q in zip(paineis[k], paineis[k2])], inv[k] + f * (inv[k2] - inv[k]), (ts[k2] - ts[k]) / a.sub if k2 > k else (ts[k] - ts[k - 1]) / a.sub if k else 1.0))
     # figura (polegadas): linha de cima e de baixo com a largura de cada painel igual à razão de aspecto dos dados, coluna lateral à direita
     W, H = 12.8, 7.2; fig = plt.figure(figsize=(W, H), dpi=a.dpi)
     def novo(x, y, w, hh): return fig.add_axes([x / W, y / H, w / W, hh / H])
@@ -139,17 +146,18 @@ def main():
     solver = {"boussinesq": "Boussinesq (flutuação) + k-ε", "compressivel": "compressível + k-ε"}.get(cj.get("solver"), cj.get("solver", ""))
     DT = difusividade(a.caso); par = cj.get("params", {})
     relogio = fig.text(xr / W, 1 - 0.78 / H, "", fontsize=27, weight="bold", color="#111827", ha="left", va="top")
-    fig.text(xr / W, 1 - 1.34 / H, "após o início da liberação de fumaça", fontsize=8, color="#4b5563", ha="left", va="top")
-    linhas = [f"Malha: {n / 1e6:.2f} M células (nível {cj.get('nivel')})".replace(".", ","),
+    fig.text(xr / W, 1 - 1.31 / H, "após o início da liberação de fumaça", fontsize=8, color="#4b5563", ha="left", va="top")
+    veloc = fig.text(xr / W, 1 - 1.47 / H, "", fontsize=8, color="#4b5563", ha="left", va="top")
+    linhas = [f"Malha: {br(n / 1e6, 2)} M células (nível {ACENTO.get(cj.get('nivel'), cj.get('nivel'))})",
               f"Escoamento estacionário: {solver}",
               f"Exaustão: {br(cj['Qexaustao_m3s'] * 60, 1)} m³/min em 2 captores",
               f"Reposição: {br(100 * cj['Qreposicao_m3s'] / cj['Qexaustao_m3s'], 0)} % da exaustão, 3 difusores de forro",
               f"Topo dos fogões: +{br(par.get('dT_quente', 0), 0)} K sobre o ambiente"]
     if DT: linhas.append(f"Fumaça: escalar passivo, difusividade {br(DT, 3)} m²/s")
-    fig.text(xr / W, 1 - 1.68 / H, "\n".join(linhas), fontsize=7.6, color="#111827", ha="left", va="top", linespacing=1.55)
+    fig.text(xr / W, 1 - 1.76 / H, "\n".join(linhas), fontsize=7.6, color="#111827", ha="left", va="top", linespacing=1.45)
     axi = novo(xr + 0.52, 2.60, wr - 0.62, 1.50); axi.set_title("Fumaça no ambiente (∫ c dV)", fontsize=8.8, loc="left", pad=4)
-    axi.plot(ts, inv, color="#cbd5e1", lw=1.2); linha, = axi.plot([], [], color="#2563eb", lw=1.8); ponto, = axi.plot([], [], "o", color="#2563eb", ms=4.5)
-    axi.set_xlim(0, ts[-1]); axi.set_ylim(0, inv.max() * 1.12); axi.set_xlabel("t (s)", fontsize=8, labelpad=2); axi.set_ylabel("m³ equivalentes", fontsize=8, labelpad=2)
+    axi.plot(ts_todos, inv_todos, color="#cbd5e1", lw=1.2); linha, = axi.plot([], [], color="#2563eb", lw=1.8); ponto, = axi.plot([], [], "o", color="#2563eb", ms=4.5)
+    axi.set_xlim(0, ts[-1]); axi.set_ylim(0, inv_todos.max() * 1.12); axi.set_xlabel("t (s)", fontsize=8, labelpad=2); axi.set_ylabel("m³ equivalentes", fontsize=8, labelpad=2)
     axi.tick_params(labelsize=7.2, length=2.5, pad=2); axi.grid(alpha=0.25, lw=0.5)
     for lado in ("top", "right"): axi.spines[lado].set_visible(False)
     axi.xaxis.set_major_formatter(FuncFormatter(eixo_br)); axi.yaxis.set_major_formatter(FuncFormatter(eixo_br))
@@ -158,9 +166,10 @@ def main():
     fig.text(0.30 / W, 0.52 / H, "Ilustrativo: carga térmica dos fogões, ar de reposição e difusividade são hipóteses do caso (ver openfoam/README.md); o escoamento é estacionário e só a fumaça evolui.\n"
              "Linhas brancas = linhas de corrente · tracejado = projeção da coifa · retângulos vermelhos = captores · cinza = sólidos (equipamentos, chapas da coifa, chaminés).",
              fontsize=6.6, color="#4b5563", ha="left", va="top", linespacing=1.5)
-    for q, (t, pn, iv) in enumerate(quadros):
+    for q, (t, pn, iv, dtq) in enumerate(quadros):
         for im, c, val in zip(ims, cortes, pn): im.set_data(np.ma.masked_array(val, mask=c["sol"]))
-        relogio.set_text(f"t = {t:.0f} s"); sel = ts <= t + 1e-9; linha.set_data(list(ts[sel]) + [t], list(inv[sel]) + [iv]); ponto.set_data([t], [iv])
+        relogio.set_text(f"t = {t:.0f} s" if t >= 10 or abs(t - round(t)) < 1e-6 else f"t = {br(t, 1)} s"); veloc.set_text(f"vídeo a {br(dtq * a.fps, 1 if dtq * a.fps < 10 else 0)}× o tempo real")
+        sel = ts <= t + 1e-9; linha.set_data(list(ts[sel]) + [t], list(inv[sel]) + [iv]); ponto.set_data([t], [iv])
         fig.savefig(os.path.join(a.saida, "quadros", f"q_{q:03d}.png"), dpi=a.dpi)
     nq = len(quadros); print(nq, "quadros,", len(tempos), "instantes gravados, t =", ts[0], "…", ts[-1], "s")
     mp4 = os.path.join(a.saida, "coifa_A_fumaca.mp4")
@@ -168,5 +177,17 @@ def main():
                     "-pix_fmt", "yuv420p", "-crf", str(a.crf), "-movflags", "+faststart", mp4], check=True)
     print("mp4:", os.path.getsize(mp4) // 1024, "KB,", f"{nq / a.fps:.1f} s de vídeo")
     for nome, k in (("inicio", max(1, nq // 8)), ("meio", nq // 3), ("fim", nq - 1)): shutil.copy(os.path.join(a.saida, "quadros", f"q_{min(k, nq - 1):03d}.png"), os.path.join(a.saida, f"quadro_{nome}.png"))
+    # versão leve (720p) e quadro de capa para embutir no HTML, e a nota que acompanha o vídeo
+    leve = os.path.join(a.saida, "coifa_A_fumaca_720p.mp4")
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", mp4, "-vf", "scale=1280:-2:flags=lanczos", "-c:v", "libx264", "-preset", "slow", "-pix_fmt", "yuv420p", "-crf", str(a.crf + 3), "-movflags", "+faststart", leve], check=True)
+    from PIL import Image
+    im = Image.open(os.path.join(a.saida, "quadro_meio.png")).convert("RGB"); im.thumbnail((1280, 720)); capa = os.path.join(a.saida, "coifa_A_fumaca_capa.jpg"); im.save(capa, quality=74, optimize=True)
+    solver_nota = {"boussinesq": "Boussinesq + k-ε", "compressivel": "compressível + k-ε"}.get(cj.get("solver"), cj.get("solver", ""))
+    nota = (f"Ilustrativo: o escoamento é estacionário ({solver_nota}, malha de {br(n / 1e6, 2)} M células) e só a fumaça evolui no tempo; carga térmica dos fogões, ar de reposição e difusividade são hipóteses do caso "
+            f"(openfoam/README.md), não dados do projeto. Cortes: elevação pelo centro da coifa, elevação pelo captor 1 e duas plantas."
+            + (f" O vídeo roda a {br((ts[1] - ts[0]) * a.fps, 1)}× o tempo real até {br(a.t_lento, 0)} s e a {br(a.passo_rapido * a.fps, 0)}× depois (o fator aparece sob o relógio)." if a.t_lento else ""))
+    json.dump(dict(celulas=n, nivel=cj.get("nivel"), solver=cj.get("solver"), instantes=len(tempos), t_fim=float(ts[-1]), quadros=nq, fps=a.fps, duracao_s=round(nq / a.fps, 2), dt_fumaca=DT,
+                   mp4_kb=os.path.getsize(mp4) // 1024, mp4_720p_kb=os.path.getsize(leve) // 1024, nota=nota), open(os.path.join(a.saida, "animacao.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print("720p:", os.path.getsize(leve) // 1024, "KB; capa:", os.path.getsize(capa) // 1024, "KB")
 
 if __name__ == "__main__": main()
