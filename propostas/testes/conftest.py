@@ -27,3 +27,15 @@ def params():
 def abrir_exemplo(caminho, cat, params):
     with open(caminho, encoding="utf-8") as f:
         return pp.completar(pp.carregar_json(f.read()), cat, params)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def base_referencias_temporaria(tmp_path_factory):
+    """O app abre o banco de referências a cada execução: nos testes ele fica numa pasta temporária."""
+    anterior = os.environ.get("KAPTEK_REFERENCIAS")
+    os.environ["KAPTEK_REFERENCIAS"] = str(tmp_path_factory.mktemp("ref") / "referencias.sqlite")
+    yield
+    if anterior is None:
+        os.environ.pop("KAPTEK_REFERENCIAS", None)
+    else:
+        os.environ["KAPTEK_REFERENCIAS"] = anterior

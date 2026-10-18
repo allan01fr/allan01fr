@@ -11,9 +11,11 @@ import copy
 import datetime as dt
 import json
 import string
+import uuid
 
 from . import catalogo as ct
 from . import parametros as pm
+from . import viabilidade as vb
 
 CONTEXTO_PADRAO = {
     "dist_km": 20.0,
@@ -26,6 +28,7 @@ CONTEXTO_PADRAO = {
 }
 CATEGORIAS_FORNECIMENTO = ("material", "equipamento", "mo_execucao", "subcontrato")
 MODELOS_PRECO = ("fechado", "hora", "fee")
+MODALIDADES = ("servicos", "turnkey")
 
 
 def nova_opcao(letra, params, nome=None):
@@ -39,7 +42,17 @@ def nova_opcao(letra, params, nome=None):
         "modelo_preco": "fechado",
         "fee_pct": float(params.get("fee_pct_padrao", 0.06)),
         "fee_base": 0.0,
+        "modalidade": "servicos",       # "servicos" (etapas avulsas) ou "turnkey" (preço global, produto final)
+        "prazo_fornecimento_dias": 0,   # lead time dos equipamentos (turnkey)
+        "turnkey_dispensas": [],        # etapas do turnkey a cargo do contratante
     }
+
+
+def novo_fornecimento(descricao="", categoria="material", unid="un", qtd=1.0, custo_unit=0.0, fonte="", codigo="",
+                      data_base=""):
+    """Item de fornecimento ou subcontratação; `referencias` guarda a cesta de preços do item."""
+    return {"uid": uuid.uuid4().hex[:8], "descricao": descricao, "categoria": categoria, "unid": unid, "qtd": float(qtd),
+            "custo_unit": float(custo_unit), "fonte": fonte, "codigo": codigo, "data_base": data_base, "referencias": []}
 
 
 def novo_item(serv):
@@ -66,6 +79,7 @@ def padrao(params, numero=None):
         "contexto": dict(CONTEXTO_PADRAO),
         "parametros": copy.deepcopy(params),
         "opcoes": [nova_opcao("A", params)],
+        "viabilidade": vb.padrao(),
     }
 
 
@@ -78,11 +92,13 @@ def completar(p, cat, params):
     p["cliente"] = {**base["cliente"], **p.get("cliente", {})}
     p["contexto"] = {**CONTEXTO_PADRAO, **p.get("contexto", {})}
     p["parametros"] = pm.mesclar(params, p.get("parametros"))
+    p["viabilidade"] = vb.completar(p.get("viabilidade"))
     if not p["opcoes"]:
         p["opcoes"] = [nova_opcao("A", params)]
     for o in p["opcoes"]:
         for k, v in nova_opcao(o.get("id", "A"), params).items():
             o.setdefault(k, copy.deepcopy(v))
+        o["fornecimentos"] = [{**novo_fornecimento(), **f} for f in o.get("fornecimentos", [])]
         for it in o["itens"]:
             serv = ct.servico(cat, it["servico"])
             dados = ct.valores_padrao(serv)

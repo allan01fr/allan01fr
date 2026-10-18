@@ -46,6 +46,14 @@ def test_xlsx_recalculado_bate_com_o_motor(caminho, cat, params, tmp_path):
     for i, r in enumerate(res["opcoes"]):
         for rot, chave in ROTULOS.items():
             assert float(ws.cell(linha[rot], 3 + i).value or 0) == pytest.approx(r[chave], abs=1.0), (r["nome"], rot)
+    # cesta de preços: o valor adotado na planilha é o custo unitário aplicado ao item
+    com_cesta = [f for o in p["opcoes"] for f in o["fornecimentos"] if f.get("referencias")]
+    if com_cesta:
+        pq = wb["Pesquisa de preços"]
+        adotados = [pq.cell(r, 9).value for r in range(1, pq.max_row + 1) if str(pq.cell(r, 8).value).startswith("Valor adotado")]
+        diferencas = [pq.cell(r, 9).value for r in range(1, pq.max_row + 1) if pq.cell(r, 8).value == "Diferença para o adotado"]
+        assert adotados == pytest.approx([f["custo_unit"] for f in com_cesta], abs=0.01)
+        assert diferencas == pytest.approx([0.0] * len(com_cesta), abs=1e-6)
 
 
 @pytest.mark.parametrize("caminho", EXEMPLOS)

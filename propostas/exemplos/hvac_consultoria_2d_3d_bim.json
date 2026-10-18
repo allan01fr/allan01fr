@@ -88,7 +88,49 @@
    "pessoas_campo": 2
   },
   "art": {
-   "valor": 300.0
+   "modo": "faixas",
+   "valor": 300.0,
+   "faixas": [
+    {
+     "ate": 15000.0,
+     "valor": 108.39
+    },
+    {
+     "ate": null,
+     "valor": 285.59
+    }
+   ],
+   "fonte": "Confea, Tabela A 2026 (publicada pelo CREA-MT). Confira os valores vigentes no CREA-RJ."
+  },
+  "turnkey": {
+   "garantia_pct": 0.02,
+   "garantia_meses": 12,
+   "retencao_aceite": 0.1
+  },
+  "cub": {
+   "uf": "RJ",
+   "padrao": "CSL-8N",
+   "mes": "",
+   "valor": 0.0,
+   "pct_honorarios": 0.04,
+   "fonte": "SINDUSCON-Rio"
+  },
+  "hierarquia_fontes": {
+   "RJ": [
+    "EMOP-RJ",
+    "SCO-RIO",
+    "SINAPI",
+    "SICRO"
+   ],
+   "padrao": [
+    "SINAPI",
+    "SICRO"
+   ]
+  },
+  "cesta": {
+   "criterio": "mediana",
+   "faixa_alerta": 0.25,
+   "minimo_fontes": 3
   },
   "cronograma": {
    "horas_dia": 8.0,
@@ -102,7 +144,8 @@
   "notas": {
    "impostos": "Lucro Presumido: PIS 0,65% + COFINS 3% + IRPJ 4,8% e CSLL 2,88% (sobre base presumida de 32%) + ISS. No Simples, informe a alíquota efetiva do seu anexo.",
    "bdi_fornecimento": "BDI completo (tributos, administração, risco e lucro). Referência inicial: medianas do TCU, Acórdão 2.622/2013 — confira e ajuste.",
-   "art": "Confira o valor na tabela vigente do CREA.",
+   "art": "ART por faixa do valor do contrato (Tabela A do Confea). Confira os valores vigentes no CREA-RJ.",
+   "cub": "Informe ou importe o CUB/m² do mês (SINDUSCON). Faixa usual de honorários: 2% a 11% do CUB × área.",
    "custos": "Custos e taxas por hora são valores iniciais de referência — ajuste aos seus custos reais (salário + encargos + benefícios ÷ horas produtivas)."
   }
  },
@@ -140,6 +183,7 @@
      "dados": {
       "terminais": 60,
       "utas": 6,
+      "caixas_vav": 0,
       "amostragem": "amostral",
       "ajuste": "diagnostico"
      },
@@ -194,7 +238,10 @@
    "pagamento": [],
    "modelo_preco": "fechado",
    "fee_pct": 0.06,
-   "fee_base": 0.0
+   "fee_base": 0.0,
+   "modalidade": "servicos",
+   "prazo_fornecimento_dias": 0,
+   "turnkey_dispensas": []
   },
   {
    "id": "B",
@@ -229,6 +276,7 @@
      "dados": {
       "terminais": 60,
       "utas": 6,
+      "caixas_vav": 0,
       "amostragem": "completo",
       "ajuste": "ajuste"
      },
@@ -283,7 +331,10 @@
    "pagamento": [],
    "modelo_preco": "fechado",
    "fee_pct": 0.06,
-   "fee_base": 0.0
+   "fee_base": 0.0,
+   "modalidade": "servicos",
+   "prazo_fornecimento_dias": 0,
+   "turnkey_dispensas": []
   },
   {
    "id": "C",
@@ -318,6 +369,7 @@
      "dados": {
       "terminais": 60,
       "utas": 6,
+      "caixas_vav": 0,
       "amostragem": "completo",
       "ajuste": "ajuste"
      },
@@ -372,7 +424,64 @@
    "pagamento": [],
    "modelo_preco": "fechado",
    "fee_pct": 0.06,
-   "fee_base": 0.0
+   "fee_base": 0.0,
+   "modalidade": "servicos",
+   "prazo_fornecimento_dias": 0,
+   "turnkey_dispensas": []
   }
- ]
+ ],
+ "viabilidade": {
+  "ativo": true,
+  "titulo": "Estudo de viabilidade técnico-econômica das alternativas de retrofit",
+  "base": {
+   "modo": "tr",
+   "tr": 75.0,
+   "kw_tr_real": 1.45,
+   "kw_tr_projeto": 1.0,
+   "horas_ano": 3750.0,
+   "fator_carga": 0.65,
+   "kwh_ano": 0.0,
+   "tarifa": 0.85,
+   "manutencao_ano": 60000.0,
+   "paliativos": 25000.0
+  },
+  "financeiro": {
+   "tma": 0.12,
+   "horizonte": 15,
+   "reajuste_energia": 0.06,
+   "reajuste_manutencao": 0.045
+  },
+  "alternativas": [
+   {
+    "nome": "Rebalanceamento e correções pontuais",
+    "descricao": "",
+    "capex": 48000.0,
+    "capex_opcao": "",
+    "capex_extra": 0.0,
+    "reducao_pct": 0.08,
+    "geracao_kwh": 0.0,
+    "manutencao_ano": null
+   },
+   {
+    "nome": "Troca das condensadoras e automação",
+    "descricao": "",
+    "capex": 520000.0,
+    "capex_opcao": "",
+    "capex_extra": 0.0,
+    "reducao_pct": 0.22,
+    "geracao_kwh": 0.0,
+    "manutencao_ano": 50000.0
+   },
+   {
+    "nome": "Retrofit completo VRF + DOAS",
+    "descricao": "",
+    "capex": 1250000.0,
+    "capex_opcao": "",
+    "capex_extra": 0.0,
+    "reducao_pct": 0.35,
+    "geracao_kwh": 0.0,
+    "manutencao_ano": 30000.0
+   }
+  ]
+ }
 }

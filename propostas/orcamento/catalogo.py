@@ -110,19 +110,22 @@ def fator_global(cat, nome, chave):
     return float(opcao(cat["fatores"][nome], chave)["num"])
 
 
-def exclusao(e):
-    """Exclusão como dict: texto, serviços que a anulam e se cai quando há fornecimento (turnkey)."""
+def texto_condicional(e):
+    """Exclusão ou premissa como dict: texto, serviços que a anulam e se cai quando há fornecimento (turnkey)."""
     if isinstance(e, str):
         return {"texto": e, "exceto_se": [], "exceto_fornecimento": False}
     return {"texto": e["texto"], "exceto_se": list(e.get("exceto_se", [])),
             "exceto_fornecimento": bool(e.get("exceto_fornecimento", False))}
 
 
-def exclusoes_validas(cat, servicos_na_opcao, tem_fornecimento):
-    """Exclusões dos serviços da opção, sem repetição e sem as que outro item da opção anula."""
+exclusao = texto_condicional
+
+
+def textos_validos(cat, servicos_na_opcao, tem_fornecimento, chave="exclusoes"):
+    """Exclusões (ou premissas) dos serviços da opção, sem repetição e sem as que outro item anula."""
     textos = []
     for sid in servicos_na_opcao:
-        for e in map(exclusao, servico(cat, sid).get("exclusoes", [])):
+        for e in map(texto_condicional, servico(cat, sid).get(chave, [])):
             if set(e["exceto_se"]) & set(servicos_na_opcao):
                 continue
             if e["exceto_fornecimento"] and tem_fornecimento:
@@ -130,6 +133,10 @@ def exclusoes_validas(cat, servicos_na_opcao, tem_fornecimento):
             if e["texto"] not in textos:
                 textos.append(e["texto"])
     return textos
+
+
+def exclusoes_validas(cat, servicos_na_opcao, tem_fornecimento):
+    return textos_validos(cat, servicos_na_opcao, tem_fornecimento, "exclusoes")
 
 
 def validar(cat):
@@ -142,6 +149,17 @@ def validar(cat):
     ids = set()
     if not perfis:
         erros.append("catálogo sem perfis")
+    ids_servicos = {s.get("id") for s in cat.get("servicos", [])}
+    for e in cat.get("turnkey", {}).get("etapas", []):
+        for t in e.get("tipos", []):
+            if t not in tipos:
+                erros.append(f"turnkey.{e['id']}: tipo '{t}' desconhecido")
+        for sid in e.get("servicos", []):
+            if sid not in ids_servicos:
+                erros.append(f"turnkey.{e['id']}: serviço '{sid}' inexistente")
+        for c in e.get("categorias", []):
+            if c not in ("material", "equipamento", "mo_execucao", "subcontrato"):
+                erros.append(f"turnkey.{e['id']}: categoria '{c}' desconhecida")
     for f, d in cat.get("fatores", {}).items():
         if not d.get("opcoes"):
             erros.append(f"fator global '{f}' sem opções")
@@ -197,13 +215,13 @@ def validar(cat):
                         erros.append(f"{aid}: driver usa {sorted(faltam)} que não existem no formulário")
                 except expressao.ErroExpressao as e:
                     erros.append(f"{aid}: {e}")
-        for e in s.get("exclusoes", []):
+        for e in s.get("exclusoes", []) + s.get("premissas", []):
             if not isinstance(e, (str, dict)) or (isinstance(e, dict) and "texto" not in e):
-                erros.append(f"{sid}: exclusão sem texto")
+                erros.append(f"{sid}: exclusão ou premissa sem texto")
                 continue
-            for outro in exclusao(e)["exceto_se"]:
-                if outro not in {x["id"] for x in cat["servicos"]}:
-                    erros.append(f"{sid}: exclusão aponta para serviço inexistente '{outro}'")
+            for outro in texto_condicional(e)["exceto_se"]:
+                if outro not in ids_servicos:
+                    erros.append(f"{sid}: exclusão ou premissa aponta para serviço inexistente '{outro}'")
         for d in s.get("diretos", []):
             try:
                 faltam = expressao.nomes(d["qtd"]) - nomes_ok

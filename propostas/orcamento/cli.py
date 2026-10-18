@@ -9,7 +9,8 @@ import os
 import sys
 
 from . import catalogo as ct
-from . import exportar_docx, exportar_xlsx, motor
+from . import exportar_docx, exportar_viabilidade, exportar_xlsx, motor
+from . import viabilidade as vb
 from . import parametros as pm
 from . import proposta as pp
 
@@ -19,6 +20,7 @@ def main(argv=None):
     ap.add_argument("proposta")
     ap.add_argument("--xlsx", action="store_true")
     ap.add_argument("--docx", action="store_true")
+    ap.add_argument("--viabilidade", action="store_true", help="planilha do estudo de viabilidade (payback, VPL, TIR)")
     ap.add_argument("--saida", default=".")
     a = ap.parse_args(argv)
 
@@ -45,6 +47,20 @@ def main(argv=None):
         with open(caminho, "wb") as f:
             f.write(exportar_xlsx.gerar(cat, p, res))
         print("XLSX:", caminho)
+    if a.viabilidade:
+        if not p["viabilidade"]["alternativas"]:
+            print("AVISO: a proposta não tem alternativas no estudo de viabilidade.")
+        else:
+            estudo = vb.calcular(p["viabilidade"], {r["id"]: r["preco"] for r in res["opcoes"]})
+            for alt in estudo["alternativas"]:
+                pb = f"{alt['payback']:.1f}" if alt["payback"] is not None else "> horizonte"
+                print(f"  {alt['nome']}: CAPEX {exportar_docx.moeda(alt['capex'])} · economia {exportar_docx.moeda(alt['economia_ano1'])}/ano "
+                      f"· payback {pb} anos · VPL {exportar_docx.moeda(alt['vpl'])} · {alt['classificacao']}")
+            nome = f"KAPTEK-viabilidade-{exportar_docx.slug(p['cliente'].get('razao'))}-{exportar_docx.slug(p['numero'])}.xlsx"
+            caminho = os.path.join(a.saida, nome)
+            with open(caminho, "wb") as f:
+                f.write(exportar_viabilidade.gerar(p, estudo))
+            print("XLSX:", caminho)
     if a.docx:
         for conteudo, nome, pend in exportar_docx.gerar(cat, p, res):
             caminho = os.path.join(a.saida, nome)

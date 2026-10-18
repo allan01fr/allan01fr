@@ -20,6 +20,7 @@ from openpyxl.formatting.rule import FormulaRule
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter as L
 
+from . import motor
 from . import parametros as pm
 
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -167,7 +168,14 @@ def _aba_parametros(wb, cat, proposta):
         ("cont", f"Contingência (risco {proposta['contexto']['risco']})", float(params["contingencia"][proposta["contexto"]["risco"]]), PCT, "Reserva de risco do escopo fechado"),
         ("adm", "Administração sobre reembolsáveis (hora técnica)", float(params["reembolsaveis_adm"]), PCT, "Aplicada aos custos diretos no modelo hora técnica"),
         ("horas_dia", "Horas por dia de trabalho", float(params["cronograma"]["horas_dia"]), NUM, "Base do cronograma"),
-        ("area", "Área de referência", float(proposta["contexto"].get("area_ref") or 0), NUM, "m² — usada no indicador R$/m² (0 = não calcular)"),
+        ("area", "Área de referência", float(proposta["contexto"].get("area_ref") or 0), NUM, "m² — usada nos indicadores R$/m² e CUB (0 = não calcular)"),
+        ("cub_valor", f"CUB/m² ({params['cub'].get('padrao', '')} {params['cub'].get('mes', '')})".strip(), float(params["cub"].get("valor") or 0), MOEDA,
+         f"{params['cub'].get('fonte', 'SINDUSCON')} — 0 = sem referência de CUB"),
+        ("cub_pct", "% do CUB × área para honorários de referência", float(params["cub"].get("pct_honorarios") or 0), PCT, "Faixa usual 2% a 11%"),
+        ("garantia_pct", f"Provisão de garantia — turnkey ({params['turnkey']['garantia_meses']} meses)", float(params["turnkey"]["garantia_pct"]), PCT,
+         "Sobre o custo de fornecimento e execução"),
+        ("cesta_faixa", "Cesta de preços: faixa aceita em torno da mediana", float(params["cesta"]["faixa_alerta"]), PCT,
+         "Referências fora da faixa ficam marcadas e saem do valor adotado (aba Pesquisa de preços)"),
     ]
     for chave, rot, val, fmt, obs in linhas:
         f.c(r, 2, rot)
@@ -219,7 +227,8 @@ def _aba_opcao(wb, cat, proposta, opcao, res, ref):
     c_fixo = c_mo + 2                 # bloco de produtividade (deixa uma coluna de folga)
     c_unid = c_fixo + n_p
     ultima = c_unid + n_p - 1
-    f.titulo(1, f"{opcao['nome'].upper()} — ESCOPO, HORAS E PREÇO", c_mo)
+    turnkey = res.get("modalidade") == "turnkey"
+    f.titulo(1, f"{opcao['nome'].upper()} — " + ("TURNKEY (PREÇO GLOBAL)" if turnkey else "ESCOPO, HORAS E PREÇO"), c_mo)
     f.nota(2, "Horas por perfil = (fixo + unid × qtd^b) × fator. Edite as células amarelas: quantidade, expoente, "
               "fator e a produtividade (fixo/unid) à direita.", c_mo)
 
@@ -273,8 +282,12 @@ def _aba_opcao(wb, cat, proposta, opcao, res, ref):
         f.c(r, 2, d["descricao"], quebra=True, tam=9)
         f.c(r, 3, d["servico_nome"], quebra=True, tam=9)
         f.c(r, 4, d["unid"], alinhar="center")
-        f.entrada(r, 5, round(d["qtd"], 6), NUM)
-        f.entrada(r, 6, round(d["valor_unit"], 2), MOEDA)
+        if d.get("garantia"):
+            f.vinculo(r, 5, f"=SUMIF(Fornecimentos!$A:$A,\"{opcao['id']}\",Fornecimentos!$G:$G)", MOEDA)
+            f.vinculo(r, 6, f"={ref['garantia_pct']}", PCT)
+        else:
+            f.entrada(r, 5, round(d["qtd"], 6), NUM)
+            f.entrada(r, 6, round(d["valor_unit"], 2), MOEDA)
         f.c(r, 7, f"=E{r}*F{r}", MOEDA)
         r += 1
     d_fim = max(r - 1, d0)
@@ -349,7 +362,9 @@ def _aba_opcao(wb, cat, proposta, opcao, res, ref):
         ("capex_min", "Valor de obra mínimo para o % igualar o escopo fechado", None, MOEDA, "Preço dos serviços ÷ %"),
         ("rs_h", "Preço por hora técnica (R$/h)", None, MOEDA, "Preço dos serviços ÷ horas"),
         ("rs_m2", "Preço por m² (R$/m²)", None, MOEDA, "Escopo fechado ÷ área de referência"),
-        ("modelo", "Modelo escolhido (fechado | hora | fee)", opcao.get("modelo_preco", "fechado"), None, "Entrada"),
+        ("ref_cub", "Referência: % do CUB × área", None, MOEDA, "Comparação com honorários usuais (aba Parametros)"),
+        ("modelo", "Modelo escolhido (fechado | hora | fee)", res["modelo_preco"], None,
+         "Turnkey: sempre preço global (fechado)" if turnkey else "Entrada"),
         ("preco", "PREÇO DA OPÇÃO", None, MOEDA, "Conforme o modelo escolhido"),
     ]
     for chave, *_ in modelos:
@@ -369,6 +384,7 @@ def _aba_opcao(wb, cat, proposta, opcao, res, ref):
         "capex_min": f"=IF({F['fee_pct']}>0,{F['preco_serv']}/{F['fee_pct']},0)",
         "rs_h": f"=IF({cel['total_h']}>0,{F['preco_serv']}/{cel['total_h']},0)",
         "rs_m2": f"=IF({ref['area']}>0,{F['fechado']}/{ref['area']},0)",
+        "ref_cub": f"={ref['cub_pct']}*{ref['cub_valor']}*{ref['area']}",
         "preco": f"=IF({F['modelo']}=\"hora\",{F['hora']},IF(AND({F['modelo']}=\"fee\",{F['fee_base']}>0),{F['fee']},{F['fechado']}))",
     }
     for chave, rot, val, fmt, obs in modelos:
@@ -380,6 +396,18 @@ def _aba_opcao(wb, cat, proposta, opcao, res, ref):
         else:
             f.c(rr, 3, calc[chave] if chave in calc else val, fmt, negrito=forte, fundo=FUNDO_CAB if forte else None)
         f.c(rr, 4, obs, cor=CINZA, tam=8, fundo=FUNDO_CAB if forte else None)
+
+    if res.get("checklist_turnkey"):
+        r += 1
+        f.secao(r, "Turnkey — etapas do produto final", 4)
+        r += 1
+        rot_status = {"atendida": "Incluída", "dispensada": "A cargo do contratante", "opcional": "Opcional — não incluída",
+                      "faltando": "FALTANDO"}
+        for e in res["checklist_turnkey"]:
+            f.c(r, 2, e["rotulo"])
+            f.c(r, 3, rot_status[e["status"]], negrito=e["status"] == "faltando",
+                cor="C00000" if e["status"] == "faltando" else GRAFITE)
+            r += 1
 
     larg = {"A": 5, "B": 44, "C": 38, "D": 30, "E": 20, "F": 14, "G": 14, "H": 9}
     for k in range(n_p):
@@ -407,12 +435,15 @@ def _aba_opcao(wb, cat, proposta, opcao, res, ref):
 def _aba_fornecimentos(wb, proposta, resultados, ref):
     ws = wb.create_sheet("Fornecimentos")
     f = Folha(ws)
-    f.larguras({"A": 8, "B": 46, "C": 16, "D": 8, "E": 10, "F": 16, "G": 16, "H": 9, "I": 16})
-    f.titulo(1, "FORNECIMENTO E EXECUÇÃO (TURNKEY)", 9)
-    f.cabecalho(3, ["Opção", "Descrição", "Categoria", "Unid", "Qtd", "Custo unit. (R$)", "Custo (R$)", "BDI", "Preço (R$)"])
+    f.larguras({"A": 8, "B": 46, "C": 16, "D": 8, "E": 10, "F": 16, "G": 16, "H": 9, "I": 16, "J": 16, "K": 14, "L": 11})
+    f.titulo(1, "FORNECIMENTOS E SUBCONTRATAÇÕES", 12)
+    f.cabecalho(3, ["Opção", "Descrição", "Categoria", "Unid", "Qtd", "Custo unit. (R$)", "Custo (R$)", "BDI", "Preço (R$)",
+                    "Fonte", "Código", "Data-base"])
     r = 4
+    linhas = {}
     for o, res in zip(proposta["opcoes"], resultados):
         for it in res["fornecimentos"]:
+            linhas[(o["id"], it.get("uid"))] = r
             f.c(r, 1, o["id"], alinhar="center")
             f.c(r, 2, it.get("descricao", ""), quebra=True, tam=9)
             f.entrada(r, 3, it["categoria"])
@@ -422,10 +453,76 @@ def _aba_fornecimentos(wb, proposta, resultados, ref):
             f.c(r, 7, f"=E{r}*F{r}", MOEDA)
             f.vinculo(r, 8, f"=INDEX({ref['bdi_valores']},MATCH(C{r},{ref['bdi_chaves']},0))", PCT)
             f.c(r, 9, f"=G{r}*(1+H{r})", MOEDA)
+            f.c(r, 10, it.get("fonte", ""), tam=9)
+            f.c(r, 11, it.get("codigo", ""), tam=9)
+            f.c(r, 12, it.get("data_base", ""), tam=9, alinhar="center")
             r += 1
     if r == 4:
-        f.nota(4, "Sem fornecimentos nesta proposta. Para incluir, use a aba 'Fornecimento e execução' do app "
-                  "(categorias: material, equipamento, mo_execucao, subcontrato).", 9)
+        f.nota(4, "Sem fornecimentos nesta proposta. Para incluir, use a aba 'Fornecimentos e subcontratações' do app "
+                  "(categorias: material, equipamento, mo_execucao, subcontrato).", 12)
+    ws.freeze_panes = "A4"
+    _impressao(ws)
+    return linhas
+
+
+# ----------------------------------------------------------------------------- Pesquisa de preços
+CRITERIOS = {"mediana": ("Mediana", "MEDIAN"), "media": ("Média", "AVERAGE"), "menor": ("Menor valor", "MIN")}
+
+
+def _aba_pesquisa(wb, proposta, resultados, ref, linhas_forn):
+    """Cesta de preços de cada item com referências: valores, atualização, desvio da mediana e valor adotado."""
+    itens = [(o, it) for o, res in zip(proposta["opcoes"], resultados) for it in res["fornecimentos"] if it.get("referencias")]
+    if not itens:
+        return
+    cfg = proposta["parametros"]["cesta"]
+    rot_crit, func = CRITERIOS.get(cfg["criterio"], CRITERIOS["mediana"])
+    ws = wb.create_sheet("Pesquisa de preços")
+    f = Folha(ws)
+    f.larguras({"A": 30, "B": 14, "C": 11, "D": 15, "E": 11, "F": 15, "G": 12, "H": 14, "I": 15})
+    f.titulo(1, "PESQUISA DE PREÇOS (CESTA)", 9)
+    f.nota(2, f"Critério: {rot_crit.lower()} das referências dentro da faixa em torno da mediana (Parametros). Recomenda-se "
+              f"no mínimo {cfg['minimo_fontes']} referências por item. O fator de atualização é o do índice no momento em que a "
+              "cesta foi aplicada (1 = sem atualização).", 9)
+    faixa = ref["cesta_faixa"]
+    r = 4
+    for o, it in itens:
+        f.secao(r, f"Opção {o['id']} — {it.get('descricao', '')}", 9)
+        r += 1
+        f.cabecalho(r, ["Fonte / fornecedor", "Código", "Data-base", "Valor (R$)", "Fator", "Atualizado (R$)",
+                        "Desvio", "Situação", "Na cesta (R$)"])
+        ini = r + 1
+        fim = ini + len(it["referencias"]) - 1
+        for k, rf_ in enumerate(it["referencias"]):
+            r = ini + k
+            f.c(r, 1, rf_.get("fonte", ""), tam=9)
+            f.c(r, 2, rf_.get("codigo", ""), tam=9)
+            f.c(r, 3, rf_.get("data_base", ""), tam=9, alinhar="center")
+            f.entrada(r, 4, float(rf_.get("valor") or 0), MOEDA)
+            f.entrada(r, 5, float(rf_.get("fator") or 1.0), '0.0000')
+            f.c(r, 6, f"=D{r}*E{r}", MOEDA)
+            f.c(r, 7, f"=IF(MEDIAN($F${ini}:$F${fim})=0,0,F{r}/MEDIAN($F${ini}:$F${fim})-1)", PCT)
+            f.c(r, 8, f'=IF(ABS(G{r})>{faixa},"fora da faixa","ok")', alinhar="center")
+            # MEDIAN, AVERAGE e MIN ignoram o texto vazio: só os valores dentro da faixa entram no adotado
+            f.c(r, 9, f'=IF(H{r}="ok",F{r},"")', MOEDA)
+        r = fim + 1
+        rotulos = [("Mediana", f"=MEDIAN(F{ini}:F{fim})"), ("Média", f"=AVERAGE(F{ini}:F{fim})"), ("Menor", f"=MIN(F{ini}:F{fim})"),
+                   ("Referências / dentro da faixa", f'=COUNT(F{ini}:F{fim})&" / "&COUNT(I{ini}:I{fim})')]
+        for rot, form in rotulos:
+            f.c(r, 8, rot, alinhar="right", tam=9)
+            f.c(r, 9, form, MOEDA if rot != rotulos[-1][0] else None, alinhar="right")
+            r += 1
+        f.c(r, 8, f"Valor adotado ({rot_crit.lower()})", negrito=True, alinhar="right")
+        adotado = f"I{r}"
+        f.c(r, 9, f"=IF(COUNT(I{ini}:I{fim})=0,{func}(F{ini}:F{fim}),{func}(I{ini}:I{fim}))", MOEDA, negrito=True, fundo=FUNDO_CAB)
+        r += 1
+        lf = linhas_forn.get((o["id"], it.get("uid")))
+        if lf:
+            f.c(r, 8, "Custo unit. em Fornecimentos", alinhar="right", tam=9)
+            f.vinculo(r, 9, f"=Fornecimentos!F{lf}", MOEDA)
+            f.c(r + 1, 8, "Diferença para o adotado", alinhar="right", tam=9)
+            f.c(r + 1, 9, f"=IF({adotado}=0,0,I{r}/{adotado}-1)", PCT)
+            r += 2
+        r += 1
     ws.freeze_panes = "A4"
     _impressao(ws)
 
@@ -452,13 +549,14 @@ def _aba_cronograma(wb, cat, proposta, resultados, celulas, ref):
             f.c(r, 10 + k, k + 1, INT, negrito=True, cor=AZUL, fundo=FUNDO_CAB, alinhar="center", tam=8)
         r += 1
         r_ini = r
+        minimos = motor.prazos_minimos(o, res)
         for i, e in enumerate(res["cronograma"]):
             f.c(r, 1, e["rotulo"])
             f.vinculo(r, 2, f"=SUMIF({cel['etapas_ext']},A{r},{cel['horas_ext']})", HORAS)
             f.entrada(r, 3, proposta["parametros"]["cronograma"].get("equipe_etapa", {}).get(e["etapa"], proposta["parametros"]["cronograma"]["equipe"]), INT)
             base = f"IF(B{r}>0,MAX(1,ROUNDUP(B{r}/({ref['horas_dia']}*C{r}),0)),0)"
-            if e["etapa"] == "obra" and res["fornecimentos"]:
-                f.c(r, 4, f"=MAX({base},{int(o.get('prazo_execucao_dias') or 0)})", INT)
+            if minimos.get(e["etapa"]):     # lead time dos equipamentos / prazo de execução da obra
+                f.c(r, 4, f"=MAX({base},{minimos[e['etapa']]})", INT)
             else:
                 f.c(r, 4, "=" + base, INT)
             f.c(r, 5, 1 if i == 0 else f"=F{r - 1}+1", INT, alinhar="center")
@@ -540,6 +638,12 @@ def _aba_resumo(ws, cat, proposta, resultados, celulas):
     r += 1
     f.cabecalho(r, ["Indicador", ""] + [o["nome"] for o in proposta["opcoes"]])
     r += 1
+    f.c(r, 1, "Modalidade")
+    f.c(r, 2, None)
+    for i, res in enumerate(resultados):
+        f.c(r, 3 + i, "Turnkey (preço global)" if res.get("modalidade") == "turnkey" else "Serviços de engenharia",
+            alinhar="right")
+    r += 1
     linhas = [
         ("Horas técnicas", "total_h_ext", HORAS),
         ("Prazo (dias úteis)", "prazo_uteis", INT),
@@ -553,6 +657,7 @@ def _aba_resumo(ws, cat, proposta, resultados, celulas):
         ("Margem efetiva — escopo fechado", "me_fechado", PCT),
         ("Preço por hora técnica (R$/h)", "rs_h", MOEDA),
         ("Preço por m² (R$/m²)", "rs_m2", MOEDA),
+        ("Referência: % do CUB × área", "ref_cub", MOEDA),
         ("Modelo escolhido", "modelo", None),
         ("PREÇO DA PROPOSTA", "preco", MOEDA),
     ]
@@ -592,7 +697,8 @@ def gerar(cat, proposta, resultado):
     celulas = {}
     for o, res in zip(proposta["opcoes"], resultados):
         celulas[o["id"]] = _aba_opcao(wb, cat, proposta, o, res, ref)
-    _aba_fornecimentos(wb, proposta, resultados, ref)
+    linhas_forn = _aba_fornecimentos(wb, proposta, resultados, ref)
+    _aba_pesquisa(wb, proposta, resultados, ref, linhas_forn)
     _aba_cronograma(wb, cat, proposta, resultados, celulas, ref)
     _aba_pagamento(wb, proposta, resultados, celulas)
     _aba_resumo(resumo, cat, proposta, resultados, celulas)

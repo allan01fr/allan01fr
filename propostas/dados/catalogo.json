@@ -17,7 +17,8 @@
   "obra": "Obra / acompanhamento",
   "comissionamento": "Comissionamento",
   "ensaio": "Ensaio / certificação",
-  "laudo": "Laudo / inspeção"
+  "laudo": "Laudo / inspeção",
+  "entrega": "Entrega técnica / treinamento"
  },
  "etapas": [
   {
@@ -48,6 +49,12 @@
    "id": "simulacao",
    "rotulo": "Simulações de engenharia",
    "marco": "Relatório de simulação",
+   "campo": false
+  },
+  {
+   "id": "suprimentos",
+   "rotulo": "Suprimentos e entrega de equipamentos",
+   "marco": "Equipamentos entregues em obra",
    "campo": false
   },
   {
@@ -156,6 +163,89 @@
     }
    ]
   }
+ },
+ "turnkey": {
+  "descricao": "Modalidade em que a contratada entrega o produto final em operação, por preço global, assumindo todas as etapas e subcontratações.",
+  "etapas": [
+   {
+    "id": "projeto",
+    "rotulo": "Projeto executivo",
+    "tipos": [
+     "projeto",
+     "calculo"
+    ]
+   },
+   {
+    "id": "aprovacoes",
+    "rotulo": "Aprovações e legalização",
+    "servicos": [
+     "inc.aprovacao"
+    ],
+    "opcional": true
+   },
+   {
+    "id": "equipamentos",
+    "rotulo": "Fornecimento de equipamentos e materiais",
+    "categorias": [
+     "equipamento",
+     "material"
+    ]
+   },
+   {
+    "id": "execucao",
+    "rotulo": "Execução e instalação (equipe própria ou subcontratada)",
+    "categorias": [
+     "mo_execucao",
+     "subcontrato"
+    ]
+   },
+   {
+    "id": "gestao",
+    "rotulo": "Gestão da obra",
+    "tipos": [
+     "obra"
+    ]
+   },
+   {
+    "id": "comissionamento",
+    "rotulo": "Comissionamento, TAB e start-up",
+    "tipos": [
+     "comissionamento",
+     "ensaio"
+    ]
+   },
+   {
+    "id": "entrega",
+    "rotulo": "Treinamento, manuais e data book",
+    "tipos": [
+     "entrega"
+    ]
+   }
+  ],
+  "eventos": {
+   "projeto": "Projeto e engenharia",
+   "calculo": "Projeto e engenharia",
+   "simulacao": "Projeto e engenharia",
+   "consultoria": "Projeto e engenharia",
+   "laudo": "Projeto e engenharia",
+   "obra": "Gestão da obra",
+   "comissionamento": "Comissionamento, TAB e start-up",
+   "ensaio": "Comissionamento, TAB e start-up",
+   "entrega": "Treinamento, manuais e data book",
+   "equipamento": "Fornecimento de equipamentos",
+   "material": "Fornecimento de materiais",
+   "mo_execucao": "Execução e instalação",
+   "subcontrato": "Execução e instalação"
+  },
+  "exclusoes": [
+   "Obras civis, alimentação elétrica até o quadro do sistema e demais infraestruturas não descritas no escopo.",
+   "Taxas de concessionárias e de órgãos públicos."
+  ],
+  "premissas": [
+   "A contratada assume a responsabilidade única pela entrega do sistema em operação, incluindo as subcontratações.",
+   "Garantia de {garantia_meses} meses para equipamentos e serviços, contada da assinatura do termo de aceite.",
+   "Área de trabalho, energia e água de obra serão disponibilizadas pelo contratante."
+  ]
  },
  "servicos": [
   {
@@ -347,32 +437,75 @@
     },
     {
      "id": "sistema",
-     "rotulo": "Tipo de sistema",
+     "rotulo": "Sistema de climatização",
      "tipo": "opcoes",
      "padrao": "vrf",
-     "ajuda": "",
+     "ajuda": "Como o ar é resfriado: tipo de sistema de ar-condicionado.",
      "opcoes": [
       {
        "valor": "split",
-       "rotulo": "Split / multi-split",
+       "rotulo": "Split / multi-split (expansão direta)",
        "num": 0.8
       },
       {
        "valor": "vrf",
-       "rotulo": "VRF",
+       "rotulo": "VRF — fluxo de refrigerante variável (expansão direta)",
        "num": 1.0
       },
       {
        "valor": "self",
-       "rotulo": "Expansão direta dutada / self-contained",
+       "rotulo": "Self-contained / rooftop (expansão direta dutada)",
        "num": 1.0
       },
       {
        "valor": "agua_gelada",
-       "rotulo": "Água gelada (chiller + fancoils)",
+       "rotulo": "Água gelada — chiller + fancoils / UTAs (expansão indireta)",
        "num": 1.35
       }
      ]
+    },
+    {
+     "id": "ventilacao_tipo",
+     "rotulo": "Ventilação / distribuição de ar",
+     "tipo": "opcoes",
+     "padrao": "renovacao",
+     "ajuda": "Como o ar é distribuído e renovado; independe do sistema de climatização.",
+     "opcoes": [
+      {
+       "valor": "nenhuma",
+       "rotulo": "Sem ventilação mecânica",
+       "num": 1.0
+      },
+      {
+       "valor": "renovacao",
+       "rotulo": "Renovação de ar simples (ventiladores, caixas de filtragem)",
+       "num": 1.0
+      },
+      {
+       "valor": "doas",
+       "rotulo": "Ar exterior dedicado (DOAS / UTA de ar externo)",
+       "num": 1.15
+      },
+      {
+       "valor": "cav",
+       "rotulo": "Volume de ar constante (CAV)",
+       "num": 1.1
+      },
+      {
+       "valor": "vav",
+       "rotulo": "Volume de ar variável (VAV)",
+       "num": 1.3
+      }
+     ]
+    },
+    {
+     "id": "caixas_vav",
+     "rotulo": "Caixas VAV",
+     "tipo": "int",
+     "padrao": 0,
+     "unidade": "un",
+     "ajuda": "Só para distribuição VAV.",
+     "min": 0
     },
     {
      "id": "fase",
@@ -421,13 +554,6 @@
        "num": 1.5
       }
      ]
-    },
-    {
-     "id": "ventilacao",
-     "rotulo": "Inclui ventilação, renovação de ar e exaustão",
-     "tipo": "bool",
-     "padrao": true,
-     "ajuda": ""
     }
    ],
    "atividades": [
@@ -495,11 +621,32 @@
      "nome": "Cálculo de ar exterior, renovação e exaustão (NBR 16401-3)",
      "entregavel": "Memória de cálculo de ventilação",
      "etapa": "calculo",
-     "driver": "area*ventilacao",
+     "driver": "area*(1-ventilacao_tipo__nenhuma)",
      "b": 0.9,
      "fixo": {},
      "unid": {
       "PL": 0.004
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia",
+      "ventilacao_tipo"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "vav",
+     "nome": "Seleção das caixas VAV e definição da sequência de controle",
+     "entregavel": "Tabela de caixas VAV e sequência de controle",
+     "etapa": "calculo",
+     "driver": "caixas_vav*ventilacao_tipo__vav",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 0.6,
+      "SR": 0.1,
+      "PJ": 0.3
      },
      "fatores": [
       "complexidade",
@@ -550,7 +697,8 @@
       "urgencia",
       "nivel",
       "fase",
-      "sistema"
+      "sistema",
+      "ventilacao_tipo"
      ],
      "calibracao": 1.0
     },
@@ -1108,6 +1256,15 @@
      "min": 0
     },
     {
+     "id": "caixas_vav",
+     "rotulo": "Caixas VAV",
+     "tipo": "int",
+     "padrao": 0,
+     "unidade": "un",
+     "ajuda": "Quando a distribuição de ar é VAV.",
+     "min": 0
+    },
+    {
      "id": "amostragem",
      "rotulo": "Amostragem",
      "tipo": "opcoes",
@@ -1224,6 +1381,25 @@
      "calibracao": 1.0
     },
     {
+     "id": "vav",
+     "nome": "Verificação e ajuste das caixas VAV (vazões mínima e máxima)",
+     "entregavel": "Folhas de ajuste das caixas VAV",
+     "etapa": "campo",
+     "driver": "caixas_vav",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 0.75,
+      "PL": 0.25
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
      "id": "analise",
      "nome": "Mapa de vazões, zonas sem alcance e correntes de ar, diagnóstico",
      "entregavel": "Mapa de balanceamento",
@@ -1269,7 +1445,7 @@
     {
      "id": "balometro",
      "nome": "Locação de balômetro e kit de medição",
-     "qtd": "ceil((terminais*amostragem*0.35+utas*1.5)/8)",
+     "qtd": "ceil((terminais*amostragem*0.35+utas*1.5+caixas_vav*0.75)/8)",
      "valor_unit": 250.0,
      "unid": "dia"
     }
@@ -1893,6 +2069,15 @@
      "min": 0
     },
     {
+     "id": "caixas_vav",
+     "rotulo": "Caixas VAV",
+     "tipo": "int",
+     "padrao": 0,
+     "unidade": "un",
+     "ajuda": "Quando a distribuição de ar é VAV.",
+     "min": 0
+    },
+    {
      "id": "nivel_cx",
      "rotulo": "Nível do comissionamento",
      "tipo": "opcoes",
@@ -1992,6 +2177,25 @@
      "calibracao": 1.0
     },
     {
+     "id": "vav",
+     "nome": "Testes funcionais das caixas VAV e da sequência de controle",
+     "entregavel": "Folhas de teste das caixas VAV",
+     "etapa": "comissionamento",
+     "driver": "caixas_vav",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 0.4,
+      "PL": 0.2
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
      "id": "pendencias",
      "nome": "Gestão de pendências e retestes",
      "entregavel": "Lista de pendências",
@@ -2044,7 +2248,10 @@
    "premissas": [
     "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante.",
     "A instalação estará concluída e energizada no início dos testes.",
-    "O instalador acompanhará os testes com equipe própria."
+    {
+     "texto": "O instalador acompanhará os testes com equipe própria.",
+     "exceto_fornecimento": true
+    }
    ],
    "normas": [
     "ABNT NBR 16401-1",
@@ -5632,8 +5839,8 @@
    "id": "geral.gestao_obra",
    "disciplina": "Geral",
    "tipo": "obra",
-   "nome": "Gerenciamento de obra (turnkey)",
-   "descricao": "Planejamento, supervisão em campo, suprimentos e controle físico-financeiro da execução.",
+   "nome": "Gerenciamento e administração da execução",
+   "descricao": "Planejamento, supervisão em campo, suprimentos e controle físico-financeiro da execução (obra própria, subcontratada ou turnkey).",
    "dados": [
     {
      "id": "meses",
@@ -5881,6 +6088,133 @@
    "diretos": [],
    "exclusoes": [],
    "premissas": [],
+   "normas": []
+  },
+  {
+   "id": "geral.entrega_tecnica",
+   "disciplina": "Geral",
+   "tipo": "entrega",
+   "nome": "Entrega técnica: start-up, treinamento, manuais e data book",
+   "descricao": "Partida assistida, treinamento da equipe de operação e manutenção, manuais e data book do sistema entregue.",
+   "dados": [
+    {
+     "id": "equipamentos",
+     "rotulo": "Equipamentos / sistemas entregues",
+     "tipo": "int",
+     "padrao": 10,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "turmas",
+     "rotulo": "Turmas de treinamento",
+     "tipo": "int",
+     "padrao": 1,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "horas_turma",
+     "rotulo": "Horas por turma",
+     "tipo": "float",
+     "padrao": 4.0,
+     "unidade": "h",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "data_book",
+     "rotulo": "Inclui as-built e data book",
+     "tipo": "bool",
+     "padrao": true,
+     "ajuda": ""
+    }
+   ],
+   "atividades": [
+    {
+     "id": "startup",
+     "nome": "Start-up assistido e verificação de funcionamento",
+     "entregavel": "Relatório de start-up",
+     "etapa": "comissionamento",
+     "driver": "equipamentos",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 0.75,
+      "PL": 0.25
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "treinamento",
+     "nome": "Treinamento de operação e manutenção",
+     "entregavel": "Lista de presença e material de treinamento",
+     "etapa": "comissionamento",
+     "driver": "turmas*horas_turma",
+     "b": 1.0,
+     "fixo": {
+      "PL": 4
+     },
+     "unid": {
+      "SR": 1,
+      "TC": 1
+     },
+     "fatores": [
+      "acesso"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "manuais",
+     "nome": "Manuais de operação e manutenção",
+     "entregavel": "Manuais de O&M",
+     "etapa": "emissao",
+     "driver": "equipamentos",
+     "b": 1.0,
+     "fixo": {
+      "PL": 2
+     },
+     "unid": {
+      "PL": 0.3,
+      "ES": 0.3
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "databook",
+     "nome": "As-built e data book (certificados, ARTs, relatórios de teste)",
+     "entregavel": "Data book",
+     "etapa": "emissao",
+     "driver": "data_book*(10+equipamentos)",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PJ": 0.25,
+      "ES": 0.25
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    "Treinamentos além das turmas previstas."
+   ],
+   "premissas": [
+    "A equipe de operação do contratante estará disponível nas datas de treinamento."
+   ],
    "normas": []
   }
  ]

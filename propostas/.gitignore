@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 dados/*.bak.json
 saida/
+dados/referencias.sqlite

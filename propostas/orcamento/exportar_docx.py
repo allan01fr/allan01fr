@@ -25,6 +25,9 @@ TEMPLATE = os.path.join(RAIZ, "modelos", "proposta.docx")
 
 FRASE_DESLOCAMENTO = ("Não estão inclusos deslocamentos fora da Região Metropolitana do Rio de Janeiro, "
                       "que serão orçados à parte mediante aprovação prévia.")
+ORDEM_EVENTOS = ("Projeto e engenharia", "Fornecimento de equipamentos", "Fornecimento de materiais",
+                 "Execução e instalação", "Gestão da obra", "Comissionamento, TAB e start-up",
+                 "Treinamento, manuais e data book")
 PREMISSAS_FINAIS = [
     "Os prazos são contados em dias corridos a partir do cumprimento cumulativo das premissas acima.",
     "Atraso na liberação de acesso ou de documentação suspende a contagem dos prazos, sem ônus para a contratada.",
@@ -171,24 +174,49 @@ def _preencher_linhas(tabela, linhas, manter_ultima=False):
 
 # ----------------------------------------------------------------------------- conteúdo
 def _rateio_servicos(opcao, res):
-    """Preço dos serviços repartido por serviço, na proporção do custo direto de cada um."""
+    """Preço dos serviços repartido por serviço, na proporção do custo direto de cada um.
+    Devolve (índice do item, nome, valor); a soma fecha exatamente com o preço dos serviços."""
     pesos = []
     for i, it in enumerate(opcao["itens"]):
         mo = sum(l["custo_mo"] for l in res["linhas"] if l["item"] == i)
         dr = sum(d["valor"] for d in res["diretos"] if d["item"] == i)
         nome = next((l["servico_nome"] for l in res["linhas"] if l["item"] == i), None)
         if nome and mo + dr > 0:
-            pesos.append((nome, mo + dr))
-    total = sum(p for _, p in pesos) or 1
-    valores = [round(res["preco_servicos"] * p / total, 2) for _, p in pesos]
+            pesos.append((i, nome, mo + dr))
+    total = sum(p for *_, p in pesos) or 1
+    valores = [round(res["preco_servicos"] * p / total, 2) for *_, p in pesos]
     if valores:
         valores[-1] = round(res["preco_servicos"] - sum(valores[:-1]), 2)
-    return [(n, v) for (n, _), v in zip(pesos, valores)]
+    return [(i, n, v) for (i, n, _), v in zip(pesos, valores)]
+
+
+def _eventos_turnkey(cat, opcao, res):
+    """Preço global repartido em eventos por etapa (projeto, equipamentos, materiais, execução...)."""
+    mapa = cat["turnkey"]["eventos"]
+    soma = {}
+    for i, _, v in _rateio_servicos(opcao, res):
+        ev = mapa.get(ct.servico(cat, opcao["itens"][i]["servico"])["tipo"], ORDEM_EVENTOS[0])
+        soma[ev] = soma.get(ev, 0) + v
+    for f in res["fornecimentos"]:
+        ev = mapa.get(f["categoria"], "Execução e instalação")
+        soma[ev] = soma.get(ev, 0) + f["preco"]
+    ordem = [e for e in ORDEM_EVENTOS if e in soma] + [e for e in soma if e not in ORDEM_EVENTOS]
+    valores = [round(soma[e], 2) for e in ordem]
+    if valores:   # fecha o total exato no maior evento
+        k = valores.index(max(valores))
+        valores[k] = round(valores[k] + round(res["preco_fechado"], 2) - round(sum(valores), 2), 2)
+    return list(zip(ordem, valores))
 
 
 def _linhas_honorarios(cat, params, opcao, res):
     linhas = []
     modelo = res["modelo_preco"]
+    if res.get("modalidade") == "turnkey":
+        for ev, v in _eventos_turnkey(cat, opcao, res):
+            linhas.append((ev, "1 vb", moeda(v), moeda(v)))
+        if any(d["descricao"].startswith("Taxa de ART") for d in res["diretos"]):
+            linhas.append(("Taxa de ART junto ao CREA", "1", "inclusa", "inclusa"))
+        return linhas
     if modelo == "hora":
         for p, nome in cat["perfis"].items():
             h = res["horas_perfil"][p]
@@ -201,7 +229,7 @@ def _linhas_honorarios(cat, params, opcao, res):
         linhas.append((f"Honorários de engenharia — {pct_br(res['fee_pct'])} sobre o valor da obra estimado em {moeda(res['fee_base'])}",
                        "1", moeda(res["fee_honorarios"]), moeda(res["fee_honorarios"])))
     else:
-        for nome, v in _rateio_servicos(opcao, res):
+        for _, nome, v in _rateio_servicos(opcao, res):
             linhas.append((f"Honorários de engenharia — {nome}", "1", moeda(v), moeda(v)))
     for f in res["fornecimentos"]:
         qtd = float(f.get("qtd") or 0)
@@ -220,15 +248,23 @@ def _total_texto(res):
 
 
 def _exclusoes(cat, opcao, res):
-    return ct.exclusoes_validas(cat, [it["servico"] for it in opcao["itens"]], bool(res["fornecimentos"]))
+    textos = ct.textos_validos(cat, [it["servico"] for it in opcao["itens"]], bool(res["fornecimentos"]), "exclusoes")
+    if res.get("modalidade") == "turnkey":
+        for e in res["checklist_turnkey"]:
+            if e["status"] == "dispensada":
+                textos.append(f"{e['rotulo']}: a cargo do contratante.")
+            elif e["status"] == "opcional":
+                textos.append(f"{e['rotulo']}: não incluídas nesta proposta.")
+        textos += [t for t in cat["turnkey"]["exclusoes"] if t not in textos]
+    return textos
 
 
-def _premissas(cat, opcao):
-    textos = []
-    for it in opcao["itens"]:
-        for p in ct.servico(cat, it["servico"]).get("premissas", []):
-            if p not in textos and p not in PREMISSAS_FINAIS:
-                textos.append(p)
+def _premissas(cat, proposta, opcao, res):
+    textos = [p for p in ct.textos_validos(cat, [it["servico"] for it in opcao["itens"]], bool(res["fornecimentos"]),
+                                           "premissas") if p not in PREMISSAS_FINAIS]
+    if res.get("modalidade") == "turnkey":
+        g = proposta["parametros"]["turnkey"]
+        textos += [t.format(garantia_meses=g["garantia_meses"]) for t in cat["turnkey"]["premissas"]]
     return textos + PREMISSAS_FINAIS
 
 
@@ -260,6 +296,11 @@ def _texto_objeto(proposta, opcao, res, varias):
             nomes.append(l["servico_nome"])
     base = (proposta.get("objeto") or "serviços técnicos de engenharia").rstrip(".")
     sufixo = f" — {opcao['nome']}" if varias else ""
+    if res.get("modalidade") == "turnkey":
+        etapas = [_minuscula(e["rotulo"]) for e in res["checklist_turnkey"] if e["status"] == "atendida"]
+        return (f"Implantação em regime turnkey (empreitada por preço global, com responsabilidade única pelo fornecimento, "
+                f"pela execução, pelas subcontratações e pela entrega do sistema em operação): {base}{sufixo}. "
+                f"Compreende: {'; '.join(etapas)}, conforme as atividades e os entregáveis relacionados na seção 3.")
     return (f"Prestação de serviços técnicos de engenharia: {base}{sufixo}. "
             f"Compreende: {'; '.join(nomes)}, conforme as atividades e os entregáveis relacionados na seção 3.")
 
@@ -308,7 +349,7 @@ def gerar_opcao(cat, proposta, opcao, res, varias=False):
 
     secoes = _listas_por_secao(doc)
     _ajustar_lista(_lista(secoes, "EXCLUS"), _exclusoes(cat, opcao, res))
-    _ajustar_lista(_lista(secoes, "PREMISSAS"), _premissas(cat, opcao))
+    _ajustar_lista(_lista(secoes, "PREMISSAS"), _premissas(cat, proposta, opcao, res))
     _ajustar_lista(_lista(secoes, "PAGAMENTO"), [f"{pct_br(m['pct'])} {m['marco']}." for m in res["pagamento"]])
 
     pendencias = sorted({m for p in _todos_paragrafos(doc) for m in re.findall(r"\[[^\]]{3,}\]", p.text)})

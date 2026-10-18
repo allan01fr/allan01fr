@@ -13,13 +13,13 @@
   "cidade": "Rio de Janeiro",
   "uf": "RJ"
  },
- "objeto": "Fornecimento e instalação de sistema VRF (turnkey), com projeto, comissionamento, TAB e PMOC",
+ "objeto": "Retrofit do sistema de climatização: VRF + renovação de ar (DOAS)",
  "contexto": {
   "dist_km": 30.0,
-  "area_ref": 800.0,
+  "area_ref": 1500.0,
   "complexidade": "media",
   "documentacao": "parcial",
-  "acesso": "livre",
+  "acesso": "operacao",
   "urgencia": "normal",
   "risco": "medio"
  },
@@ -88,7 +88,49 @@
    "pessoas_campo": 2
   },
   "art": {
-   "valor": 300.0
+   "modo": "faixas",
+   "valor": 300.0,
+   "faixas": [
+    {
+     "ate": 15000.0,
+     "valor": 108.39
+    },
+    {
+     "ate": null,
+     "valor": 285.59
+    }
+   ],
+   "fonte": "Confea, Tabela A 2026 (publicada pelo CREA-MT). Confira os valores vigentes no CREA-RJ."
+  },
+  "turnkey": {
+   "garantia_pct": 0.02,
+   "garantia_meses": 12,
+   "retencao_aceite": 0.1
+  },
+  "cub": {
+   "uf": "RJ",
+   "padrao": "CSL-8N",
+   "mes": "",
+   "valor": 0.0,
+   "pct_honorarios": 0.04,
+   "fonte": "SINDUSCON-Rio"
+  },
+  "hierarquia_fontes": {
+   "RJ": [
+    "EMOP-RJ",
+    "SCO-RIO",
+    "SINAPI",
+    "SICRO"
+   ],
+   "padrao": [
+    "SINAPI",
+    "SICRO"
+   ]
+  },
+  "cesta": {
+   "criterio": "mediana",
+   "faixa_alerta": 0.25,
+   "minimo_fontes": 3
   },
   "cronograma": {
    "horas_dia": 8.0,
@@ -102,25 +144,27 @@
   "notas": {
    "impostos": "Lucro Presumido: PIS 0,65% + COFINS 3% + IRPJ 4,8% e CSLL 2,88% (sobre base presumida de 32%) + ISS. No Simples, informe a alíquota efetiva do seu anexo.",
    "bdi_fornecimento": "BDI completo (tributos, administração, risco e lucro). Referência inicial: medianas do TCU, Acórdão 2.622/2013 — confira e ajuste.",
-   "art": "Confira o valor na tabela vigente do CREA.",
+   "art": "ART por faixa do valor do contrato (Tabela A do Confea). Confira os valores vigentes no CREA-RJ.",
+   "cub": "Informe ou importe o CUB/m² do mês (SINDUSCON). Faixa usual de honorários: 2% a 11% do CUB × área.",
    "custos": "Custos e taxas por hora são valores iniciais de referência — ajuste aos seus custos reais (salário + encargos + benefícios ÷ horas produtivas)."
   }
  },
  "opcoes": [
   {
    "id": "A",
-   "nome": "Turnkey VRF",
+   "nome": "Opção A — Turnkey (preço global)",
    "itens": [
     {
      "servico": "hvac.projeto",
      "dados": {
-      "area": 800.0,
-      "tr": 40.0,
-      "pavimentos": 1,
+      "area": 1500.0,
+      "tr": 75.0,
+      "pavimentos": 3,
       "sistema": "vrf",
+      "ventilacao_tipo": "doas",
+      "caixas_vav": 0,
       "fase": "executivo",
-      "nivel": "2d",
-      "ventilacao": true
+      "nivel": "3d"
      },
      "ajustes": {},
      "fator_manual": 1.0,
@@ -129,7 +173,7 @@
     {
      "servico": "geral.gestao_obra",
      "dados": {
-      "meses": 2,
+      "meses": 4,
       "dedicacao": 0.5
      },
      "ajustes": {},
@@ -139,7 +183,8 @@
     {
      "servico": "hvac.comissionamento",
      "dados": {
-      "equipamentos": 8,
+      "equipamentos": 48,
+      "caixas_vav": 0,
       "nivel_cx": "funcional"
      },
      "ajustes": {},
@@ -149,8 +194,9 @@
     {
      "servico": "hvac.tab",
      "dados": {
-      "terminais": 30,
-      "utas": 2,
+      "terminais": 90,
+      "utas": 1,
+      "caixas_vav": 0,
       "amostragem": "completo",
       "ajuste": "ajuste"
      },
@@ -159,10 +205,22 @@
      "descricao": ""
     },
     {
+     "servico": "geral.entrega_tecnica",
+     "dados": {
+      "equipamentos": 48,
+      "turmas": 2,
+      "horas_turma": 4.0,
+      "data_book": true
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
      "servico": "hvac.pmoc",
      "dados": {
-      "equipamentos": 16,
-      "area": 800.0,
+      "equipamentos": 48,
+      "area": 1500.0,
       "rt_meses": 0
      },
      "ajustes": {},
@@ -172,46 +230,300 @@
    ],
    "fornecimentos": [
     {
-     "descricao": "Unidades condensadoras VRF",
+     "uid": "2233fdf6",
+     "descricao": "Unidades condensadoras VRF 20 HP (módulos)",
      "categoria": "equipamento",
      "unid": "un",
-     "qtd": 3,
-     "custo_unit": 48000.0
+     "qtd": 5.0,
+     "custo_unit": 52500.0,
+     "fonte": "Cesta de preços (mediana de 3 referências)",
+     "codigo": "",
+     "data_base": "2026-09",
+     "referencias": [
+      {
+       "fonte": "Cotação fabricante A",
+       "codigo": "",
+       "data_base": "2026-09",
+       "valor": 51000.0
+      },
+      {
+       "fonte": "Cotação fabricante B",
+       "codigo": "",
+       "data_base": "2026-09",
+       "valor": 52500.0
+      },
+      {
+       "fonte": "Cotação distribuidor C",
+       "codigo": "",
+       "data_base": "2026-09",
+       "valor": 53800.0
+      },
+      {
+       "fonte": "Cotação distribuidor D",
+       "codigo": "",
+       "data_base": "2026-08",
+       "valor": 68000.0
+      }
+     ]
     },
     {
-     "descricao": "Unidades evaporadoras",
+     "uid": "eafb207b",
+     "descricao": "Unidades evaporadoras VRF (cassete e dutada)",
      "categoria": "equipamento",
      "unid": "un",
-     "qtd": 16,
-     "custo_unit": 3800.0
+     "qtd": 42.0,
+     "custo_unit": 2900.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": []
     },
     {
-     "descricao": "Tubulação de cobre, isolamento e suportes",
+     "uid": "e5be302d",
+     "descricao": "Unidade de ar exterior dedicado (DOAS) com recuperação de energia, 5.000 m³/h",
+     "categoria": "equipamento",
+     "unid": "un",
+     "qtd": 1.0,
+     "custo_unit": 120000.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": []
+    },
+    {
+     "uid": "c5750089",
+     "descricao": "Controle central VRF e integração com a automação predial",
+     "categoria": "equipamento",
+     "unid": "vb",
+     "qtd": 1.0,
+     "custo_unit": 28000.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": []
+    },
+    {
+     "uid": "4fd52994",
+     "descricao": "Tubulação de cobre, isolamento, derivações (refnets) e suportes",
      "categoria": "material",
      "unid": "vb",
-     "qtd": 1,
-     "custo_unit": 28000.0
+     "qtd": 1.0,
+     "custo_unit": 95000.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": []
     },
     {
-     "descricao": "Dutos, difusores e grelhas",
+     "uid": "4b8a0a61",
+     "descricao": "Dutos, difusores e grelhas da rede de ar exterior",
      "categoria": "material",
      "unid": "vb",
-     "qtd": 1,
-     "custo_unit": 22000.0
+     "qtd": 1.0,
+     "custo_unit": 55000.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": []
     },
     {
-     "descricao": "Instalação mecânica (subempreiteira)",
+     "uid": "75aef006",
+     "descricao": "Materiais elétricos de força e comando do sistema",
+     "categoria": "material",
+     "unid": "vb",
+     "qtd": 1.0,
+     "custo_unit": 30000.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": []
+    },
+    {
+     "uid": "55a97d8f",
+     "descricao": "Instalação mecânica e frigorígena do VRF (subempreiteira)",
      "categoria": "subcontrato",
      "unid": "vb",
-     "qtd": 1,
-     "custo_unit": 70000.0
+     "qtd": 1.0,
+     "custo_unit": 120000.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": []
+    },
+    {
+     "uid": "85ebeb38",
+     "descricao": "Montagem da rede de dutos do DOAS (subempreiteira)",
+     "categoria": "subcontrato",
+     "unid": "vb",
+     "qtd": 1.0,
+     "custo_unit": 40000.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": []
+    },
+    {
+     "uid": "d2847f10",
+     "descricao": "Desmontagem do sistema existente com recolhimento do fluido refrigerante",
+     "categoria": "subcontrato",
+     "unid": "vb",
+     "qtd": 1.0,
+     "custo_unit": 25000.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": []
+    },
+    {
+     "uid": "99e19f51",
+     "descricao": "Içamento e transporte vertical das condensadoras",
+     "categoria": "subcontrato",
+     "unid": "vb",
+     "qtd": 1.0,
+     "custo_unit": 12000.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": []
     }
    ],
-   "prazo_execucao_dias": 40,
+   "prazo_execucao_dias": 50,
    "pagamento": [],
    "modelo_preco": "fechado",
    "fee_pct": 0.06,
-   "fee_base": 0.0
+   "fee_base": 0.0,
+   "modalidade": "turnkey",
+   "prazo_fornecimento_dias": 60,
+   "turnkey_dispensas": []
+  },
+  {
+   "id": "B",
+   "nome": "Opção B — Serviços de engenharia (sem fornecimento)",
+   "itens": [
+    {
+     "servico": "hvac.projeto",
+     "dados": {
+      "area": 1500.0,
+      "tr": 75.0,
+      "pavimentos": 3,
+      "sistema": "vrf",
+      "ventilacao_tipo": "doas",
+      "caixas_vav": 0,
+      "fase": "executivo",
+      "nivel": "3d"
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "geral.gestao_obra",
+     "dados": {
+      "meses": 4,
+      "dedicacao": 0.25
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": "Fiscalização da instalação (contratada do cliente)"
+    },
+    {
+     "servico": "hvac.comissionamento",
+     "dados": {
+      "equipamentos": 48,
+      "caixas_vav": 0,
+      "nivel_cx": "funcional"
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "hvac.tab",
+     "dados": {
+      "terminais": 90,
+      "utas": 1,
+      "caixas_vav": 0,
+      "amostragem": "completo",
+      "ajuste": "ajuste"
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    }
+   ],
+   "fornecimentos": [],
+   "prazo_execucao_dias": 0,
+   "pagamento": [],
+   "modelo_preco": "fechado",
+   "fee_pct": 0.06,
+   "fee_base": 0.0,
+   "modalidade": "servicos",
+   "prazo_fornecimento_dias": 0,
+   "turnkey_dispensas": []
   }
- ]
+ ],
+ "viabilidade": {
+  "ativo": true,
+  "titulo": "Estudo de viabilidade técnico-econômica do retrofit",
+  "base": {
+   "modo": "tr",
+   "tr": 75.0,
+   "kw_tr_real": 1.45,
+   "kw_tr_projeto": 1.0,
+   "horas_ano": 3750.0,
+   "fator_carga": 0.65,
+   "kwh_ano": 0.0,
+   "tarifa": 0.85,
+   "manutencao_ano": 60000.0,
+   "paliativos": 25000.0
+  },
+  "financeiro": {
+   "tma": 0.12,
+   "horizonte": 15,
+   "reajuste_energia": 0.06,
+   "reajuste_manutencao": 0.045
+  },
+  "alternativas": [
+   {
+    "nome": "Rebalanceamento e correções pontuais",
+    "descricao": "TAB, limpeza de serpentinas, correção de vazamentos e ajuste de setpoints",
+    "capex": 48000.0,
+    "capex_opcao": "",
+    "capex_extra": 0.0,
+    "reducao_pct": 0.08,
+    "geracao_kwh": 0.0,
+    "manutencao_ano": null
+   },
+   {
+    "nome": "Troca das condensadoras e automação",
+    "descricao": "Mantém evaporadoras e redes; substitui as unidades externas e instala controle central",
+    "capex": 520000.0,
+    "capex_opcao": "",
+    "capex_extra": 0.0,
+    "reducao_pct": 0.22,
+    "geracao_kwh": 0.0,
+    "manutencao_ano": 50000.0
+   },
+   {
+    "nome": "Retrofit turnkey VRF + DOAS (opção A)",
+    "descricao": "Preço global da opção A; equipamentos novos em garantia",
+    "capex": 0.0,
+    "capex_opcao": "A",
+    "capex_extra": 0.0,
+    "reducao_pct": 0.35,
+    "geracao_kwh": 0.0,
+    "manutencao_ano": 30000.0
+   },
+   {
+    "nome": "Retrofit turnkey + fotovoltaico 60 kWp",
+    "descricao": "Opção A + usina FV de 60 kWp (≈ 1.400 kWh/kWp·ano no RJ)",
+    "capex": 0.0,
+    "capex_opcao": "A",
+    "capex_extra": 240000.0,
+    "reducao_pct": 0.35,
+    "geracao_kwh": 84000.0,
+    "manutencao_ano": 32000.0
+   }
+  ]
+ }
 }
