@@ -1,0 +1,217 @@
+{
+ "versao": 1,
+ "numero": "PC-KTK-EX04/2026",
+ "revisao": "00",
+ "data": "2026-10-18",
+ "validade_dias": 15,
+ "prazo_pagamento_dias": 15,
+ "cliente": {
+  "razao": "Cliente Exemplo Ltda.",
+  "contato": "Nome do contato / cargo / e-mail / telefone",
+  "signatario": "",
+  "endereco": "Endereço do objeto — Bairro — Rio de Janeiro/RJ",
+  "cidade": "Rio de Janeiro",
+  "uf": "RJ"
+ },
+ "objeto": "Fornecimento e instalação de sistema VRF (turnkey), com projeto, comissionamento, TAB e PMOC",
+ "contexto": {
+  "dist_km": 30.0,
+  "area_ref": 800.0,
+  "complexidade": "media",
+  "documentacao": "parcial",
+  "acesso": "livre",
+  "urgencia": "normal",
+  "risco": "medio"
+ },
+ "parametros": {
+  "perfis": {
+   "RT": {
+    "custo_h": 160.0,
+    "taxa_venda_h": 350.0
+   },
+   "SR": {
+    "custo_h": 110.0,
+    "taxa_venda_h": 250.0
+   },
+   "PL": {
+    "custo_h": 75.0,
+    "taxa_venda_h": 180.0
+   },
+   "PJ": {
+    "custo_h": 55.0,
+    "taxa_venda_h": 130.0
+   },
+   "TC": {
+    "custo_h": 45.0,
+    "taxa_venda_h": 110.0
+   },
+   "ES": {
+    "custo_h": 22.0,
+    "taxa_venda_h": 60.0
+   }
+  },
+  "overhead": {
+   "metodo": "percentual",
+   "pct": 0.25,
+   "custo_fixo_mensal": 15000.0,
+   "horas_faturaveis_mes": 300.0
+  },
+  "impostos": {
+   "regime": "presumido",
+   "simples_aliquota": 0.155,
+   "presumido": {
+    "pis": 0.0065,
+    "cofins": 0.03,
+    "irpj": 0.048,
+    "csll": 0.0288
+   },
+   "iss": 0.05
+  },
+  "margem": 0.3,
+  "contingencia": {
+   "baixo": 0.05,
+   "medio": 0.1,
+   "alto": 0.15
+  },
+  "reembolsaveis_adm": 0.1,
+  "bdi_fornecimento": {
+   "material": 0.14,
+   "equipamento": 0.14,
+   "mo_execucao": 0.22,
+   "subcontrato": 0.15
+  },
+  "deslocamento": {
+   "raio_isento_km": 50.0,
+   "raio_pernoite_km": 200.0,
+   "rs_km": 1.6,
+   "diaria": 380.0,
+   "pessoas_campo": 2
+  },
+  "art": {
+   "valor": 300.0
+  },
+  "cronograma": {
+   "horas_dia": 8.0,
+   "equipe": 2,
+   "equipe_etapa": {}
+  },
+  "pagamento": {
+   "sinal": 0.3
+  },
+  "fee_pct_padrao": 0.06,
+  "notas": {
+   "impostos": "Lucro Presumido: PIS 0,65% + COFINS 3% + IRPJ 4,8% e CSLL 2,88% (sobre base presumida de 32%) + ISS. No Simples, informe a alíquota efetiva do seu anexo.",
+   "bdi_fornecimento": "BDI completo (tributos, administração, risco e lucro). Referência inicial: medianas do TCU, Acórdão 2.622/2013 — confira e ajuste.",
+   "art": "Confira o valor na tabela vigente do CREA.",
+   "custos": "Custos e taxas por hora são valores iniciais de referência — ajuste aos seus custos reais (salário + encargos + benefícios ÷ horas produtivas)."
+  }
+ },
+ "opcoes": [
+  {
+   "id": "A",
+   "nome": "Turnkey VRF",
+   "itens": [
+    {
+     "servico": "hvac.projeto",
+     "dados": {
+      "area": 800.0,
+      "tr": 40.0,
+      "pavimentos": 1,
+      "sistema": "vrf",
+      "fase": "executivo",
+      "nivel": "2d",
+      "ventilacao": true
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "geral.gestao_obra",
+     "dados": {
+      "meses": 2,
+      "dedicacao": 0.5
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "hvac.comissionamento",
+     "dados": {
+      "equipamentos": 8,
+      "nivel_cx": "funcional"
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "hvac.tab",
+     "dados": {
+      "terminais": 30,
+      "utas": 2,
+      "amostragem": "completo",
+      "ajuste": "ajuste"
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "hvac.pmoc",
+     "dados": {
+      "equipamentos": 16,
+      "area": 800.0,
+      "rt_meses": 0
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    }
+   ],
+   "fornecimentos": [
+    {
+     "descricao": "Unidades condensadoras VRF",
+     "categoria": "equipamento",
+     "unid": "un",
+     "qtd": 3,
+     "custo_unit": 48000.0
+    },
+    {
+     "descricao": "Unidades evaporadoras",
+     "categoria": "equipamento",
+     "unid": "un",
+     "qtd": 16,
+     "custo_unit": 3800.0
+    },
+    {
+     "descricao": "Tubulação de cobre, isolamento e suportes",
+     "categoria": "material",
+     "unid": "vb",
+     "qtd": 1,
+     "custo_unit": 28000.0
+    },
+    {
+     "descricao": "Dutos, difusores e grelhas",
+     "categoria": "material",
+     "unid": "vb",
+     "qtd": 1,
+     "custo_unit": 22000.0
+    },
+    {
+     "descricao": "Instalação mecânica (subempreiteira)",
+     "categoria": "subcontrato",
+     "unid": "vb",
+     "qtd": 1,
+     "custo_unit": 70000.0
+    }
+   ],
+   "prazo_execucao_dias": 40,
+   "pagamento": [],
+   "modelo_preco": "fechado",
+   "fee_pct": 0.06,
+   "fee_base": 0.0
+  }
+ ]
+}

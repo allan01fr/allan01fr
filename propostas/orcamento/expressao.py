@@ -1,0 +1,117 @@
+"""
+Avaliador seguro das expressões de driver do catálogo.
+
+Um driver liga o formulário de um serviço à quantidade que multiplica as horas,
+por exemplo  terminais*amostragem  ou  area*(0.0055*nivel__2d + 0.037*nivel__bim).
+O catálogo é editado pelo usuário, então nada de eval(): só aritmética, comparações,
+"a if cond else b" e as funções da lista abaixo.
+"""
+
+import ast
+import math
+import operator as op
+
+FUNCOES = {
+    "ceil": math.ceil,
+    "floor": math.floor,
+    "round": round,
+    "sqrt": math.sqrt,
+    "min": min,
+    "max": max,
+    "abs": abs,
+}
+
+_BIN = {
+    ast.Add: op.add, ast.Sub: op.sub, ast.Mult: op.mul, ast.Div: op.truediv,
+    ast.Pow: op.pow, ast.Mod: op.mod, ast.FloorDiv: op.floordiv,
+}
+_UN = {ast.UAdd: op.pos, ast.USub: op.neg, ast.Not: op.not_}
+_CMP = {
+    ast.Eq: op.eq, ast.NotEq: op.ne, ast.Lt: op.lt, ast.LtE: op.le,
+    ast.Gt: op.gt, ast.GtE: op.ge,
+}
+
+
+class ErroExpressao(ValueError):
+    pass
+
+
+def _arvore(texto):
+    try:
+        return ast.parse(str(texto), mode="eval")
+    except SyntaxError as e:
+        raise ErroExpressao(f"expressão inválida '{texto}': {e.msg}") from None
+
+
+def _checar(no):
+    """Recusa qualquer nó fora da aritmética permitida (atributos, índices, lambdas...)."""
+    for n in ast.walk(no):
+        if isinstance(n, (ast.Expression, ast.Load, ast.Name, ast.BoolOp, ast.And, ast.Or,
+                          ast.IfExp, ast.Compare)):
+            continue
+        if isinstance(n, ast.Constant):
+            if isinstance(n.value, bool) or not isinstance(n.value, (int, float)):
+                raise ErroExpressao(f"só números são aceitos como constante, não {n.value!r}")
+            continue
+        if isinstance(n, ast.BinOp) and type(n.op) in _BIN:
+            continue
+        if isinstance(n, ast.UnaryOp) and type(n.op) in _UN:
+            continue
+        if type(n) in _BIN or type(n) in _UN or type(n) in _CMP:
+            continue
+        if isinstance(n, ast.Call):
+            if not isinstance(n.func, ast.Name) or n.func.id not in FUNCOES or n.keywords:
+                raise ErroExpressao("só as funções " + ", ".join(sorted(FUNCOES)) + " são permitidas")
+            continue
+        raise ErroExpressao(f"elemento não permitido: {type(n).__name__}")
+
+
+def nomes(texto):
+    """Nomes de variáveis usados na expressão (sem as funções)."""
+    arv = _arvore(texto)
+    _checar(arv)
+    chamadas = {n.func.id for n in ast.walk(arv) if isinstance(n, ast.Call)}
+    return {n.id for n in ast.walk(arv) if isinstance(n, ast.Name)} - chamadas
+
+
+def avaliar(texto, contexto):
+    """Avalia a expressão com as variáveis de `contexto` e devolve float."""
+    if texto is None or str(texto).strip() == "":
+        return 0.0
+    arv = _arvore(texto)
+    _checar(arv)
+
+    def ev(n):
+        if isinstance(n, ast.Expression):
+            return ev(n.body)
+        if isinstance(n, ast.Constant):
+            return n.value
+        if isinstance(n, ast.Name):
+            if n.id not in contexto:
+                raise ErroExpressao(f"variável desconhecida '{n.id}' em '{texto}'")
+            return contexto[n.id]
+        if isinstance(n, ast.BinOp):
+            try:
+                return _BIN[type(n.op)](ev(n.left), ev(n.right))
+            except ZeroDivisionError:
+                raise ErroExpressao(f"divisão por zero em '{texto}'") from None
+        if isinstance(n, ast.UnaryOp):
+            return _UN[type(n.op)](ev(n.operand))
+        if isinstance(n, ast.BoolOp):
+            vals = [ev(v) for v in n.values]
+            return all(vals) if isinstance(n.op, ast.And) else any(vals)
+        if isinstance(n, ast.Compare):
+            esq = ev(n.left)
+            for o, d in zip(n.ops, n.comparators):
+                dir_ = ev(d)
+                if not _CMP[type(o)](esq, dir_):
+                    return False
+                esq = dir_
+            return True
+        if isinstance(n, ast.IfExp):
+            return ev(n.body) if ev(n.test) else ev(n.orelse)
+        if isinstance(n, ast.Call):
+            return FUNCOES[n.func.id](*[ev(a) for a in n.args])
+        raise ErroExpressao(f"elemento não permitido: {type(n).__name__}")
+
+    return float(ev(arv))

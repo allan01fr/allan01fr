@@ -1,0 +1,83 @@
+{
+ "perfis": {
+  "RT": {
+   "custo_h": 160.0,
+   "taxa_venda_h": 350.0
+  },
+  "SR": {
+   "custo_h": 110.0,
+   "taxa_venda_h": 250.0
+  },
+  "PL": {
+   "custo_h": 75.0,
+   "taxa_venda_h": 180.0
+  },
+  "PJ": {
+   "custo_h": 55.0,
+   "taxa_venda_h": 130.0
+  },
+  "TC": {
+   "custo_h": 45.0,
+   "taxa_venda_h": 110.0
+  },
+  "ES": {
+   "custo_h": 22.0,
+   "taxa_venda_h": 60.0
+  }
+ },
+ "overhead": {
+  "metodo": "percentual",
+  "pct": 0.25,
+  "custo_fixo_mensal": 15000.0,
+  "horas_faturaveis_mes": 300.0
+ },
+ "impostos": {
+  "regime": "presumido",
+  "simples_aliquota": 0.155,
+  "presumido": {
+   "pis": 0.0065,
+   "cofins": 0.03,
+   "irpj": 0.048,
+   "csll": 0.0288
+  },
+  "iss": 0.05
+ },
+ "margem": 0.3,
+ "contingencia": {
+  "baixo": 0.05,
+  "medio": 0.1,
+  "alto": 0.15
+ },
+ "reembolsaveis_adm": 0.1,
+ "bdi_fornecimento": {
+  "material": 0.14,
+  "equipamento": 0.14,
+  "mo_execucao": 0.22,
+  "subcontrato": 0.15
+ },
+ "deslocamento": {
+  "raio_isento_km": 50.0,
+  "raio_pernoite_km": 200.0,
+  "rs_km": 1.6,
+  "diaria": 380.0,
+  "pessoas_campo": 2
+ },
+ "art": {
+  "valor": 300.0
+ },
+ "cronograma": {
+  "horas_dia": 8.0,
+  "equipe": 2,
+  "equipe_etapa": {}
+ },
+ "pagamento": {
+  "sinal": 0.3
+ },
+ "fee_pct_padrao": 0.06,
+ "notas": {
+  "impostos": "Lucro Presumido: PIS 0,65% + COFINS 3% + IRPJ 4,8% e CSLL 2,88% (sobre base presumida de 32%) + ISS. No Simples, informe a alíquota efetiva do seu anexo.",
+  "bdi_fornecimento": "BDI completo (tributos, administração, risco e lucro). Referência inicial: medianas do TCU, Acórdão 2.622/2013 — confira e ajuste.",
+  "art": "Confira o valor na tabela vigente do CREA.",
+  "custos": "Custos e taxas por hora são valores iniciais de referência — ajuste aos seus custos reais (salário + encargos + benefícios ÷ horas produtivas)."
+ }
+}
