@@ -969,7 +969,7 @@ TIPOS_IMPORT = {
     "pisos": ("Pisos de convenção coletiva (SENGE, SINDRATAR, SINDISTAL, SINDUSCON...)", {"descricao": "Função / cargo",
                                                                                         "valor": "Piso mensal (R$)"}),
     "cub": ("CUB/m² (SINDUSCON / CBIC)", {"descricao": "Padrão (R8-N, CSL-8N...)", "valor": "CUB (R$/m²)"}),
-    "indices": ("Índice de reajuste (INCC, IPCA, IGP-M)", {"codigo": "Mês", "valor": "Número-índice"}),
+    "indices": ("Índice de reajuste (INCC, IPCA, IGP-M)", {"codigo": "Mês", "valor": "Número-índice ou variação (%)"}),
 }
 
 with abas[9]:
@@ -1006,7 +1006,10 @@ with abas[9]:
             aba_sel = None
             if arq_imp.name.lower().endswith((".xlsx", ".xlsm")):
                 abas_arq = rf.abas_xlsx(dados_arq)
-                aba_sel = st.selectbox("Aba da planilha", abas_arq, key="imp_aba") if len(abas_arq) > 1 else abas_arq[0]
+                aba_sel = st.selectbox("Aba da planilha", abas_arq, key=f"imp_aba|{arq_imp.name}|{len(dados_arq)}") \
+                    if len(abas_arq) > 1 else abas_arq[0]
+            # cada arquivo, tipo e aba começa do mapeamento detectado (as escolhas do arquivo anterior não valem)
+            chave_arq = f"{tipo_imp}|{arq_imp.name}|{len(dados_arq)}|{aba_sel}"
             preset = "Genérico"
             if tipo_imp == "precos":
                 preset = st.selectbox("Preset de importação", list(rf.PRESETS), key="imp_preset",
@@ -1022,24 +1025,27 @@ with abas[9]:
                                      columns=[f"C{j + 1}" for j in range(largura)]).astype(str).replace({"None": "", "nan": ""})
                 if arq_imp.name.lower().endswith(".pdf"):
                     st.warning("Tabelas extraídas do PDF: confira e corrija a grade antes de importar (layout de PDF varia).")
-                    grade = st.data_editor(grade, num_rows="dynamic", width="stretch", key="imp_grade")
-                    revisado = st.checkbox("Revisei a extração do PDF", key="imp_revisado")
+                    grade = st.data_editor(grade, num_rows="dynamic", width="stretch", key=f"imp_grade|{chave_arq}")
+                    revisado = st.checkbox("Revisei a extração do PDF", key=f"imp_revisado|{chave_arq}")
                 else:
                     st.dataframe(grade.head(40), width="stretch")
                     revisado = True
                 linhas_arq = grade.values.tolist()
-                ini_cab, mapa = rf.detectar_cabecalho(linhas_arq, preset)
+                # a UF (campo abaixo ou nome do arquivo) escolhe a coluna de preço no SINAPI com todas as UFs
+                uf_det = ss.get("imp_uf") or info["uf"] or P["cliente"].get("uf", "RJ")
+                ini_cab, mapa = rf.detectar_cabecalho(linhas_arq, preset, uf=uf_det if tipo_imp == "precos" else None,
+                                                      palavras=rf.PALAVRAS_INDICES if tipo_imp == "indices" else None)
                 cols_opc = [None] + list(range(largura))
                 c = st.columns(5)
                 ini_cab = int(c[0].number_input("Linha do cabeçalho (0 = primeira)", 0, max(len(linhas_arq) - 1, 0),
-                                                int(ini_cab or 0), key="imp_cab"))
+                                                int(ini_cab or 0), key=f"imp_cab|{chave_arq}"))
                 cab = linhas_arq[ini_cab] if linhas_arq else []
                 rot_col = {j: (f"C{j + 1} · {cab[j]}"[:40] if j is not None and j < len(cab) else "—") for j in cols_opc}
                 mapa_final = {}
                 for col_ui, (campo, rotulo) in zip(c[1:], TIPOS_IMPORT[tipo_imp][1].items()):
                     padrao_j = mapa.get(campo)
                     mapa_final[campo] = col_ui.selectbox(rotulo, cols_opc, index=cols_opc.index(padrao_j) if padrao_j in cols_opc else 0,
-                                                         format_func=lambda j: rot_col.get(j, "—"), key=f"imp_map_{campo}")
+                                                         format_func=lambda j: rot_col.get(j, "—"), key=f"imp_map_{campo}|{chave_arq}")
                 c = st.columns(4)
                 fontes_ids = [e["id"] for e in registro["entidades"]]
                 if tipo_imp == "precos":
@@ -1059,9 +1065,19 @@ with abas[9]:
                 itens_imp = rf.extrair_itens(linhas_arq, ini_cab, {k_: v_ for k_, v_ in mapa_final.items() if v_ is not None}) \
                     if mapa_final.get("valor") is not None and (mapa_final.get("descricao") is not None or mapa_final.get("codigo") is not None) else []
                 if tipo_imp == "indices":
+                    fmt_idx = st.radio("Formato da série", ["Número-índice", "Variação mensal (%)"], horizontal=True, key="imp_idx_fmt",
+                                       help="Banco Central (SGS) e boletins da FGV publicam variações; elas são encadeadas "
+                                            "num número-índice com base 100.")
                     itens_imp = [{"mes": rf.converter_mes(r_[mapa_final["codigo"]]), "valor": rf.converter_valor(r_[mapa_final["valor"]])}
                                  for r_ in linhas_arq[ini_cab + 1:] if mapa_final.get("codigo") is not None and mapa_final.get("valor") is not None
                                  and rf.converter_mes(r_[mapa_final["codigo"]]) and rf.converter_valor(r_[mapa_final["valor"]]) is not None]
+                    if fmt_idx == "Variação mensal (%)" and itens_imp:
+                        try:
+                            itens_imp = [{"mes": m_, "valor": v_} for m_, v_ in
+                                         rf.indice_de_variacoes([(i["mes"], i["valor"]) for i in itens_imp])]
+                        except ValueError as e:
+                            st.error(f"Não foi possível encadear as variações: {e}")
+                            itens_imp = []
                 st.caption(f"{len(itens_imp)} registro(s) reconhecido(s).")
                 if itens_imp:
                     st.dataframe(pd.DataFrame(itens_imp).head(10), hide_index=True, width="stretch")

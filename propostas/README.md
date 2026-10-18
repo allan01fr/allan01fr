@@ -192,11 +192,36 @@ a variável `KAPTEK_REFERENCIAS` aponta para outro arquivo.
 | Índices | FGV (INCC-M, IGP-M), IBGE (IPCA) |
 | Tarifas e BDI | ANEEL; TCU, Acórdão 2.622/2013 |
 
+**O que baixar.** Em ordem de prioridade para propostas de HVAC no RJ:
+
+| O quê | Onde | Frequência | Como entra |
+|---|---|---|---|
+| SINAPI RJ (insumos e composições) | caixa.gov.br/sinapi → Relatórios Mensais | Mensal | Importar → Preços, preset SINAPI |
+| Encargos sociais SINAPI RJ | mesmo pacote do SINAPI | Quando mudar | Quatro percentuais em "Encargos sociais por UF" |
+| Catálogo EMOP-RJ | rj.gov.br/emop | Periódica | Importar → Preços, preset EMOP-RJ |
+| Convenção SINDRATAR-RJ | Mediador/MTE ou o sindicato | Anual | Importar → Pisos (PDF) |
+| CUB/m² RJ | Sinduscon-Rio, até o dia 5 do mês seguinte | Mensal | Digitado na aba Preço |
+| Tabela de ART | CREA-RJ | Anual | Conferir as faixas em aba 10 → ART |
+| Cotações | fornecedores | Por proposta | Cesta de preços do item |
+
+Conforme o caso:
+- SCO-Rio, para obra no município do Rio;
+- convenções de instaladores (SINDISTAL) e da construção (SINDUSCON/SINTRACONST), com equipe
+  própria de execução;
+- SENGE-RJ, se preferir o piso da convenção ao cálculo da Lei 4.950-A;
+- IPCA (IBGE, tabela SIDRA 1737) e INCC-M (FGV), para atualizar preços de data-base antiga;
+- tarifa de energia (faturas do cliente ou ANEEL), para a viabilidade.
+
 **Importação.**
 - XLSX e CSV: o cabeçalho é detectado mesmo com títulos acima dele, e as colunas podem ser
   remapeadas à mão. Há presets para EMOP-RJ, SCO-Rio, SINAPI, SICRO, ABRAVA e um genérico. UF,
   data-base e desoneração são lidos do nome do arquivo, quando existem.
+- SINAPI a partir de 2025, com todas as UFs no mesmo arquivo: a coluna cujo cabeçalho é a UF
+  informada vira o preço.
 - PDF (`pdfplumber`): as tabelas vão para uma grade de revisão obrigatória antes de gravar.
+- Índices: número-índice ou variação mensal (%). As variações, como o Banco Central e a FGV
+  publicam, são encadeadas num número-índice com base 100; meses faltando ou repetidos são
+  recusados.
 
 **Hierarquia de fontes.** No RJ vale o Decreto Estadual 48.929/2024: EMOP, depois SCO-Rio,
 SINAPI e SICRO. A busca ordena os resultados por essa prioridade, editável por UF nos

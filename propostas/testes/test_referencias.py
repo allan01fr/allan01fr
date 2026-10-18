@@ -286,3 +286,46 @@ def test_extracao_de_pdf(tmp_path):
     ini, mapa = rf.detectar_cabecalho(linhas)
     itens = rf.extrair_itens(linhas, ini, mapa)
     assert [(i["descricao"], i["valor"]) for i in itens] == [("Mecânico de refrigeração", 2890.0), ("Ajudante de refrigeração", 1780.0)]
+
+
+# ----------------------------------------------------------------------------- SINAPI com todas as UFs e índices por variação
+SINAPI_UFS = [
+    ["SINAPI — RELATÓRIO DE INSUMOS — TODAS AS UFS"],
+    ["Código", "Descrição", "Unidade", "Origem de preço", "AC", "RJ", "SP"],
+    ["39421", "CONDICIONADOR DE AR SPLIT HI-WALL 12000 BTU/H", "UN", "C", "2.410,00", "2.350,75", "2.298,10"],
+]
+
+
+@pytest.mark.parametrize("uf, coluna, valor", [("RJ", 5, 2350.75), ("SP", 6, 2298.10)])
+def test_sinapi_todas_as_ufs_usa_a_coluna_da_uf(uf, coluna, valor):
+    linhas = rf.ler_tabela(xlsx(SINAPI_UFS), "SINAPI_Referencia_2026_09.xlsx")
+    ini, mapa = rf.detectar_cabecalho(linhas, "SINAPI", uf=uf)
+    assert ini == 1 and mapa["valor"] == coluna            # a UF vence "Origem de preço"
+    assert rf.extrair_itens(linhas, ini, mapa)[0]["valor"] == pytest.approx(valor)
+
+
+def test_uf_ausente_no_cabecalho_nao_muda_a_deteccao():
+    linhas = rf.ler_tabela(xlsx(EMOP), "e.xlsx")
+    assert rf.detectar_cabecalho(linhas, "EMOP-RJ", uf="RJ") == rf.detectar_cabecalho(linhas, "EMOP-RJ")
+
+
+def test_indice_a_partir_de_variacoes_mensais(con):
+    serie = rf.indice_de_variacoes([("2026-02", 2.0), ("2026-01", 1.0)])     # fora de ordem de propósito
+    assert serie == [("2025-12", 100.0), ("2026-01", pytest.approx(101.0)), ("2026-02", pytest.approx(103.02))]
+    rf.importar_indices(con, "INCC-M", serie)
+    assert rf.atualizar(con, 100.0, "2025-12", "2026-02", "INCC-M") == (pytest.approx(103.02), pytest.approx(1.0302))
+    assert rf.indice_de_variacoes([]) == []
+
+
+@pytest.mark.parametrize("serie, mensagem", [
+    ([("2026-01", 1.0), ("2026-04", 2.0)], "faltando na série: 2026-02, 2026-03"),
+    ([("2026-01", 1.0), ("2026-01", 2.0)], "repetidos na série: 2026-01")])
+def test_variacoes_com_buracos_sao_recusadas(serie, mensagem):
+    with pytest.raises(ValueError, match=mensagem):
+        rf.indice_de_variacoes(serie)
+
+
+def test_cabecalho_de_serie_de_indices():
+    linhas = rf.ler_tabela("Mês;Variação (%)\n01/2026;0,52\n02/2026;0,31\n".encode("utf-8"), "incc.csv")
+    assert rf.detectar_cabecalho(linhas) == (None, {})                      # palavras de preços não servem
+    assert rf.detectar_cabecalho(linhas, palavras=rf.PALAVRAS_INDICES) == (0, {"codigo": 0, "valor": 1})

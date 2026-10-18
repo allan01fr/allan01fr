@@ -53,6 +53,12 @@ PALAVRAS = {
     "valor": ("preco", "custo", "valor", "mediana", "piso", "salario", "total"),
 }
 
+# séries de índices: mês na primeira coluna e número-índice ou variação na outra
+PALAVRAS_INDICES = {
+    "codigo": ("mes", "data", "periodo", "competencia", "referencia"),
+    "valor": ("indice", "variacao", "numero", "valor"),
+}
+
 # presets de importação por fonte; "valor_preferido" desempata quando há mais de uma coluna de preço
 PRESETS = {
     "EMOP-RJ": {"tipo": "composicao", "valor_preferido": ("preco unitario", "custo unitario", "preco", "custo")},
@@ -182,15 +188,20 @@ def abas_xlsx(conteudo):
     return load_workbook(io.BytesIO(conteudo), read_only=True).sheetnames
 
 
-def detectar_cabecalho(linhas, preset="Genérico", max_linhas=60):
-    """Acha a linha de cabeçalho (a que mais casa com as palavras-chave) e o mapa campo → coluna."""
+def detectar_cabecalho(linhas, preset="Genérico", max_linhas=60, uf=None, palavras=None):
+    """Acha a linha de cabeçalho (a que mais casa com as palavras-chave) e o mapa campo → coluna.
+
+    Com `uf`, uma coluna cujo cabeçalho é a própria UF ("RJ") vira o valor: é o layout do SINAPI a
+    partir de 2025, com o preço de todas as UFs no mesmo arquivo, uma coluna por UF."""
     pref = PRESETS.get(preset, PRESETS["Genérico"])["valor_preferido"]
+    palavras = palavras or PALAVRAS
+    alvo_uf = normalizar(uf) if uf else ""
     melhor = (-1, None, {})
     for i, row in enumerate(linhas[:max_linhas]):
         celulas = [normalizar(c) for c in row]
         mapa = {}
-        for campo, palavras in PALAVRAS.items():
-            candidatos = [j for j, c in enumerate(celulas) if c and any(p in c + " " for p in palavras)]
+        for campo, chaves in palavras.items():
+            candidatos = [j for j, c in enumerate(celulas) if c and any(p in c + " " for p in chaves)]
             if not candidatos:
                 continue
             if campo == "valor":
@@ -200,6 +211,8 @@ def detectar_cabecalho(linhas, preset="Genérico", max_linhas=60):
                 livres = [j for j in candidatos if j not in mapa.values()]
                 if livres:
                     mapa[campo] = livres[0]
+        if alvo_uf and alvo_uf in celulas:
+            mapa["valor"] = celulas.index(alvo_uf)
         pontos = len(mapa)
         if pontos > melhor[0]:
             melhor = (pontos, i, mapa)
@@ -301,6 +314,25 @@ def importar_indices(con, nome, serie):
                     [(nome, m, float(v)) for m, v in serie])
     con.commit()
     return len(serie)
+
+
+def indice_de_variacoes(serie):
+    """Variações mensais em % [(AAAA-MM, 0,45), ...] → números-índice com base 100 no mês anterior ao
+    primeiro. O Banco Central (SGS) e os boletins da FGV publicam o INCC-M e o IGP-M assim."""
+    ordenada = sorted((m, float(v)) for m, v in serie)
+    if not ordenada:
+        return []
+    repetidos = sorted({m for (a, _), (m, _) in zip(ordenada, ordenada[1:]) if a == m})
+    if repetidos:
+        raise ValueError("meses repetidos na série: " + ", ".join(repetidos))
+    faltando = [mes_anterior(m, k) for (a, _), (m, _) in zip(ordenada, ordenada[1:])
+                for k in range(meses_entre(a, m) - 1, 0, -1)]
+    if faltando:
+        raise ValueError("meses faltando na série: " + ", ".join(faltando))
+    indice = [(mes_anterior(ordenada[0][0], 1), 100.0)]
+    for m, v in ordenada:
+        indice.append((m, indice[-1][1] * (1 + v / 100)))
+    return indice
 
 
 def indices_disponiveis(con):
