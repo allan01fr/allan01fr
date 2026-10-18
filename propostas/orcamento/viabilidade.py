@@ -1,5 +1,10 @@
 """
-Estudo de viabilidade para o cliente: CAPEX, OPEX, economia, payback, breakeven, VPL, TIR e LCC.
+Estudo de viabilidade para o cliente: CAPEX, OPEX, economia, breakeven, payback, VPL, TIR e LCC.
+
+- Breakeven: quando as contas empatam, ou seja, a economia acumulada (sem desconto) iguala o CAPEX;
+  é onde o custo acumulado do sistema atual cruza o da alternativa.
+- Payback: quando o projeto se paga, ou seja, a economia acumulada descontada pela TMA devolve o
+  investimento com o custo do capital (VPL acumulado = 0).
 
 Linha de base = sistema atual. Pode ser descrita pela capacidade (TR × kW/TR medido × horas ×
 fator de carga) ou pelo consumo anual direto. Com o kW/TR de projeto, o estudo mostra também
@@ -98,8 +103,9 @@ def tir(fluxo, lo=-0.99, hi=10.0, tol=1e-10):
     return (lo + hi) / 2
 
 
-def payback(fluxo, taxa=None):
+def tempo_ate_zerar(fluxo, taxa=None):
     """Anos até o acumulado (descontado, se houver taxa) zerar, interpolando no ano da virada.
+    Sem taxa é o breakeven; descontado pela TMA é o payback.
     0 sem investimento; None quando não se paga dentro do horizonte."""
     if fluxo[0] >= 0:
         return 0.0
@@ -142,12 +148,12 @@ def calcular(v, precos_opcoes=None):
         vp_e = sum(econ_e1 * a * d for a, d in zip(fe, fd))
         vp_m = sum(econ_m1 * m * d for m, d in zip(fm, fd))
         vp = vp_e + vp_m
-        pb = payback(fluxo) if econ_e1 + econ_m1 > 0 else None
-        pbd = payback(fluxo, i) if econ_e1 + econ_m1 > 0 else None
+        be = tempo_ate_zerar(fluxo) if econ_e1 + econ_m1 > 0 else None
+        pb = tempo_ate_zerar(fluxo, i) if econ_e1 + econ_m1 > 0 else None
         valor_vpl = vp - cap
         if econ_e1 + econ_m1 <= 0:
             classe = "Sem economia"
-        elif pb is not None and pb <= 2:
+        elif be is not None and be <= 2:
             classe = "Quick win"
         elif valor_vpl > 0:
             classe = "Viável"
@@ -162,8 +168,8 @@ def calcular(v, precos_opcoes=None):
             "economia_energia_ano1": econ_e1, "economia_manutencao_ano1": econ_m1, "economia_ano1": econ_e1 + econ_m1,
             "fluxo": fluxo, "vp_economia": vp, "vp_energia": vp_e, "vp_manutencao": vp_m,
             "vpl": valor_vpl, "tir": tir(fluxo) if econ_e1 + econ_m1 > 0 else None,
-            "payback": pb, "payback_descontado": pbd,
-            "breakeven_meses": math.ceil(pbd * 12) if pbd is not None else None,
+            "breakeven": be, "breakeven_meses": math.ceil(be * 12) if be is not None else None,
+            "payback": pb, "payback_meses": math.ceil(pb * 12) if pb is not None else None,
             "economia_minima": (econ_e1 + econ_m1) * cap / vp if vp > 0 else None,
             "margem_seguranca": vp / cap - 1 if cap > 0 else None,
             "lcc": lcc_base + cap - vp,

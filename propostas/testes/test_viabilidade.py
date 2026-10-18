@@ -28,21 +28,22 @@ def alt(v, precos=None):
 
 
 # ----------------------------------------------------------------------------- fórmulas fechadas (sem reajuste)
-def test_payback_simples_e_vpl_de_anuidade():
+def test_breakeven_e_vpl_de_anuidade():
     a = alt(estudo())
     assert a["economia_ano1"] == pytest.approx(A)
-    assert a["payback"] == pytest.approx(C / A)
+    assert a["breakeven"] == pytest.approx(C / A)              # as contas empatam: economia acumulada = CAPEX
+    assert a["breakeven_meses"] == math.ceil(C / A * 12)
     assert a["vpl"] == pytest.approx(A * (1 - (1 + I) ** -N) / I - C)
     assert a["classificacao"] == "Viável"
 
 
-def test_breakeven_igual_ao_payback_descontado():
+def test_payback_e_o_retorno_descontado_pela_tma():
     a = alt(estudo())
     fechado = -math.log(1 - C * I / A) / math.log(1 + I)
     # a interpolação linear dentro do ano difere da forma contínua em centésimos de ano
-    assert a["payback_descontado"] == pytest.approx(fechado, abs=0.05)
-    assert a["breakeven_meses"] == math.ceil(a["payback_descontado"] * 12)
-    assert a["payback_descontado"] > a["payback"]
+    assert a["payback"] == pytest.approx(fechado, abs=0.05)    # o projeto se paga, remunerando o capital
+    assert a["payback_meses"] == math.ceil(a["payback"] * 12)
+    assert a["payback"] > a["breakeven"]
 
 
 def test_tir_zera_o_vpl():
@@ -77,17 +78,18 @@ def test_reajuste_entra_no_fluxo():
 def test_corte_no_horizonte():
     a = alt(estudo(horizonte=5))              # 5 × 30 mil < 200 mil
     assert len(a["fluxo"]) == 6
-    assert a["payback"] is None and a["payback_descontado"] is None and a["breakeven_meses"] is None
+    assert a["breakeven"] is None and a["breakeven_meses"] is None
+    assert a["payback"] is None and a["payback_meses"] is None
     assert a["classificacao"] == "Inviável financeiramente"
     assert len(alt(estudo(horizonte=80))["fluxo"]) == vb.HORIZONTE_MAX + 1
 
 
 def test_sem_economia_e_quick_win():
     s = alt(estudo(reducao=0.0))
-    assert s["classificacao"] == "Sem economia" and s["payback"] is None and s["tir"] is None
+    assert s["classificacao"] == "Sem economia" and s["breakeven"] is None and s["tir"] is None
     q = alt(estudo(capex=45000.0))
-    assert q["payback"] == pytest.approx(1.5) and q["classificacao"] == "Quick win"
-    assert alt(estudo(capex=0.0))["payback"] == 0.0
+    assert q["breakeven"] == pytest.approx(1.5) and q["classificacao"] == "Quick win"
+    assert alt(estudo(capex=0.0))["breakeven"] == 0.0 and alt(estudo(capex=0.0))["payback"] == 0.0
 
 
 def test_geracao_fv_nao_deixa_consumo_negativo():
@@ -155,7 +157,7 @@ def test_planilha_tem_formulas_e_abas(cat, params):
 def test_planilha_recalculada_bate_com_o_motor(cat, params, tmp_path):
     p = abrir_exemplo(os.path.join(RAIZ, "exemplos", "hvac_turnkey.json"), cat, params)
     v = p["viabilidade"]
-    # casos-limite junto com o exemplo: sem economia e payback além do horizonte
+    # casos-limite junto com o exemplo: sem economia e retorno além do horizonte
     v["alternativas"] += [{**vb.nova_alternativa("Sem economia"), "capex": 10000.0},
                           {**vb.nova_alternativa("Lenta"), "capex": 5e6, "reducao_pct": 0.05}]
     e = vb.calcular(v, {r["id"]: r["preco"] for r in motor.precificar(cat, p)["opcoes"]})
@@ -164,8 +166,9 @@ def test_planilha_recalculada_bate_com_o_motor(cat, params, tmp_path):
     ws = wb["Resumo"]
     linha = {ws.cell(r, 1).value: r for r in range(1, ws.max_row + 1) if ws.cell(r, 1).value}
     campos = {"CAPEX": "capex", "Economia no ano 1": "economia_ano1", "VPL": "vpl", "TIR (a.a.)": "tir",
-              "Payback simples": "payback", "Breakeven econômico (payback descontado)": "payback_descontado",
-              "Breakeven (meses)": "breakeven_meses", "LCC no horizonte (paliativos + CAPEX + OPEX a VP)": "lcc",
+              "Breakeven — as contas empatam": "breakeven", "Breakeven (meses)": "breakeven_meses",
+              "Payback — o projeto se paga (descontado pela TMA)": "payback", "Payback (meses)": "payback_meses",
+              "LCC no horizonte (paliativos + CAPEX + OPEX a VP)": "lcc",
               "CLASSIFICAÇÃO": "classificacao"}
     for k, a in enumerate(e["alternativas"]):
         for rot, chave in campos.items():

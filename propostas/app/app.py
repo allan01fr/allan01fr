@@ -851,11 +851,17 @@ def anos_txt(v):
     return "> horizonte" if v is None else f"{num_br(v, 1)} anos"
 
 
+def anos_meses_txt(anos, meses):
+    return anos_txt(anos) + (f" ({meses} meses)" if meses else "")
+
+
 with abas[8]:
     VB = P["viabilidade"]
-    st.subheader("Estudo de viabilidade — payback, breakeven, VPL e TIR")
+    st.subheader("Estudo de viabilidade — breakeven, payback, VPL e TIR")
     st.caption("Compara alternativas de intervenção com o sistema atual e com o projeto original. O CAPEX de uma "
-               "alternativa pode vir do preço de uma opção desta proposta (por exemplo, o turnkey) mais um extra.")
+               "alternativa pode vir do preço de uma opção desta proposta (por exemplo, o turnkey) mais um extra. "
+               "Breakeven: quando as contas empatam (economia acumulada = CAPEX). Payback: quando o projeto se paga, "
+               "com a economia descontada pela TMA.")
     VB["titulo"] = st.text_input("Título do estudo", VB["titulo"], key=k("v_tit"))
     b, fin = VB["base"], VB["financeiro"]
     with st.container(border=True):
@@ -931,18 +937,19 @@ with abas[8]:
             c[2].metric("Custo anual da perda de desempenho", moeda(EST["perda_desempenho"]))
         c[3].metric("Custo anual de energia atual", moeda(EST["custo_energia_base"]))
         st.dataframe(pd.DataFrame([{
-            "Alternativa": a["nome"], "CAPEX": moeda(a["capex"]), "Origem do CAPEX": a["capex_origem"],
-            "Economia ano 1": moeda(a["economia_ano1"]), "VPL": moeda(a["vpl"]),
-            "TIR": pct(a["tir"]), "Payback": anos_txt(a["payback"]),
-            "Breakeven econômico": anos_txt(a["payback_descontado"]) + (f" ({a['breakeven_meses']} meses)" if a["breakeven_meses"] else ""),
+            "Alternativa": a["nome"], "CAPEX": moeda(a["capex"]), "Economia ano 1": moeda(a["economia_ano1"]),
+            "Breakeven (contas empatam)": anos_meses_txt(a["breakeven"], a["breakeven_meses"]),
+            f"Payback (projeto se paga, TMA {pct(EST['tma'])})": anos_meses_txt(a["payback"], a["payback_meses"]),
+            "VPL": moeda(a["vpl"]), "TIR": pct(a["tir"]), "Classificação": a["classificacao"],
+            "Origem do CAPEX": a["capex_origem"],
             "Economia mínima (VPL = 0)": moeda(a["economia_minima"]) if a["economia_minima"] else "—",
-            "LCC": moeda(a["lcc"]), "Consumo × projeto": pct(a["vs_projeto"]), "Classificação": a["classificacao"],
+            "LCC": moeda(a["lcc"]), "Consumo × projeto": pct(a["vs_projeto"]),
         } for a in EST["alternativas"]]), hide_index=True, width="stretch")
         dfl = pd.DataFrame([{"Ano": t, "Alternativa": a["nome"], "Acumulado": sum(a["fluxo"][:t + 1])}
                             for a in EST["alternativas"] for t in range(len(a["fluxo"]))])
         linhas = alt.Chart(dfl).mark_line(point=True).encode(
             x=alt.X("Ano:Q", axis=alt.Axis(format="d", tickMinStep=1)),
-            y=alt.Y("Acumulado:Q", title="Fluxo acumulado (R$)", axis=alt.Axis(format="~s")),
+            y=alt.Y("Acumulado:Q", title="Fluxo acumulado (R$) — cruza o zero no breakeven", axis=alt.Axis(format="~s")),
             color=alt.Color("Alternativa:N", legend=alt.Legend(orient="bottom")),
             tooltip=["Alternativa", "Ano", alt.Tooltip("Acumulado:Q", format=",.0f")])
         zero = alt.Chart(pd.DataFrame({"y": [0]})).mark_rule(color=COBRE).encode(y="y:Q")

@@ -11,7 +11,7 @@ perfil, os custos diretos, o preço nos três modelos e o prazo, e gera:
 
 - uma **planilha XLSX** com fórmulas vivas: todas as opções lado a lado, editável;
 - a **proposta DOCX** no template aprovado da KAPTEK, uma por opção;
-- a **planilha do estudo de viabilidade** para o cliente (payback, breakeven, VPL, TIR, LCC).
+- a **planilha do estudo de viabilidade** para o cliente (breakeven, payback, VPL, TIR, LCC).
 
 ## Como abrir
 
@@ -161,13 +161,15 @@ fluxo             = −CAPEX no ano 0, depois a economia de cada ano
 ```
 
 Indicadores:
-- payback simples, interpolado no ano da virada;
-- **breakeven econômico** (payback descontado pela TMA), em anos e meses;
+- **breakeven**: quando as contas empatam, ou seja, a economia acumulada iguala o CAPEX (o custo
+  acumulado do sistema atual cruza o da alternativa), em anos e meses;
+- **payback**: quando o projeto se paga, ou seja, a economia acumulada descontada pela TMA devolve
+  o investimento com o custo do capital (VPL acumulado = 0), em anos e meses;
 - VPL e TIR;
 - LCC no horizonte;
 - economia mínima no ano 1 para VPL = 0 e margem de segurança;
 - consumo comparado ao projeto original;
-- classificação: quick win (payback ≤ 2 anos), viável, inviável financeiramente ou sem
+- classificação: quick win (breakeven ≤ 2 anos), viável, inviável financeiramente ou sem
   economia.
 
 A sensibilidade do VPL é exata: economia ±30%, CAPEX ±20% e tarifa ±20%.
@@ -252,7 +254,7 @@ por hora excedente. A base pode ser:
 
 | Disciplina | Serviços |
 |---|---|
-| HVAC-R | carga térmica, projeto 2D/3D/BIM (sistema de climatização + ventilação: VRF, água gelada, DOAS, VAV...), as-built 2D/3D/BIM, desempenho real × projeto, TAB, CFD, simulação energética, PMOC, qualidade do ar (RE 09), comissionamento, plano emergencial, viabilidade (CAPEX/OPEX/payback) |
+| HVAC-R | carga térmica, projeto 2D/3D/BIM (sistema de climatização + ventilação: VRF, água gelada, DOAS, VAV...), as-built 2D/3D/BIM, desempenho real × projeto, TAB, CFD, simulação energética, PMOC, qualidade do ar (RE 09), comissionamento, plano emergencial, viabilidade (CAPEX/OPEX/breakeven/payback) |
 | Mecânica e utilidades | ar comprimido, vapor e condensado, redes de gases, bombeamento, inspeção NR-13, prontuário NR-13, ensaios de pressão |
 | Segurança do trabalho | NR-12, insalubridade (NR-15), periculosidade (NR-16), LTCAT, PGR, inspeção NR-10/33/35, perícia |
 | Hidráulica e incêndio | hidrossanitário, SPCI, aprovação no CBMERJ, vistoria de incêndio, teste de hidrantes e bombas |

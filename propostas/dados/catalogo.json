@@ -2354,7 +2354,7 @@
    "disciplina": "HVAC-R",
    "tipo": "consultoria",
    "nome": "Estudo de viabilidade técnico-econômica (retrofit / eficiência)",
-   "descricao": "Alternativas de intervenção com CAPEX, OPEX, economia em relação ao sistema atual, payback e breakeven.",
+   "descricao": "Alternativas de intervenção com CAPEX, OPEX, economia em relação ao sistema atual, breakeven e payback.",
    "dados": [
     {
      "id": "alternativas",
@@ -2374,7 +2374,7 @@
      "opcoes": [
       {
        "valor": "simplificado",
-       "rotulo": "Payback simples e descontado (breakeven)",
+       "rotulo": "Breakeven (empate) e payback descontado",
        "num": 1.0
       },
       {
@@ -2472,7 +2472,7 @@
     },
     {
      "id": "financeiro",
-     "nome": "Análise financeira: payback e breakeven; VPL, TIR, LCC e sensibilidade no nível completo",
+     "nome": "Análise financeira: breakeven e payback; VPL, TIR, LCC e sensibilidade no nível completo",
      "entregavel": "Análise financeira",
      "etapa": "calculo",
      "driver": "alternativas*(1+1.5*nivel_fin__completo)",

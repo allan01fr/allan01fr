@@ -20,7 +20,7 @@ def main(argv=None):
     ap.add_argument("proposta")
     ap.add_argument("--xlsx", action="store_true")
     ap.add_argument("--docx", action="store_true")
-    ap.add_argument("--viabilidade", action="store_true", help="planilha do estudo de viabilidade (payback, VPL, TIR)")
+    ap.add_argument("--viabilidade", action="store_true", help="planilha do estudo de viabilidade (breakeven, payback, VPL, TIR)")
     ap.add_argument("--saida", default=".")
     a = ap.parse_args(argv)
 
@@ -53,9 +53,10 @@ def main(argv=None):
         else:
             estudo = vb.calcular(p["viabilidade"], {r["id"]: r["preco"] for r in res["opcoes"]})
             for alt in estudo["alternativas"]:
-                pb = f"{alt['payback']:.1f}" if alt["payback"] is not None else "> horizonte"
+                be = f"{alt['breakeven']:.1f} anos" if alt["breakeven"] is not None else "> horizonte"
+                pb = f"{alt['payback']:.1f} anos" if alt["payback"] is not None else "> horizonte"
                 print(f"  {alt['nome']}: CAPEX {exportar_docx.moeda(alt['capex'])} · economia {exportar_docx.moeda(alt['economia_ano1'])}/ano "
-                      f"· payback {pb} anos · VPL {exportar_docx.moeda(alt['vpl'])} · {alt['classificacao']}")
+                      f"· breakeven {be} · payback {pb} · VPL {exportar_docx.moeda(alt['vpl'])} · {alt['classificacao']}")
             nome = f"KAPTEK-viabilidade-{exportar_docx.slug(p['cliente'].get('razao'))}-{exportar_docx.slug(p['numero'])}.xlsx"
             caminho = os.path.join(a.saida, nome)
             with open(caminho, "wb") as f:

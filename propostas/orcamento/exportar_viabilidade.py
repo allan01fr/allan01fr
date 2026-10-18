@@ -3,7 +3,8 @@ Planilha do estudo de viabilidade (padrão KAPTEK, fórmulas vivas).
 
 Abas: Resumo (indicadores por alternativa), Premissas, Alternativas, FluxoCaixa (anos 0 a 30,
 limitados pelo horizonte) e Sensibilidade. Mudar tarifa, TMA, horizonte, reajustes, CAPEX ou a
-redução de consumo recalcula tudo, inclusive payback, breakeven, VPL, TIR e LCC.
+redução de consumo recalcula tudo, inclusive breakeven, payback, VPL, TIR e LCC.
+Breakeven = as contas empatam (acumulado sem desconto); payback = o projeto se paga (descontado pela TMA).
 Funções compatíveis com o Excel 2007 (SUMPRODUCT, COUNTIF, INDEX, IRR, IFERROR).
 """
 
@@ -224,8 +225,9 @@ def gerar(proposta, estudo):
     indicadores = [
         ("capex", "CAPEX", MOEDA), ("econ1", "Economia no ano 1", MOEDA), ("vp", "Valor presente das economias", MOEDA),
         ("vpe", "  VP da economia de energia", MOEDA), ("vpm", "  VP da economia de manutenção", MOEDA),
-        ("vpl", "VPL", MOEDA), ("tir", "TIR (a.a.)", PCT), ("pb", "Payback simples", ANOS),
-        ("pbd", "Breakeven econômico (payback descontado)", ANOS), ("bk_meses", "Breakeven (meses)", INT),
+        ("vpl", "VPL", MOEDA), ("tir", "TIR (a.a.)", PCT),
+        ("be", "Breakeven — as contas empatam", ANOS), ("be_meses", "Breakeven (meses)", INT),
+        ("pb", "Payback — o projeto se paga (descontado pela TMA)", ANOS), ("pb_meses", "Payback (meses)", INT),
         ("econ_min", "Economia mínima no ano 1 para VPL = 0", MOEDA), ("margem", "Margem de segurança da economia", PCT),
         ("lcc", "LCC no horizonte (paliativos + CAPEX + OPEX a VP)", MOEDA), ("vs_proj", "Consumo × projeto original", PCT),
         ("classe", "CLASSIFICAÇÃO", None),
@@ -249,28 +251,31 @@ def gerar(proposta, estudo):
             # o IRR parte de 10% e não converge em TIR muito negativa: tenta outras estimativas antes de desistir
             "tir": (f"=IF({P['econ1']}>0,IFERROR(IRR({bl['fluxo']}),IFERROR(IRR({bl['fluxo']},-0.2),"
                     f"IFERROR(IRR({bl['fluxo']},-0.5),\"—\"))),\"—\")"),
-            "pb": (f"=IF({P['capex']}<=0,0,IF({P['econ1']}<=0,\"—\",IF({n_neg}>{ref['h']},\"> horizonte\","
+            "be": (f"=IF({P['capex']}<=0,0,IF({P['econ1']}<=0,\"—\",IF({n_neg}>{ref['h']},\"> horizonte\","
                    f"{n_neg}-1+(-INDEX({bl['acum']},{n_neg}))/INDEX({bl['fluxo']},{n_neg}+1))))"),
-            "pbd": (f"=IF({P['capex']}<=0,0,IF({P['econ1']}<=0,\"—\",IF({n_neg_d}>{ref['h']},\"> horizonte\","
-                    f"{n_neg_d}-1+(-INDEX({bl['acum_desc']},{n_neg_d}))/INDEX({bl['desc']},{n_neg_d}+1))))"),
-            "bk_meses": f"=IF(ISNUMBER({P['pbd']}),ROUNDUP({P['pbd']}*12,0),\"—\")",
+            "be_meses": f"=IF(ISNUMBER({P['be']}),ROUNDUP({P['be']}*12,0),\"—\")",
+            "pb": (f"=IF({P['capex']}<=0,0,IF({P['econ1']}<=0,\"—\",IF({n_neg_d}>{ref['h']},\"> horizonte\","
+                   f"{n_neg_d}-1+(-INDEX({bl['acum_desc']},{n_neg_d}))/INDEX({bl['desc']},{n_neg_d}+1))))"),
+            "pb_meses": f"=IF(ISNUMBER({P['pb']}),ROUNDUP({P['pb']}*12,0),\"—\")",
             "econ_min": f"=IF({P['vp']}>0,{P['econ1']}*{P['capex']}/{P['vp']},\"—\")",
             "margem": f"=IF({P['capex']}>0,{P['vp']}/{P['capex']}-1,\"—\")",
             "lcc": f"={lcc_base}+{P['capex']}-{P['vp']}",
             "vs_proj": f"=IF({ref['cp']}>0,Alternativas!$H${ar}/{ref['cp']}-1,\"—\")",
-            "classe": (f"=IF({P['econ1']}<=0,\"Sem economia\",IF(AND(ISNUMBER({P['pb']}),{P['pb']}<=2),\"Quick win\","
+            "classe": (f"=IF({P['econ1']}<=0,\"Sem economia\",IF(AND(ISNUMBER({P['be']}),{P['be']}<=2),\"Quick win\","
                        f"IF({P['vpl']}>0,\"Viável\",\"Inviável financeiramente\")))"),
         }
         for chave, rot, fmt in indicadores:
             forte = rot.isupper()
             if k == 0:
-                f.c(pos[chave], 1, rot, negrito=forte or chave in ("vpl", "pbd"), fundo=FUNDO_CAB if forte else None)
+                f.c(pos[chave], 1, rot, negrito=forte or chave in ("vpl", "be", "pb"), fundo=FUNDO_CAB if forte else None)
                 f.c(pos[chave], 2, None, fundo=FUNDO_CAB if forte else None)
-            f.c(pos[chave], 3 + k, formulas[chave], fmt, negrito=forte or chave in ("vpl", "pbd"),
+            f.c(pos[chave], 3 + k, formulas[chave], fmt, negrito=forte or chave in ("vpl", "be", "pb"),
                 fundo=FUNDO_CAB if forte else None, alinhar="right")
     r += 1
-    f.nota(r, "Payback simples: anos até a economia acumulada igualar o CAPEX. Breakeven econômico: anos até o VPL "
-              "acumulado zerar (descontado pela TMA). Economia mínima: economia do ano 1 que zera o VPL no horizonte. "
+    f.nota(r, "Breakeven: quando as contas empatam, ou seja, a economia acumulada iguala o CAPEX (custo acumulado do "
+              "sistema atual = custo acumulado da alternativa). Payback: quando o projeto se paga, ou seja, a economia "
+              "acumulada descontada pela TMA devolve o investimento com o custo do capital. Economia mínima: economia do "
+              "ano 1 que zera o VPL no horizonte. "
               "Valores ilustrativos até a validação com medições e cotações.", ate)
     f.nota(r + 1, "Fundo amarelo = entrada editável; verde = vínculo com outra aba.", ate)
     ws_res.freeze_panes = "A7"
