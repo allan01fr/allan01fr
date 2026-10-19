@@ -139,6 +139,42 @@ def exclusoes_validas(cat, servicos_na_opcao, tem_fornecimento):
     return textos_validos(cat, servicos_na_opcao, tem_fornecimento, "exclusoes")
 
 
+# chaves que a interface e o motor leem direto: sem elas o app quebra ao abrir, antes de mostrar qualquer aviso
+CHAVES_SERVICO = ("id", "nome", "disciplina", "descricao", "tipo")
+CHAVES_CAMPO = ("id", "rotulo", "tipo", "padrao")
+CHAVES_OPCAO = ("valor", "rotulo", "num")
+CHAVES_ATIVIDADE = ("id", "nome", "etapa")
+CHAVES_DIRETO = ("id", "nome", "qtd")
+
+
+def estrutura_servico(s):
+    """Problemas de forma de um serviço (vazia quando dá para abrir o app com ele)."""
+    if not isinstance(s, dict):
+        return ["o serviço precisa ser um objeto JSON ({...})"]
+    sid = s.get("id") if isinstance(s.get("id"), str) else "?"
+    erros = [f"{sid}: falta o texto '{c}'" for c in CHAVES_SERVICO if not str(s.get(c) or "").strip()]
+    for lista in ("dados", "atividades", "diretos", "exclusoes", "premissas", "normas"):
+        if not isinstance(s.get(lista, []), list):
+            erros.append(f"{sid}: '{lista}' precisa ser uma lista")
+    if erros:
+        return erros
+
+    def faltam(x, chaves):
+        return [c for c in chaves if not isinstance(x, dict) or c not in x]
+    for c in s.get("dados", []):
+        if faltam(c, CHAVES_CAMPO):
+            erros.append(f"{sid}: campo do formulário sem {faltam(c, CHAVES_CAMPO)}")
+        elif not isinstance(c.get("opcoes", []), list) or any(faltam(o, CHAVES_OPCAO) for o in c.get("opcoes", [])):
+            erros.append(f"{sid}.{c['id']}: cada opção precisa de {list(CHAVES_OPCAO)}")
+    for a in s.get("atividades", []):
+        if faltam(a, CHAVES_ATIVIDADE):
+            erros.append(f"{sid}: atividade sem {faltam(a, CHAVES_ATIVIDADE)}")
+    for d in s.get("diretos", []):
+        if faltam(d, CHAVES_DIRETO):
+            erros.append(f"{sid}: custo direto sem {faltam(d, CHAVES_DIRETO)}")
+    return erros
+
+
 def validar(cat):
     """Lista de problemas do catálogo (vazia quando está tudo certo)."""
     erros = []
@@ -149,7 +185,7 @@ def validar(cat):
     ids = set()
     if not perfis:
         erros.append("catálogo sem perfis")
-    ids_servicos = {s.get("id") for s in cat.get("servicos", [])}
+    ids_servicos = {s.get("id") for s in cat.get("servicos", []) if isinstance(s, dict)}
     for e in cat.get("turnkey", {}).get("etapas", []):
         for t in e.get("tipos", []):
             if t not in tipos:
@@ -164,6 +200,10 @@ def validar(cat):
         if not d.get("opcoes"):
             erros.append(f"fator global '{f}' sem opções")
     for s in cat.get("servicos", []):
+        forma = estrutura_servico(s)
+        if forma:
+            erros += forma
+            continue
         sid = s.get("id", "?")
         if sid in ids:
             erros.append(f"{sid}: id de serviço repetido")

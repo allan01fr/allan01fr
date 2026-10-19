@@ -16,7 +16,6 @@ Modalidades da opção:
 """
 
 import copy
-import datetime as dt
 import json
 import string
 import uuid
@@ -145,7 +144,7 @@ def _migrar_fases(o, params):
 
 
 def padrao(params, numero=None):
-    hoje = dt.date.today()
+    hoje = pm.hoje()
     return {
         "versao": 1,
         "numero": numero or f"PC-KTK-001/{hoje.year}",

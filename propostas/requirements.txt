@@ -1,6 +1,6 @@
-streamlit>=1.50
-pandas>=2.0
-openpyxl>=3.1
-python-docx>=1.1
-pdfplumber>=0.11
+streamlit>=1.51,<2
+pandas>=2.0,<4
+openpyxl>=3.1,<4
+python-docx>=1.1,<2
+pdfplumber>=0.11,<0.12
 pytest>=7

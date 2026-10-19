@@ -30,27 +30,45 @@ python -m orcamento.cli exemplos/hvac_retrofit_fases.json --xlsx --docx --viabil
 
 Para testar no navegador, inclusive no celular, sem instalar nada:
 
-1. Entre em [share.streamlit.io](https://share.streamlit.io) com a conta do GitHub.
-2. **Create app** → **Deploy a public app from GitHub**.
+1. Entre em [share.streamlit.io](https://share.streamlit.io) com a conta do GitHub. Na primeira
+   vez, conecte o GitHub em **Workspaces** → **Connect GitHub account** → **Authorize streamlit**.
+2. Clique em **Create app** (canto superior direito). Na pergunta "Do you already have an app?",
+   escolha **Yup, I have an app**.
 3. Repositório `allan01fr/allan01fr`, branch `claude/wonderful-wright-m65umc`, arquivo
-   principal `propostas/app/app.py`.
-4. Em **Advanced settings**, escolha Python 3.12 e clique em **Deploy**.
+   principal `propostas/app/app.py`. Em **App URL**, escolha um endereço curto, por exemplo
+   `kaptek-propostas`; sem isso o endereço gerado fica enorme.
+4. Em **Advanced settings**, confira **Python version** = 3.12 (já é o padrão) e clique em
+   **Save**. Depois clique em **Deploy**. A versão do Python não muda depois de publicado: para
+   trocar, é preciso apagar o app e publicar de novo.
 
 As dependências vêm de `app/requirements.txt`. O tema vem de `.streamlit/config.toml` na raiz
-do repositório, cópia do `propostas/.streamlit/config.toml`. Um teste garante que os dois pares
-de arquivos continuam iguais.
+do repositório, cópia do `propostas/.streamlit/config.toml`. Testes garantem que os dois
+`config.toml` continuam iguais e que `app/requirements.txt` é o `requirements.txt` sem o pytest.
 
-Para restringir o acesso: no app publicado, **Settings** → **Sharing** → **Only specific
-people can view this app**, e inclua os e-mails convidados.
+Para restringir o acesso: em [share.streamlit.io](https://share.streamlit.io), clique em ⋮ ao
+lado do app → **Settings** → **Sharing**. Em "Who can view this app", escolha **Only specific
+people can view this app**, inclua os e-mails e clique em **Save**. Com o app aberto, o mesmo
+menu fica em **Manage app** (canto inferior direito) → ⋮ → **Settings**. O menu do canto
+superior direito do app só muda a aparência.
+- O repositório é público, então o app nasce público e é indexado por buscadores até ser
+  restrito. O código e os arquivos de `dados/` continuam visíveis no GitHub.
+- A conta gratuita permite um app privado por vez.
+- Os convidados entram com conta Google ou com um link enviado por e-mail, sem precisar de
+  GitHub. Eles também veem as estatísticas de acesso dos apps públicos da conta e podem
+  convidar outras pessoas.
 
 Limites da prévia:
 - O que é salvo pela interface (parâmetros, catálogo, histórico e bases importadas na aba 10)
-  fica no servidor da prévia. É compartilhado por quem usa o link e se perde quando o app
-  reinicia ou é atualizado.
+  fica no servidor da prévia. É compartilhado por quem usa o link e pode se perder quando o app
+  reinicia, hiberna ou é republicado.
 - Para guardar uma proposta, use **💾 Salvar proposta (.json)** na barra lateral e carregue o
   arquivo de novo em **📂 Abrir proposta (.json)**.
-- A prévia hiberna depois de um tempo sem acesso. Ao abrir o link, clique no botão para
-  acordá-la; leva cerca de um minuto.
+- No celular, a barra lateral continua aberta depois de carregar um exemplo. Feche-a («) para
+  ver a proposta.
+- A prévia hiberna depois de 12 horas sem acesso. Ao abrir o link, clique em **Yes, get this
+  app back up!** e aguarde o app subir. Qualquer pessoa com acesso pode acordá-la.
+- A prévia fica presa à branch `claude/wonderful-wright-m65umc`. Antes de apagar a branch ou de
+  incorporá-la à `main`, apague o app e publique de novo a partir da `main`.
 
 ## Fluxo na interface
 

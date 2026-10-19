@@ -7,12 +7,12 @@ registros. Aplicar o fator grava `calibracao` na atividade do catálogo; como a
 razão é tomada sobre a estimativa sem calibração, aplicar de novo não acumula.
 """
 
-import datetime as dt
 import json
 import os
 import statistics
 
 from . import catalogo as ct
+from . import parametros as pm
 
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CAMINHO_PADRAO = os.path.join(RAIZ, "dados", "historico.json")
@@ -52,7 +52,7 @@ def registrar(hist, cat, proposta, res, realizados):
         })
     if not regs:
         raise ValueError("nenhuma hora realizada informada")
-    reg = {"proposta": proposta["numero"], "opcao": res["id"], "data": dt.date.today().isoformat(), "registros": regs}
+    reg = {"proposta": proposta["numero"], "opcao": res["id"], "data": pm.hoje().isoformat(), "registros": regs}
     hist.append(reg)
     return reg
 

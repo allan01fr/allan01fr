@@ -131,3 +131,18 @@ def test_calibracao_nao_acumula(cat, params, tmp_path):
                if any(s["atividade"] == a["id"] for s in sug))
     r2 = motor.precificar(cat_local, p)["opcoes"][0]
     assert r2["total_h"] == pytest.approx(r["total_h"] * 1.2)
+
+
+def test_data_da_proposta_no_horario_de_brasilia(params, monkeypatch):
+    """O servidor da prévia online roda em UTC: às 22h em Brasília já seria o dia seguinte."""
+    import datetime as dt
+
+    class Relogio(dt.datetime):
+        @classmethod
+        def now(cls, tz=None):
+            utc = dt.datetime(2026, 10, 20, 1, 30, tzinfo=dt.timezone.utc)      # 19/10 às 22h30 em Brasília
+            return utc.astimezone(tz) if tz else utc.replace(tzinfo=None)
+    monkeypatch.setattr(pm.dt, "datetime", Relogio)
+    assert pm.hoje() == dt.date(2026, 10, 19)
+    assert pm.agora() == "2026-10-19T22:30:00"
+    assert pp.padrao(params)["data"] == "2026-10-19"

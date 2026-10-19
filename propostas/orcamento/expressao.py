@@ -21,15 +21,19 @@ FUNCOES = {
     "abs": abs,
 }
 
+# potência sempre em float: 9**9**9 com inteiros travaria o servidor inteiro; em float estoura na hora
 _BIN = {
     ast.Add: op.add, ast.Sub: op.sub, ast.Mult: op.mul, ast.Div: op.truediv,
-    ast.Pow: op.pow, ast.Mod: op.mod, ast.FloorDiv: op.floordiv,
+    ast.Pow: lambda a, b: float(a) ** float(b), ast.Mod: op.mod, ast.FloorDiv: op.floordiv,
 }
 _UN = {ast.UAdd: op.pos, ast.USub: op.neg, ast.Not: op.not_}
 _CMP = {
     ast.Eq: op.eq, ast.NotEq: op.ne, ast.Lt: op.lt, ast.LtE: op.le,
     ast.Gt: op.gt, ast.GtE: op.ge,
 }
+
+
+_INT_MAX = 10 ** 15
 
 
 class ErroExpressao(ValueError):
@@ -92,9 +96,11 @@ def avaliar(texto, contexto):
             return contexto[n.id]
         if isinstance(n, ast.BinOp):
             try:
-                return _BIN[type(n.op)](ev(n.left), ev(n.right))
+                v = _BIN[type(n.op)](ev(n.left), ev(n.right))
             except ZeroDivisionError:
                 raise ErroExpressao(f"divisão por zero em '{texto}'") from None
+            # inteiro gigante passa a float, que estoura na hora em vez de multiplicar sem fim
+            return float(v) if isinstance(v, int) and abs(v) > _INT_MAX else v
         if isinstance(n, ast.UnaryOp):
             return _UN[type(n.op)](ev(n.operand))
         if isinstance(n, ast.BoolOp):
@@ -114,4 +120,12 @@ def avaliar(texto, contexto):
             return FUNCOES[n.func.id](*[ev(a) for a in n.args])
         raise ErroExpressao(f"elemento não permitido: {type(n).__name__}")
 
-    return float(ev(arv))
+    try:
+        v = float(ev(arv))
+    except ErroExpressao:
+        raise
+    except (ArithmeticError, ValueError, TypeError) as e:     # estouro, sqrt de negativo, potência complexa
+        raise ErroExpressao(f"conta impossível em '{texto}': {e}") from None
+    if not math.isfinite(v):
+        raise ErroExpressao(f"resultado infinito em '{texto}'")
+    return v

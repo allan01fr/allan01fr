@@ -7,12 +7,24 @@ de uma proposta antiga não mude quando a empresa reajustar os parâmetros.
 """
 
 import copy
+import datetime as dt
 import json
 import os
 import shutil
 
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CAMINHO_PADRAO = os.path.join(RAIZ, "dados", "parametros.json")
+
+# horário de Brasília (sem horário de verão desde 2019): a prévia online roda num servidor em UTC
+FUSO = dt.timezone(dt.timedelta(hours=-3), "BRT")
+
+
+def hoje():
+    return dt.datetime.now(FUSO).date()
+
+
+def agora():
+    return dt.datetime.now(FUSO).replace(tzinfo=None).isoformat(timespec="seconds")
 
 
 def carregar(caminho=None):

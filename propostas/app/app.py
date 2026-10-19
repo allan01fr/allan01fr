@@ -12,7 +12,8 @@ import os
 import sys
 
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.insert(0, RAIZ)
+if RAIZ not in sys.path:            # o script roda de novo a cada interação; não acumula entradas
+    sys.path.insert(0, RAIZ)
 
 import altair as alt
 import pandas as pd
@@ -88,6 +89,17 @@ def exemplos():
     return sorted(f for f in os.listdir(PASTA_EXEMPLOS) if f.endswith(".json"))
 
 
+# a leitura do arquivo importado fica em cache: sem isso cada clique em qualquer lugar relê o PDF ou a planilha
+@st.cache_data(max_entries=2, show_spinner="Lendo o arquivo...")
+def ler_arquivo(dados, nome, aba):
+    return rf.ler_tabela(dados, nome, aba)
+
+
+@st.cache_data(max_entries=2, show_spinner=False)
+def abas_arquivo(dados):
+    return rf.abas_xlsx(dados)
+
+
 def pct(v):
     return "—" if v is None else f"{v:.1%}".replace(".", ",")
 
@@ -120,7 +132,8 @@ with st.sidebar:
             st.rerun()
         except Exception as e:  # noqa: BLE001
             st.error(f"Arquivo inválido: {e}")
-    ex = st.selectbox("Exemplos", exemplos(), key="exemplo_sel")
+    ex = st.selectbox("Exemplos", exemplos(), key="exemplo_sel",
+                      format_func=lambda f: f.removesuffix(".json").replace("_", " "))
     if st.button("Carregar exemplo", width="stretch"):
         with open(os.path.join(PASTA_EXEMPLOS, ex), encoding="utf-8") as f:
             substituir_proposta(pp.carregar_json(f.read()))
@@ -157,7 +170,7 @@ with abas[0]:
     try:
         data_ini = dt.date.fromisoformat(P["data"])
     except (TypeError, ValueError):
-        data_ini = dt.date.today()
+        data_ini = pm.hoje()
     P["data"] = c1.date_input("Data de emissão", data_ini, format="DD/MM/YYYY", key=k("data")).isoformat()
     P["validade_dias"] = int(c2.number_input("Validade (dias corridos)", 1, 180, int(P["validade_dias"]), key=k("validade")))
     P["prazo_pagamento_dias"] = int(c3.number_input("Vencimento das faturas (dias)", 0, 120,
@@ -932,9 +945,13 @@ with abas[6]:
             if st.button("Aplicar JSON"):
                 try:
                     novo = json.loads(txt)
-                    CAT["servicos"][ids.index(sid)] = novo
-                    st.success("Aplicado (falta salvar).")
-                    st.rerun()
+                    forma = ct.estrutura_servico(novo)
+                    if forma:       # aplicado incompleto, derrubaria o app nesta sessão antes de qualquer aviso
+                        st.error("JSON incompleto, não aplicado:\n- " + "\n- ".join(forma))
+                    else:
+                        CAT["servicos"][ids.index(sid)] = novo
+                        st.success("Aplicado (falta salvar).")
+                        st.rerun()
                 except json.JSONDecodeError as e:
                     st.error(f"JSON inválido: {e}")
         erros = ct.validar(CAT)
@@ -1197,7 +1214,7 @@ with abas[9]:
             info = rf.info_do_nome(arq_imp.name)
             aba_sel = None
             if arq_imp.name.lower().endswith((".xlsx", ".xlsm")):
-                abas_arq = rf.abas_xlsx(dados_arq)
+                abas_arq = abas_arquivo(dados_arq)
                 aba_sel = st.selectbox("Aba da planilha", abas_arq, key=f"imp_aba|{arq_imp.name}|{len(dados_arq)}") \
                     if len(abas_arq) > 1 else abas_arq[0]
             # cada arquivo, tipo e aba começa do mapeamento detectado (as escolhas do arquivo anterior não valem)
@@ -1207,7 +1224,7 @@ with abas[9]:
                 preset = st.selectbox("Preset de importação", list(rf.PRESETS), key="imp_preset",
                                       index=next((i for i, p_ in enumerate(rf.PRESETS) if p_.lower().split("-")[0] in arq_imp.name.lower()), len(rf.PRESETS) - 1))
             try:
-                linhas_arq = rf.ler_tabela(dados_arq, arq_imp.name, aba_sel)
+                linhas_arq = ler_arquivo(dados_arq, arq_imp.name, aba_sel)
             except Exception as e:  # noqa: BLE001
                 linhas_arq = []
                 st.error(f"Não foi possível ler o arquivo: {e}")

@@ -24,6 +24,8 @@ import statistics
 import unicodedata
 import datetime as dt
 
+from . import parametros as pm
+
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CAMINHO_DB = os.path.join(RAIZ, "dados", "referencias.sqlite")
 CAMINHO_FONTES = os.path.join(RAIZ, "dados", "fontes.json")
@@ -179,6 +181,7 @@ def ler_tabela(conteudo, nome, aba=None):
             for pagina in pdf.pages:
                 for tabela in pagina.extract_tables() or []:
                     linhas += [[(c or "").replace("\n", " ").strip() for c in row] for row in tabela]
+                pagina.close()          # sem isso cada página fica na memória (~5 MB): um PDF de 500 páginas estoura
         return linhas
     raise ValueError(f"formato não suportado: {ext} (use XLSX, CSV ou PDF)")
 
@@ -248,7 +251,7 @@ def conectar(caminho=None):
 
 
 def _agora():
-    return dt.datetime.now().isoformat(timespec="seconds")
+    return pm.agora()
 
 
 def importar_itens(con, itens, fonte, data_base="", uf="", desonerado=None, tipo="", arquivo="", substituir=True):

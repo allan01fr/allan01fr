@@ -115,6 +115,20 @@ def test_app_cria_fase_muda_cobranca_e_move_servico(tmp_path, monkeypatch):
     assert f2["preco"] > 0 and r["preco"] == f2["preco"] + next(f for f in r["fases"] if f["id"] == "F1")["preco"]
 
 
+def test_app_recusa_json_de_servico_incompleto():
+    """Aplicado sem 'descricao', o serviço derrubaria o app desta sessão antes de qualquer aviso."""
+    import json
+    at = _rodar()
+    sid = at.selectbox(key="cat_sel").value
+    servico = json.loads(at.text_area(key=f"cat_json_{sid}").value)
+    del servico["descricao"]
+    at.text_area(key=f"cat_json_{sid}").input(json.dumps(servico)).run()
+    next(b for b in at.button if b.label == "Aplicar JSON").click().run()
+    assert not at.exception, at.exception
+    assert any("JSON incompleto" in e.value for e in at.error)
+    assert "descricao" in next(s for s in at.session_state.cat["servicos"] if s["id"] == sid)
+
+
 def test_requisitos_da_nuvem_acompanham_os_locais():
     """O Community Cloud lê o requirements.txt ao lado do app; ele é o local sem o pytest."""
     def ler(*partes):

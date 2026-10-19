@@ -30,3 +30,18 @@ def test_variavel_desconhecida_e_divisao_por_zero():
         avaliar("area*2", {})
     with pytest.raises(ErroExpressao, match="zero"):
         avaliar("1/a", {"a": 0})
+
+
+@pytest.mark.parametrize("enorme", ["9**9**9", "10**400", "ceil(1e308)*ceil(1e308)", "1e308*10", "sqrt(0-1)", "(0-8)**0.5"])
+def test_conta_enorme_ou_impossivel_vira_erro_na_hora(enorme):
+    """O catálogo é editável por quem usa a prévia online: uma potência gigante não pode travar o servidor."""
+    import time
+    t = time.perf_counter()
+    with pytest.raises(ErroExpressao):
+        avaliar(enorme, {})
+    assert time.perf_counter() - t < 1
+
+
+def test_potencia_e_inteiros_comuns_continuam_exatos():
+    assert avaliar("area**0.5 + 2**3", {"area": 100}) == pytest.approx(18.0)
+    assert avaliar("ceil(terminais/7)*1000000", {"terminais": 60}) == 9000000
