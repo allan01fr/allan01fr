@@ -2,7 +2,10 @@
 # Propostas KAPTEK - abre a interface no navegador (Linux/macOS).
 cd "$(dirname "$0")"
 if [ ! -d .venv ]; then
-  python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
+  python3 -c 'import sys; sys.exit(sys.version_info < (3, 11))' || { echo "Instale o Python 3.11 ou mais novo."; exit 1; }
+  # se a instalação falhar, apaga o .venv para a próxima tentativa reinstalar
+  python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt \
+    || { rm -rf .venv; echo "Falha ao instalar as dependências. Confira a internet e tente de novo."; exit 1; }
 else
   . .venv/bin/activate
 fi

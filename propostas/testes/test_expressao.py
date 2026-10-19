@@ -45,3 +45,19 @@ def test_conta_enorme_ou_impossivel_vira_erro_na_hora(enorme):
 def test_potencia_e_inteiros_comuns_continuam_exatos():
     assert avaliar("area**0.5 + 2**3", {"area": 100}) == pytest.approx(18.0)
     assert avaliar("ceil(terminais/7)*1000000", {"terminais": 60}) == 9000000
+
+
+@pytest.mark.parametrize("pesada", ["round(1, 0-15000000)", "round(1, 1000000000)", "1+" * 3000 + "1",
+                                    "(" * 5000 + "1" + ")" * 5000, "+".join(["1"] * 60000)])
+def test_round_gigante_e_expressao_enorme_viram_erro_na_hora(pesada):
+    import time
+    t = time.perf_counter()
+    with pytest.raises(ErroExpressao):
+        avaliar(pesada, {})
+    assert time.perf_counter() - t < 1
+
+
+def test_round_comum_continua_igual():
+    assert avaliar("round(2.567, 2)", {}) == pytest.approx(2.57)
+    assert avaliar("round(x)", {"x": 2.6}) == 3
+    assert avaliar("round(1234, 0-2)", {}) == 1200

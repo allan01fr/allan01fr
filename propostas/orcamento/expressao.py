@@ -11,10 +11,24 @@ import ast
 import math
 import operator as op
 
+CASAS_MAX = 15
+TEXTO_MAX = 500
+
+
+def _round(x, casas=None):
+    """round() de inteiro com casas = -10**7 seguraria o servidor inteiro; em float é instantâneo."""
+    if casas is None:
+        return round(x)
+    casas = int(casas)
+    if abs(casas) > CASAS_MAX:
+        raise ErroExpressao(f"round com {casas} casas: o limite é {CASAS_MAX}")
+    return round(float(x), casas)
+
+
 FUNCOES = {
     "ceil": math.ceil,
     "floor": math.floor,
-    "round": round,
+    "round": _round,
     "sqrt": math.sqrt,
     "min": min,
     "max": max,
@@ -40,11 +54,20 @@ class ErroExpressao(ValueError):
     pass
 
 
+class DivisaoPorZero(ErroExpressao):
+    pass
+
+
 def _arvore(texto):
+    texto = str(texto)
+    if len(texto) > TEXTO_MAX:
+        raise ErroExpressao(f"expressão com mais de {TEXTO_MAX} caracteres")
     try:
-        return ast.parse(str(texto), mode="eval")
+        return ast.parse(texto, mode="eval")
     except SyntaxError as e:
         raise ErroExpressao(f"expressão inválida '{texto}': {e.msg}") from None
+    except (RecursionError, MemoryError, ValueError):     # aninhamento demais para o analisador
+        raise ErroExpressao(f"expressão complexa demais: '{texto[:60]}...'") from None
 
 
 def _checar(no):
@@ -98,7 +121,7 @@ def avaliar(texto, contexto):
             try:
                 v = _BIN[type(n.op)](ev(n.left), ev(n.right))
             except ZeroDivisionError:
-                raise ErroExpressao(f"divisão por zero em '{texto}'") from None
+                raise DivisaoPorZero(f"divisão por zero em '{texto}'") from None
             # inteiro gigante passa a float, que estoura na hora em vez de multiplicar sem fim
             return float(v) if isinstance(v, int) and abs(v) > _INT_MAX else v
         if isinstance(n, ast.UnaryOp):

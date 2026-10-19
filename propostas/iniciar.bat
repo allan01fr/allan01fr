@@ -2,11 +2,13 @@
 REM Propostas KAPTEK - dois cliques para abrir a interface no navegador.
 cd /d "%~dp0"
 if not exist .venv (
+  python -c "import sys; sys.exit(sys.version_info < (3, 11))" || (echo Instale o Python 3.11+ em python.org marcando "Add to PATH" & pause & exit /b 1)
   echo Primeira execucao: instalando dependencias, aguarde alguns minutos...
   python -m venv .venv || (echo Instale o Python 3.11+ em python.org marcando "Add to PATH" & pause & exit /b 1)
   call .venv\Scripts\activate
   python -m pip install --upgrade pip
-  pip install -r requirements.txt
+  REM se a instalacao falhar, apaga o .venv para a proxima tentativa reinstalar
+  pip install -r requirements.txt || (call deactivate & rmdir /s /q .venv & echo Falha ao instalar as dependencias. Confira a internet e tente de novo. & pause & exit /b 1)
 ) else (
   call .venv\Scripts\activate
 )

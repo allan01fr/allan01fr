@@ -15,6 +15,9 @@ perfil, os custos diretos, o preço de cada fase e o prazo, e gera:
 
 ## Como abrir
 
+Requer Python 3.11 ou mais novo ([python.org](https://www.python.org/downloads/), marcando
+"Add to PATH" na instalação).
+
 Windows: dê **dois cliques em `iniciar.bat`**. Na primeira vez ele cria o ambiente e
 instala as dependências, o que leva alguns minutos. Depois a interface abre no navegador.
 

@@ -66,3 +66,30 @@ def test_servico_que_nao_e_objeto_nao_quebra_a_validacao(cat):
     ruim = copy.deepcopy(cat)
     ruim["servicos"].append("texto solto")
     assert "o serviço precisa ser um objeto JSON ({...})" in ct.validar(ruim)
+
+
+@pytest.mark.parametrize("estrago", [
+    lambda s: s["atividades"][0].update(b="abc"), lambda s: s["atividades"][0].update(fixo="10"),
+    lambda s: s["atividades"][0].update(fatores=3), lambda s: s["atividades"][0].update(driver=["x"]),
+    lambda s: s["dados"][0].update(padrao="abc", tipo="float"),
+    lambda s: s["atividades"][0].update(driver="round(1, 0-15000000)"),
+    lambda s: s["atividades"][0].update(driver="+".join(["1"] * 60000)),
+])
+def test_valor_de_tipo_errado_vira_erro_sem_excecao(cat, estrago):
+    ruim = copy.deepcopy(cat)
+    estrago(ruim["servicos"][0])
+    assert ct.validar(ruim)
+
+
+def test_divisao_por_zero_no_padrao_nao_trava_o_catalogo(cat):
+    ok = copy.deepcopy(cat)
+    s = ok["servicos"][0]
+    s["atividades"][0]["driver"] = f"1/({s['dados'][0]['id']}*0)"
+    assert ct.validar(ok) == []
+
+
+def test_exemplos_continuam_validos(cat, params):
+    from conftest import EXEMPLOS, abrir_exemplo
+    for caminho in EXEMPLOS:
+        abrir_exemplo(caminho, cat, params)
+    assert ct.validar(cat) == []
