@@ -26,6 +26,32 @@ Sem interface, pela linha de comando:
 python -m orcamento.cli exemplos/hvac_retrofit_fases.json --xlsx --docx --viabilidade --saida saida/
 ```
 
+### Prévia online (Streamlit Community Cloud)
+
+Para testar no navegador, inclusive no celular, sem instalar nada:
+
+1. Entre em [share.streamlit.io](https://share.streamlit.io) com a conta do GitHub.
+2. **Create app** → **Deploy a public app from GitHub**.
+3. Repositório `allan01fr/allan01fr`, branch `claude/wonderful-wright-m65umc`, arquivo
+   principal `propostas/app/app.py`.
+4. Em **Advanced settings**, escolha Python 3.12 e clique em **Deploy**.
+
+As dependências vêm de `app/requirements.txt`. O tema vem de `.streamlit/config.toml` na raiz
+do repositório, cópia do `propostas/.streamlit/config.toml`. Um teste garante que os dois pares
+de arquivos continuam iguais.
+
+Para restringir o acesso: no app publicado, **Settings** → **Sharing** → **Only specific
+people can view this app**, e inclua os e-mails convidados.
+
+Limites da prévia:
+- O que é salvo pela interface (parâmetros, catálogo, histórico e bases importadas na aba 10)
+  fica no servidor da prévia. É compartilhado por quem usa o link e se perde quando o app
+  reinicia ou é atualizado.
+- Para guardar uma proposta, use **💾 Salvar proposta (.json)** na barra lateral e carregue o
+  arquivo de novo em **📂 Abrir proposta (.json)**.
+- A prévia hiberna depois de um tempo sem acesso. Ao abrir o link, clique no botão para
+  acordá-la; leva cerca de um minuto.
+
 ## Fluxo na interface
 
 1. **Dados gerais**: cliente, objeto, UF (alerta de visto no CREA fora de RJ/SP), distância,

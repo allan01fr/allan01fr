@@ -113,3 +113,21 @@ def test_app_cria_fase_muda_cobranca_e_move_servico(tmp_path, monkeypatch):
     f2 = next(f for f in r["fases"] if f["id"] == "F2")
     assert f2["cobranca"] == "percentual" and f2["base"] == 500000.0
     assert f2["preco"] > 0 and r["preco"] == f2["preco"] + next(f for f in r["fases"] if f["id"] == "F1")["preco"]
+
+
+def test_requisitos_da_nuvem_acompanham_os_locais():
+    """O Community Cloud lê o requirements.txt ao lado do app; ele é o local sem o pytest."""
+    def ler(*partes):
+        with open(os.path.join(*partes), encoding="utf-8") as f:
+            return {l.strip() for l in f if l.strip() and not l.startswith("#")}
+    locais = {r for r in ler(RAIZ, "requirements.txt") if not r.startswith("pytest")}
+    assert ler(RAIZ, "app", "requirements.txt") == locais
+
+
+def test_tema_da_raiz_do_repositorio_igual_ao_local():
+    """Na nuvem o app roda a partir da raiz do repositório, que tem a sua cópia do config.toml."""
+    raiz_repo = os.path.join(RAIZ, "..", ".streamlit", "config.toml")
+    if not os.path.exists(raiz_repo):
+        pytest.skip("pasta propostas fora do repositório original")
+    with open(raiz_repo, encoding="utf-8") as a, open(os.path.join(RAIZ, ".streamlit", "config.toml"), encoding="utf-8") as b:
+        assert a.read() == b.read()
