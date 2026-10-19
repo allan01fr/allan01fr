@@ -147,6 +147,8 @@ def avaliar(texto, contexto):
         v = float(ev(arv))
     except ErroExpressao:
         raise
+    except RecursionError:
+        raise ErroExpressao(f"expressão aninhada demais: '{texto[:60]}'") from None
     except (ArithmeticError, ValueError, TypeError) as e:     # estouro, sqrt de negativo, potência complexa
         raise ErroExpressao(f"conta impossível em '{texto}': {e}") from None
     if not math.isfinite(v):

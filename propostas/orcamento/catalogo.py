@@ -8,6 +8,7 @@ garante que toda expressão aponta para campos que existem.
 """
 
 import json
+import math
 import os
 import shutil
 
@@ -147,8 +148,31 @@ CHAVES_ATIVIDADE = ("id", "nome", "etapa")
 CHAVES_DIRETO = ("id", "nome", "qtd")
 
 
-def _numero(x):
-    return isinstance(x, (int, float)) and not isinstance(x, bool)
+NUMERO_MAX = 1e12
+
+
+def _numero(x, minimo=-NUMERO_MAX):
+    """Número finito de tamanho razoável (o JSON aceita NaN, Infinity e inteiros de 400 dígitos)."""
+    return (isinstance(x, (int, float)) and not isinstance(x, bool)
+            and minimo <= x <= NUMERO_MAX and math.isfinite(x))
+
+
+def _campo(sid, c):
+    """Tipos que o formulário usa para desenhar o campo."""
+    erros = []
+    if not isinstance(c["id"], str) or not isinstance(c["rotulo"], str) or c["tipo"] not in TIPOS_CAMPO:
+        erros.append(f"{sid}: campo precisa de 'id' e 'rotulo' em texto e 'tipo' entre {list(TIPOS_CAMPO)}")
+    elif c["tipo"] in ("int", "float") and not (_numero(c["padrao"]) and _numero(c.get("min", 0))):
+        erros.append(f"{sid}.{c['id']}: 'padrao' e 'min' precisam ser números")
+    elif c["tipo"] == "bool" and not isinstance(c["padrao"], bool):
+        erros.append(f"{sid}.{c['id']}: 'padrao' precisa ser true ou false")
+    elif any(not isinstance(o["valor"], str) or not isinstance(o["rotulo"], str) or not _numero(o["num"])
+             for o in c.get("opcoes", [])):
+        erros.append(f"{sid}.{c['id']}: cada opção precisa de 'valor' e 'rotulo' em texto e 'num' número")
+    for chave in ("unidade", "ajuda"):
+        if c.get(chave) is not None and not isinstance(c[chave], str):
+            erros.append(f"{sid}.{c['id']}: '{chave}' precisa ser texto")
+    return erros
 
 
 def estrutura_servico(s):
@@ -156,7 +180,8 @@ def estrutura_servico(s):
     if not isinstance(s, dict):
         return ["o serviço precisa ser um objeto JSON ({...})"]
     sid = s.get("id") if isinstance(s.get("id"), str) else "?"
-    erros = [f"{sid}: falta o texto '{c}'" for c in CHAVES_SERVICO if not str(s.get(c) or "").strip()]
+    erros = [f"{sid}: falta o texto '{c}'" for c in CHAVES_SERVICO
+             if not isinstance(s.get(c), str) or not s[c].strip()]
     for lista in ("dados", "atividades", "diretos", "exclusoes", "premissas", "normas"):
         if not isinstance(s.get(lista, []), list):
             erros.append(f"{sid}: '{lista}' precisa ser uma lista")
@@ -170,16 +195,20 @@ def estrutura_servico(s):
             erros.append(f"{sid}: campo do formulário sem {faltam(c, CHAVES_CAMPO)}")
         elif not isinstance(c.get("opcoes", []), list) or any(faltam(o, CHAVES_OPCAO) for o in c.get("opcoes", [])):
             erros.append(f"{sid}.{c['id']}: cada opção precisa de {list(CHAVES_OPCAO)}")
+        else:
+            erros += _campo(sid, c)
     for a in s.get("atividades", []):
         if faltam(a, CHAVES_ATIVIDADE):
             erros.append(f"{sid}: atividade sem {faltam(a, CHAVES_ATIVIDADE)}")
             continue
         aid = f"{sid}.{a['id']}"
+        if not isinstance(a["id"], str) or not isinstance(a["nome"], str):
+            erros.append(f"{aid}: 'id' e 'nome' precisam ser texto")
         for chave in ("b", "calibracao"):
-            if chave in a and not _numero(a[chave]):
-                erros.append(f"{aid}: '{chave}' precisa ser um número")
+            if chave in a and not (_numero(a[chave], 0) and 0 < a[chave] <= 10):
+                erros.append(f"{aid}: '{chave}' precisa ser um número entre 0 e 10")
         for chave in ("fixo", "unid"):
-            if not isinstance(a.get(chave, {}), dict) or not all(_numero(h) for h in a.get(chave, {}).values()):
+            if not isinstance(a.get(chave, {}), dict) or not all(_numero(h, 0) for h in a.get(chave, {}).values()):
                 erros.append(f"{aid}: '{chave}' precisa ser {{perfil: horas}}")
         if not isinstance(a.get("fatores", []), list) or not all(isinstance(f, str) for f in a.get("fatores", [])):
             erros.append(f"{aid}: 'fatores' precisa ser uma lista de nomes")
@@ -188,7 +217,7 @@ def estrutura_servico(s):
     for d in s.get("diretos", []):
         if faltam(d, CHAVES_DIRETO):
             erros.append(f"{sid}: custo direto sem {faltam(d, CHAVES_DIRETO)}")
-        elif not isinstance(d["qtd"], (str, int, float)) or not _numero(d.get("valor_unit", 0)):
+        elif not isinstance(d["qtd"], (str, int, float)) or not _numero(d.get("valor_unit", 0), 0):
             erros.append(f"{sid}.{d['id']}: 'qtd' precisa ser uma expressão e 'valor_unit' um número")
     return erros
 
@@ -262,12 +291,19 @@ def _validar_servico(s, ids, tipos, etapas, perfis, fatores, ids_servicos):
             erros.append(f"{sid}.{d.get('id', '?')}: {e}")
     if not erros:       # conta com os valores padrão: estouro ou casas demais travam o Salvar
         ctx = contexto(s, valores_padrao(s))
+        sem_zeros = {n: (v or 1.0) for n, v in ctx.items()}
         for x in s.get("atividades", []) + s.get("diretos", []):
             expr = x.get("driver") if "driver" in x else x.get("qtd")
             try:
                 expressao.avaliar(expr, ctx)
             except expressao.DivisaoPorZero:
-                pass        # campo que vale zero no padrão não é erro do catálogo
+                # campo que vale zero no padrão não é erro do catálogo; refaz a conta sem zeros
+                try:
+                    expressao.avaliar(expr, sem_zeros)
+                except expressao.DivisaoPorZero:
+                    pass
+                except expressao.ErroExpressao as e:
+                    erros.append(f"{sid}.{x.get('id', '?')}: {e}")
             except expressao.ErroExpressao as e:
                 erros.append(f"{sid}.{x.get('id', '?')}: {e}")
     return erros
@@ -304,6 +340,6 @@ def validar(cat):
             continue
         try:
             erros += _validar_servico(s, ids, tipos, etapas, perfis, fatores, ids_servicos)
-        except (TypeError, ValueError, AttributeError, KeyError) as e:
+        except (TypeError, ValueError, AttributeError, KeyError, ArithmeticError) as e:
             erros.append(f"{s.get('id', '?')}: formato inválido ({type(e).__name__}: {e})")
     return erros
