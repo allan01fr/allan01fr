@@ -1,15 +1,15 @@
 # Propostas KAPTEK: escopo e preço por formulários
 
 Ferramenta local para montar propostas comerciais de engenharia com escopo e preço
-rastreáveis. Serve para um turnkey ou para a participação em etapas isoladas:
-cálculos, projeto e desenhos (2D, 3D ou BIM), simulações, obra, comissionamento e
-ensaios de certificação.
+rastreáveis. A proposta é organizada em **fases** (por exemplo: laudo, estudo de viabilidade,
+projeto e assessoria de obra), e cada fase tem a sua forma de cobrança: escopo fechado, hora
+técnica, % da obra ou pacote de horas.
 
 Você escolhe os serviços do catálogo e preenche o formulário de cada um (área, TR,
 nº de difusores, vasos, máquinas, GHE...). A ferramenta calcula as horas por
-perfil, os custos diretos, o preço nos três modelos e o prazo, e gera:
+perfil, os custos diretos, o preço de cada fase e o prazo, e gera:
 
-- uma **planilha XLSX** com fórmulas vivas: todas as opções lado a lado, editável;
+- uma **planilha XLSX** com fórmulas vivas: todas as opções lado a lado, com o preço por fase;
 - a **proposta DOCX** no template aprovado da KAPTEK, uma por opção;
 - a **planilha do estudo de viabilidade** para o cliente (breakeven, payback, VPL, TIR, LCC).
 
@@ -23,7 +23,7 @@ Linux/macOS: `./iniciar.sh`.
 Sem interface, pela linha de comando:
 
 ```bash
-python -m orcamento.cli exemplos/hvac_turnkey.json --xlsx --docx --viabilidade --saida saida/
+python -m orcamento.cli exemplos/hvac_retrofit_fases.json --xlsx --docx --viabilidade --saida saida/
 ```
 
 ## Fluxo na interface
@@ -31,19 +31,25 @@ python -m orcamento.cli exemplos/hvac_turnkey.json --xlsx --docx --viabilidade -
 1. **Dados gerais**: cliente, objeto, UF (alerta de visto no CREA fora de RJ/SP), distância,
    área e o contexto que ajusta as horas: complexidade, documentação existente, acesso,
    urgência e risco.
-2. **Escopo**: a **modalidade** da opção (serviços de engenharia ou turnkey), depois a
-   disciplina e o tipo. Adicione o serviço e preencha o formulário dele. A prévia mostra as
-   atividades e as horas por perfil. Para orçar em níveis diferentes (2D, 3D, BIM), use
-   **Duplicar com nível**.
-3. **Fornecimentos e subcontratações**: equipamentos, materiais, mão de obra própria de
-   execução e subcontratos, cada categoria com seu BDI. Cada item guarda fonte, código e
-   data-base. A **cesta de preços** compara as referências do item (bases e cotações).
-   Informe também o lead time dos equipamentos e o prazo de execução.
-4. **Preço**: escopo fechado (no turnkey, preço global), hora técnica (estimado e teto) e %
-   sobre a obra. Mostra também o preço mínimo (margem zero), a margem efetiva de cada
-   modelo, a referência pelo CUB e o comparativo das opções. Os parâmetros comerciais desta
-   proposta ficam no expansor.
-5. **Prazo e pagamento**: Gantt por etapa e parcelas editáveis, que devem somar 100%.
+2. **Escopo e fases**:
+   - a modalidade da opção: proposta em fases ou estimativa interna do valor global;
+   - as fases, com nome, cobrança e ordem;
+   - os serviços do catálogo, cada um na sua fase, com o formulário preenchido. A prévia mostra
+     as atividades e as horas por perfil.
+
+   Para orçar em níveis diferentes (2D, 3D, BIM), use **Duplicar com nível**.
+3. **Fornecimentos e subcontratações**: equipamentos, materiais, mão de obra de execução e
+   subcontratos, cada categoria com seu BDI. Cada item guarda fonte, código e data-base. A
+   **cesta de preços** compara as referências do item (bases e cotações). Na estimativa, informe
+   também o lead time dos equipamentos e o prazo de execução.
+4. **Preço**:
+   - preço total, com a parcela fixa e a estimada;
+   - tabela por fase e detalhe de cada fase (cadeia de preço, horas, faturamento mensal do %,
+     taxa de desempenho);
+   - comparativo das opções;
+   - entradas da cobrança de cada fase e parâmetros comerciais da proposta.
+5. **Prazo e pagamento**: Gantt com as fases em sequência e o pagamento por fase. As parcelas
+   do escopo fechado são editáveis.
 6. **Exportar**: XLSX e DOCX. Antes de liberar, confere margens e logo do padrão KAPTEK
    e lista os campos que ainda faltam preencher.
 7. **Catálogo e parâmetros**: edite a produtividade das atividades, os custos diretos, o
@@ -54,42 +60,52 @@ python -m orcamento.cli exemplos/hvac_turnkey.json --xlsx --docx --viabilidade -
 10. **Bases de referência**: importação de tabelas de preço, convenções coletivas, CUB,
     encargos, índices e faixas de ART (seção própria abaixo).
 
-## Turnkey é a modalidade, não o sistema
+## Proposta em fases e formas de cobrança
 
-- **Turnkey** é a modalidade da proposta: a KAPTEK entrega o sistema em operação, por **preço
-  global**, e assume todas as etapas e subcontratações.
-- **Serviços de engenharia** são etapas avulsas: projeto, TAB, comissionamento, laudo...
-- O **sistema** é escolhido no formulário de cada serviço, independentemente da modalidade:
-  - climatização: split / multi-split, VRF, self-contained / rooftop ou água gelada;
-  - ventilação / distribuição de ar: renovação simples, DOAS, CAV ou VAV, com o nº de caixas
-    VAV no projeto, no TAB e no comissionamento.
+Cada fase é precificada sozinha, com a sua ART, porque pode ser contratada separadamente. As
+fases correm em sequência no cronograma. Formas de cobrança:
 
-  Um retrofit VRF + DOAS pode ser vendido em turnkey ou só como engenharia. O exemplo
-  `hvac_turnkey.json` traz as duas opções.
+| Cobrança | Como funciona |
+|---|---|
+| **Escopo fechado** | Preço pela cadeia de custos da fase (laudo, estudo de viabilidade, projeto). Pagamento em sinal + campo + entrega, editável. |
+| **Hora técnica** | Horas × taxa de venda, faturadas pelo apontamento; estimado, com teto. |
+| **% da obra** | Honorário sobre o valor global da obra, em três formas: **% sobre cada medição** (total estimado = % × valor global; o faturado acompanha as medições aprovadas); **fixo pelo valor global**, faturado na proporção das medições; **parcela fixa + % das medições**. As medições são projetadas mês a mês por curva S ou linear. |
+| **Pacote de horas** | Fiscalização e planejamento. **Mensal** (h/mês × meses, saldo acumula ou não) ou **total** sob demanda (N horas, validade, parcelas). Taxa = média do mix de perfis × (1 − desconto); hora excedente com acréscimo opcional. Sem horas informadas, o pacote usa as horas dos serviços da fase. O custo usa as horas vendidas. |
 
-Numa opção turnkey:
+**Taxa de desempenho** (opcional, nas fases de % e de pacote): variável, fora do preço. É a soma
+de três critérios, limitada a um teto (% dos honorários da fase), e é paga no recebimento
+definitivo da obra:
+- participação na economia em relação ao valor global estimado;
+- % dos honorários por semana de antecipação do prazo;
+- bônus se o retrabalho (custo de retrabalho ÷ valor medido) ficar dentro da meta.
 
-- O **checklist** confere as etapas do produto final. Cada etapa fica incluída no escopo,
-  "a cargo do contratante" ou faltando; a que falta vira aviso. As etapas são:
-  - projeto executivo;
-  - aprovações (opcional);
-  - equipamentos e materiais;
-  - execução e instalação;
-  - gestão da obra;
-  - comissionamento, TAB e start-up;
-  - treinamento, manuais e data book.
-- O preço é sempre o escopo fechado. Hora técnica e % sobre obra aparecem só como referência.
-- Entra a **provisão de garantia** = % × custo de fornecimento e execução (padrão 2%, 12
-  meses), que passa pela cadeia de preço.
-- O cronograma ganha a etapa **Suprimentos** (lead time), antes da obra.
-- O pagamento padrão tem quatro parcelas, arredondadas a 5%:
-  - sinal;
-  - entrega dos equipamentos em obra;
-  - conclusão da instalação;
-  - comissionamento e termo de aceite, que retém no mínimo 10% (editável).
-- No DOCX, a tabela de honorários mostra **eventos por etapa** (projeto e engenharia,
-  equipamentos, materiais, execução, gestão, comissionamento, entrega técnica). Itens e preços
-  unitários ficam só na planilha interna.
+O app e a planilha simulam o potencial num cenário (economia, dias antecipados, meta de
+retrabalho). O DOCX traz os critérios, a apuração e o teto.
+
+**Estimativa interna do valor global da obra.** É uma opção à parte, com modalidade
+"estimativa", que não gera proposta. Ela reúne:
+- equipamentos, materiais e execução com BDI;
+- provisão de garantia;
+- etapa de suprimentos (lead time);
+- checklist das etapas da obra, que podem ser incluídas ou ficar fora da estimativa (por
+  exemplo, projeto e assessoria, que são fases da KAPTEK).
+
+O valor dela serve de **base do %** da assessoria, por fornecimentos e execução ou pelo valor
+global, e de **CAPEX** na viabilidade.
+
+**Sistema ≠ modalidade.** O sistema é escolhido no formulário de cada serviço:
+- climatização: split / multi-split, VRF, self-contained / rooftop ou água gelada;
+- ventilação / distribuição de ar: renovação, DOAS, CAV ou VAV, com caixas VAV no projeto, no
+  TAB e no comissionamento.
+
+O exemplo `hvac_retrofit_fases.json` tem um retrofit VRF + DOAS em quatro fases (laudo,
+viabilidade, projeto, assessoria de obra):
+- **opção A**: assessoria por 4% sobre as medições, com taxa de desempenho;
+- **opção B**: pacote de 40 h/mês × 4 meses;
+- **estimativa interna**: a base de ambas.
+
+Arquivos salvos antes das fases abrem como uma fase única com a cobrança antiga. Os antigos
+"turnkey" viram estimativa interna.
 
 ## Como o preço é calculado
 
@@ -109,7 +125,7 @@ h = (fixo + unid × q^b) × fatores × fator manual × calibração
 Escopo fechado:
 
 ```
-custo dos serviços = MO + overhead + diretos (instrumentos, terceiros, deslocamento, ART, garantia)
+custo dos serviços = MO + overhead + diretos (instrumentos, terceiros, deslocamento, ART; garantia na estimativa)
 preço dos serviços = (custo + contingência) ÷ (1 − impostos − margem)
 preço total        = preço dos serviços + Σ fornecimentos × (1 + BDI da categoria)
 ```
@@ -117,7 +133,9 @@ preço total        = preço dos serviços + Σ fornecimentos × (1 + BDI da cat
 Hora técnica: horas × taxa de venda do perfil + reembolsáveis × (1 + administração) ÷ (1 − impostos).
 O teto aplica a contingência às horas.
 
-% sobre a obra: % × valor da obra informado (ou o custo dos fornecimentos).
+% da obra e pacote de horas: ver a seção acima. O preço da opção é a soma das fases: parcela fixa
+(escopo fechado, pacote, % fixo e parcela fixa) + parcela estimada (hora técnica e % sobre as
+medições).
 
 Referência pelo CUB: % × CUB/m² × área (faixa usual de honorários: 2% a 11%).
 
@@ -126,12 +144,16 @@ ART, o motor itera até a faixa se estabilizar. O modo valor fixo continua dispo
 
 O deslocamento é calculado pelos dias de campo, com três faixas de distância: isento, ida e
 volta diária, viagem com diárias. O cronograma divide as horas de cada etapa pela equipe
-(8 h/dia); as etapas seguem em sequência. As exclusões do serviço que outro item da mesma opção
+(8 h/dia); as etapas seguem em sequência, fase após fase, e as fases de obra duram os meses da
+obra. As exclusões do serviço que outro item da mesma opção
 anula não entram na proposta. Exemplo: "TAB, salvo se contratado" some quando o TAB está na
 opção.
 
-A planilha refaz todas essas contas em fórmulas, e os testes conferem que, depois de recalcular
-no LibreOffice, ela dá o mesmo resultado do motor. A aba **Pesquisa de preços** repete a cesta
+A planilha refaz todas essas contas em fórmulas: cada opção tem uma matriz de preço com uma
+coluna por fase (com `SUMIFS` pela coluna Fase das atividades, dos diretos e dos fornecimentos)
+e a coluna Total. A base do % aponta para a célula da estimativa interna. Os testes conferem
+que, depois de recalcular no LibreOffice, a planilha dá o mesmo resultado do motor, em todas as
+formas de cobrança. A aba **Pesquisa de preços** repete a cesta
 de cada item em fórmulas:
 - valor, fator de atualização e desvio da mediana;
 - referências fora da faixa;
@@ -152,7 +174,7 @@ original e o custo anual dessa perda de desempenho. Também entram:
 
 **Alternativas.** Cada uma tem CAPEX, redução de consumo (%), geração FV (kWh/ano) e
 manutenção anual. O CAPEX pode ser **vinculado ao preço de uma opção da proposta** (por
-exemplo, o turnkey), mais um extra.
+exemplo, a estimativa interna do valor global da obra), mais um extra.
 
 ```
 economia no ano t = economia de energia × (1 + reajuste da energia)^(t−1)
@@ -258,7 +280,7 @@ por hora excedente. A base pode ser:
 | Mecânica e utilidades | ar comprimido, vapor e condensado, redes de gases, bombeamento, inspeção NR-13, prontuário NR-13, ensaios de pressão |
 | Segurança do trabalho | NR-12, insalubridade (NR-15), periculosidade (NR-16), LTCAT, PGR, inspeção NR-10/33/35, perícia |
 | Hidráulica e incêndio | hidrossanitário, SPCI, aprovação no CBMERJ, vistoria de incêndio, teste de hidrantes e bombas |
-| Geral | acompanhamento de obra, gerenciamento e administração da execução, entrega técnica (start-up, treinamento, manuais, data book), visita técnica, reuniões |
+| Geral | acompanhamento técnico / fiscalização de obra, planejamento e controle da obra (assessoria ao contratante), gerenciamento e administração da execução, entrega técnica (start-up, treinamento, manuais, data book), visita técnica, reuniões |
 
 > **As produtividades são uma referência inicial (estimativa), não dados de mercado medidos.**
 > Os custos/h, os BDIs e as faixas de ART também são valores iniciais. Ajuste-os aos seus
@@ -285,16 +307,17 @@ Para criar um serviço, duplique um parecido na aba 7 e ajuste o JSON. Estrutura
 ```
 propostas/
 ├── app/app.py                interface (Streamlit)
-├── orcamento/                motor, catálogo, viabilidade, referências, exportadores XLSX/DOCX, calibração, CLI
-├── dados/catalogo.json       serviços, formulários, produtividades e etapas do turnkey (aba 7)
+├── orcamento/                motor, cobranças (%, pacote, desempenho), catálogo, viabilidade, referências,
+│                             exportadores XLSX/DOCX, calibração, CLI
+├── dados/catalogo.json       serviços, formulários, produtividades e etapas da obra completa (aba 7)
 ├── dados/parametros.json     custos/h, impostos, margem, contingência, BDI, garantia, ART, CUB, hierarquia de fontes
 ├── dados/fontes.json         registro das entidades de referência (aba 10)
 ├── dados/referencias.sqlite  bases importadas (local, fora do git)
 ├── dados/historico.json      horas realizadas (aba 8)
 ├── dados/kaptek_org.json     dados institucionais, extraídos da biblioteca da marca
 ├── modelos/                  template de proposta aprovado e logo
-├── exemplos/                 consultoria HVAC 2D/3D/BIM, NR-13, SPCI, retrofit VRF + DOAS (turnkey × serviços)
-└── testes/                   pytest: motor, catálogo, turnkey, viabilidade, referências, exportação e app
+├── exemplos/                 consultoria HVAC em fases (2D/3D/BIM), NR-13, SPCI, retrofit VRF + DOAS em fases
+└── testes/                   pytest: motor, fases e cobranças, estimativa, catálogo, viabilidade, referências, exportação e app
 ```
 
 Testes: `python -m pytest testes -q`. Os testes de recálculo no LibreOffice e de extração de

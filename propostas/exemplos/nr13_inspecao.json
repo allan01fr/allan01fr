@@ -2,7 +2,7 @@
  "versao": 1,
  "numero": "PC-KTK-EX02/2026",
  "revisao": "00",
- "data": "2026-10-18",
+ "data": "2026-10-19",
  "validade_dias": 15,
  "prazo_pagamento_dias": 15,
  "cliente": {
@@ -104,8 +104,7 @@
   },
   "turnkey": {
    "garantia_pct": 0.02,
-   "garantia_meses": 12,
-   "retencao_aceite": 0.1
+   "garantia_meses": 12
   },
   "cub": {
    "uf": "RJ",
@@ -141,6 +140,32 @@
    "sinal": 0.3
   },
   "fee_pct_padrao": 0.06,
+  "cobranca": {
+   "percentual": {
+    "forma": "medicoes",
+    "curva": "s",
+    "meses": 6
+   },
+   "pacote": {
+    "desconto": 0.1,
+    "excedente_pct": 0.0,
+    "meses": 6,
+    "validade_meses": 12,
+    "parcelas": 3,
+    "mix_padrao": {
+     "SR": 0.2,
+     "PL": 0.5,
+     "TC": 0.3
+    }
+   },
+   "desempenho": {
+    "economia_pct": 0.1,
+    "prazo_pct_semana": 0.02,
+    "retrabalho_meta": 0.02,
+    "retrabalho_bonus_pct": 0.05,
+    "teto_pct": 0.3
+   }
+  },
   "notas": {
    "impostos": "Lucro Presumido: PIS 0,65% + COFINS 3% + IRPJ 4,8% e CSLL 2,88% (sobre base presumida de 32%) + ISS. No Simples, informe a alíquota efetiva do seu anexo.",
    "bdi_fornecimento": "BDI completo (tributos, administração, risco e lucro). Referência inicial: medianas do TCU, Acórdão 2.622/2013 — confira e ajuste.",
@@ -153,9 +178,56 @@
   {
    "id": "A",
    "nome": "Inspeção NR-13",
+   "modalidade": "fases",
+   "fases": [
+    {
+     "id": "F1",
+     "nome": "Fase 1",
+     "cobranca": "fechado",
+     "obra": {
+      "base_modo": "informado",
+      "base_valor": 0.0,
+      "base_opcao": "",
+      "base_parte": "obra",
+      "meses": 6,
+      "curva": "s"
+     },
+     "percentual": {
+      "pct": 0.06,
+      "forma": "medicoes",
+      "parcela_fixa": 0.0
+     },
+     "pacote": {
+      "forma": "mensal",
+      "horas_mes": 0.0,
+      "meses": 6,
+      "acumula_saldo": false,
+      "horas": 0.0,
+      "validade_meses": 12,
+      "parcelas": 3,
+      "desconto": 0.1,
+      "excedente_pct": 0.0
+     },
+     "desempenho": {
+      "ativo": false,
+      "economia_pct": 0.1,
+      "prazo_pct_semana": 0.02,
+      "retrabalho_meta": 0.02,
+      "retrabalho_bonus_pct": 0.05,
+      "teto_pct": 0.3,
+      "cenario": {
+       "economia": 0.05,
+       "dias_antecipados": 15,
+       "retrabalho_ok": true
+      }
+     },
+     "pagamento": []
+    }
+   ],
    "itens": [
     {
      "servico": "mec.nr13_inspecao",
+     "fase": "F1",
      "dados": {
       "vasos": 6,
       "caldeiras": 1,
@@ -168,6 +240,7 @@
     },
     {
      "servico": "mec.nr13_prontuario",
+     "fase": "F1",
      "dados": {
       "equipamentos": 2,
       "dados_fab": "inexistente"
@@ -179,11 +252,6 @@
    ],
    "fornecimentos": [],
    "prazo_execucao_dias": 0,
-   "pagamento": [],
-   "modelo_preco": "fechado",
-   "fee_pct": 0.06,
-   "fee_base": 0.0,
-   "modalidade": "servicos",
    "prazo_fornecimento_dias": 0,
    "turnkey_dispensas": []
   }

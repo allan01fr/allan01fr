@@ -79,8 +79,7 @@
  },
  "turnkey": {
   "garantia_pct": 0.02,
-  "garantia_meses": 12,
-  "retencao_aceite": 0.1
+  "garantia_meses": 12
  },
  "cub": {
   "uf": "RJ",
@@ -116,6 +115,32 @@
   "sinal": 0.3
  },
  "fee_pct_padrao": 0.06,
+ "cobranca": {
+  "percentual": {
+   "forma": "medicoes",
+   "curva": "s",
+   "meses": 6
+  },
+  "pacote": {
+   "desconto": 0.1,
+   "excedente_pct": 0.0,
+   "meses": 6,
+   "validade_meses": 12,
+   "parcelas": 3,
+   "mix_padrao": {
+    "SR": 0.2,
+    "PL": 0.5,
+    "TC": 0.3
+   }
+  },
+  "desempenho": {
+   "economia_pct": 0.1,
+   "prazo_pct_semana": 0.02,
+   "retrabalho_meta": 0.02,
+   "retrabalho_bonus_pct": 0.05,
+   "teto_pct": 0.3
+  }
+ },
  "notas": {
   "impostos": "Lucro Presumido: PIS 0,65% + COFINS 3% + IRPJ 4,8% e CSLL 2,88% (sobre base presumida de 32%) + ISS. No Simples, informe a alíquota efetiva do seu anexo.",
   "bdi_fornecimento": "BDI completo (tributos, administração, risco e lucro). Referência inicial: medianas do TCU, Acórdão 2.622/2013 — confira e ajuste.",

@@ -34,9 +34,11 @@ PASTA_EXEMPLOS = os.path.join(RAIZ, "exemplos")
 UFS = ["AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA", "PB", "PE", "PI",
        "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO"]
 RISCOS = {"baixo": "Baixo", "medio": "Médio", "alto": "Alto"}
-MODELOS = {"fechado": "Escopo fechado", "hora": "Hora técnica", "fee": "% sobre o valor da obra"}
-MODALIDADES = {"servicos": "Serviços de engenharia (etapas avulsas)",
-               "turnkey": "Turnkey — preço global, entrega do produto final em operação"}
+MODALIDADES = {"fases": "Proposta em fases (serviços de engenharia)",
+               "estimativa": "Estimativa interna do valor global da obra (não gera proposta)"}
+COBRANCAS = {"fechado": "Escopo fechado", "hora": "Hora técnica", "percentual": "% da obra", "pacote": "Pacote de horas"}
+FORMAS_PCT = {"medicoes": "% sobre cada medição", "fixo_global": "Fixo pelo valor global (faturado nas medições)",
+              "fixo_mais_medicoes": "Parcela fixa + % das medições"}
 ICONES_ETAPA = {"atendida": "✅", "faltando": "⚠️", "dispensada": "➖", "opcional": "○"}
 CATEGORIAS = {"material": "Material", "equipamento": "Equipamento", "mo_execucao": "Mão de obra de execução",
               "subcontrato": "Subcontrato"}
@@ -127,7 +129,8 @@ with st.sidebar:
         substituir_proposta(pp.padrao(ss.params))
         st.rerun()
     st.divider()
-    st.caption("Fluxo: 1 Dados gerais → 2 Escopo → 3 Fornecimento → 4 Preço → 5 Prazo e pagamento → 6 Exportar")
+    st.caption("Fluxo: 1 Dados gerais → 2 Escopo e fases → 3 Fornecimentos → 4 Preço e cobrança por fase → "
+               "5 Prazo e pagamento → 6 Exportar")
 
 O = P["opcoes"][ss.op_idx]
 abas = st.tabs(["1 · Dados gerais", "2 · Escopo", "3 · Fornecimentos e subcontratações", "4 · Preço",
@@ -215,27 +218,56 @@ with abas[1]:
         pp.duplicar_opcao(P, ss.op_idx, None if nivel == "(igual)" else nivel)
         ss.op_idx = len(P["opcoes"]) - 1
         estrutura_mudou()
-    O["modalidade"] = st.radio("Modalidade da proposta", list(MODALIDADES), horizontal=True,
-                               index=list(MODALIDADES).index(O.get("modalidade", "servicos")),
+    O["modalidade"] = st.radio("Modalidade", list(MODALIDADES), horizontal=True,
+                               index=list(MODALIDADES).index(O.get("modalidade", "fases")),
                                format_func=MODALIDADES.get, key=k("modalidade", O["id"]),
-                               help="Turnkey: assumimos todas as etapas e subcontratações e entregamos o sistema em "
-                                    "operação, por preço global. O tipo de sistema (VRF, água gelada, VAV...) é "
-                                    "definido no formulário de cada serviço.")
-    if O["modalidade"] == "turnkey":
+                               help="Proposta em fases: laudo, estudo, projeto, assessoria de obra..., cada fase com a sua "
+                                    "cobrança. Estimativa interna: valor global da obra (equipamentos, execução, BDI, "
+                                    "garantia), base do % da assessoria e do CAPEX da viabilidade; não gera proposta.")
+    estimativa = O["modalidade"] == "estimativa"
+    ids_fases = [f["id"] for f in O["fases"]]
+    nome_fase = {f["id"]: f"Fase {n} — {f['nome']}" for n, f in enumerate(O["fases"], 1)}
+    if estimativa:
         with st.container(border=True):
-            st.markdown("**Turnkey — etapas do produto final**")
-            st.caption(CAT["turnkey"]["descricao"] + " Inclua cada etapa no escopo (serviços ou fornecimentos) "
-                       "ou marque como fornecida pelo contratante.")
+            st.markdown("**Etapas da obra consideradas no valor global**")
+            st.caption("Inclua cada etapa (serviços ou fornecimentos) ou marque como fora da estimativa — por exemplo, "
+                       "projeto e assessoria, que são fases da KAPTEK.")
             dispensas = set(O.get("turnkey_dispensas", []))
             novas = []
             for e in motor.checklist_turnkey(CAT, O):
                 c1, c2 = st.columns([3, 2])
                 c1.markdown(f"{ICONES_ETAPA[e['status']]} {e['rotulo']}")
                 if e["status"] == "atendida":
-                    c2.caption("Incluída no escopo")
-                elif c2.checkbox("A cargo do contratante", value=e["id"] in dispensas, key=k("disp", O["id"], e["id"])):
+                    c2.caption("Incluída")
+                elif c2.checkbox("Fora desta estimativa", value=e["id"] in dispensas, key=k("disp", O["id"], e["id"])):
                     novas.append(e["id"])
             O["turnkey_dispensas"] = novas
+    else:
+        with st.container(border=True):
+            st.markdown("**Fases da proposta**")
+            st.caption("Cada fase é precificada sozinha (pode ser contratada separadamente) e tem a sua forma de cobrança. "
+                       "Configure % da obra, pacote de horas e taxa de desempenho na aba Preço.")
+            for n, fz in enumerate(O["fases"]):
+                c1, c2, c3, c4, c5 = st.columns([0.5, 3, 1.6, 0.5, 0.9])
+                c1.markdown(f"**{n + 1}**")
+                fz["nome"] = c2.text_input("Nome da fase", fz["nome"], key=k("fz_nome", O["id"], fz["id"]),
+                                           label_visibility="collapsed")
+                fz["cobranca"] = c3.selectbox("Cobrança", list(COBRANCAS), index=list(COBRANCAS).index(fz["cobranca"]),
+                                              format_func=COBRANCAS.get, key=k("fz_cob", O["id"], fz["id"]),
+                                              label_visibility="collapsed")
+                if c4.button("⬆", key=k("fz_sobe", O["id"], fz["id"]), disabled=n == 0, help="Subir a fase"):
+                    O["fases"][n - 1], O["fases"][n] = O["fases"][n], O["fases"][n - 1]
+                    estrutura_mudou()
+                if c5.button("🗑", key=k("fz_rm", O["id"], fz["id"]), disabled=len(O["fases"]) == 1,
+                             help="Remover a fase (os serviços vão para a primeira fase restante)"):
+                    O["fases"].pop(n)
+                    for x in O["itens"] + O["fornecimentos"]:
+                        if x.get("fase") == fz["id"]:
+                            x["fase"] = O["fases"][0]["id"]
+                    estrutura_mudou()
+            if st.button("➕ Nova fase", key=k("fz_nova", O["id"])):
+                O["fases"].append(pp.nova_fase(pp.proxima_fase(O), P["parametros"]))
+                estrutura_mudou()
 
     with st.container(border=True):
         st.markdown("**Adicionar serviço do catálogo**")
@@ -248,8 +280,12 @@ with abas[1]:
             sid = c3.selectbox("Serviço", [s["id"] for s in lista], key=k("f_serv"),
                                format_func=lambda i: f"{ct.servico(CAT, i)['nome']}  ·  {CAT['tipos'][ct.servico(CAT, i)['tipo']]}")
             st.caption(ct.servico(CAT, sid)["descricao"])
+            fase_nova = ids_fases[0]
+            if not estimativa and len(ids_fases) > 1:
+                fase_nova = st.selectbox("Na fase", ids_fases, index=len(ids_fases) - 1, format_func=nome_fase.get,
+                                         key=k("f_fase"))
             if st.button("Adicionar à opção", type="primary"):
-                O["itens"].append(pp.novo_item(ct.servico(CAT, sid)))
+                O["itens"].append(pp.novo_item(ct.servico(CAT, sid), fase_nova))
                 ss.aberto = len(O["itens"]) - 1
                 estrutura_mudou()
         else:
@@ -258,11 +294,26 @@ with abas[1]:
     if not O["itens"]:
         st.info("Esta opção ainda não tem serviços. Escolha um serviço acima e preencha o formulário dele.")
     perfis = list(CAT["perfis"])
-    for i, it in enumerate(O["itens"]):
+    # serviços agrupados por fase (a estimativa considera todos juntos)
+    ordem_itens = sorted(range(len(O["itens"])), key=lambda i: ids_fases.index(O["itens"][i]["fase"])
+                         if O["itens"][i].get("fase") in ids_fases else 0) if not estimativa else range(len(O["itens"]))
+    fase_atual = None
+    for i in ordem_itens:
+        it = O["itens"][i]
         serv = ct.servico(CAT, it["servico"])
+        if not estimativa and len(ids_fases) > 1 and it.get("fase") != fase_atual:
+            fase_atual = it.get("fase")
+            st.markdown(f"**{nome_fase.get(fase_atual, nome_fase[ids_fases[0]])}**")
         titulo = f"{i + 1}. {it.get('descricao') or serv['nome']}  ·  {serv['disciplina']}"
         with st.expander(titulo, expanded=(ss.get("aberto") == i)):
             st.caption(serv["descricao"])
+            if not estimativa and len(ids_fases) > 1:
+                atual_f = it.get("fase") if it.get("fase") in ids_fases else ids_fases[0]
+                nova_f = st.selectbox("Fase", ids_fases, index=ids_fases.index(atual_f), format_func=nome_fase.get,
+                                      key=k("it_fase", O["id"], i))
+                if nova_f != it.get("fase"):
+                    it["fase"] = nova_f
+                    estrutura_mudou()
             cols = st.columns(3)
             for j, c in enumerate(serv["dados"]):
                 with cols[j % 3]:
@@ -323,16 +374,19 @@ def base_referencias():
 
 with abas[2]:
     st.subheader(f"Fornecimentos e subcontratações — {O['nome']}")
-    st.caption("Para turnkey e obra: equipamentos, materiais, mão de obra própria de execução e subcontratos "
-               "(instalação mecânica, elétrica, isolamento, automação...). Cada categoria recebe o seu BDI "
-               "(aba Preço → parâmetros). Busque preços nas bases (EMOP, SCO-Rio, SINAPI, cotações...) na aba 10.")
-    colunas_f = ["uid", "descricao", "categoria", "unid", "qtd", "custo_unit", "fonte", "codigo", "data_base"]
+    st.caption("Na estimativa interna do valor global: equipamentos, materiais, mão de obra de execução e subcontratos "
+               "(instalação mecânica, elétrica, isolamento, automação...). Numa proposta em fases, só o que a KAPTEK "
+               "fornece (ex.: locação de instrumentos). Cada categoria recebe o seu BDI (aba Preço → parâmetros). Busque "
+               "preços nas bases (EMOP, SCO-Rio, SINAPI, cotações...) na aba 10.")
+    ids_fases = [f["id"] for f in O["fases"]]
+    com_fase = O["modalidade"] == "fases" and len(ids_fases) > 1
+    colunas_f = ["uid", "descricao", "categoria", "unid", "qtd", "custo_unit", "fonte", "codigo", "data_base", "fase"]
     base = pd.DataFrame([{c: f.get(c, "") for c in colunas_f} for f in O["fornecimentos"]], columns=colunas_f)
     base = base.astype({"uid": str, "descricao": str, "categoria": str, "unid": str, "qtd": float, "custo_unit": float,
-                        "fonte": str, "codigo": str, "data_base": str})
+                        "fonte": str, "codigo": str, "data_base": str, "fase": str})
     ed = st.data_editor(
         base, num_rows="dynamic", width="stretch", key=k("forn", O["id"]),
-        column_order=[c for c in colunas_f if c != "uid"],
+        column_order=[c for c in colunas_f if c != "uid" and (c != "fase" or com_fase)],
         column_config={
             "descricao": st.column_config.TextColumn("Descrição", width="large"),
             "categoria": st.column_config.SelectboxColumn("Categoria", options=list(CATEGORIAS), required=True,
@@ -343,6 +397,7 @@ with abas[2]:
             "fonte": st.column_config.TextColumn("Fonte"),
             "codigo": st.column_config.TextColumn("Código"),
             "data_base": st.column_config.TextColumn("Data-base (AAAA-MM)"),
+            "fase": st.column_config.SelectboxColumn("Fase", options=ids_fases, default=ids_fases[0]),
         })
     antigos = {f["uid"]: f for f in O["fornecimentos"]}
     novos = []
@@ -355,7 +410,8 @@ with abas[2]:
         novos.append({**item, "descricao": str(row["descricao"]).strip(), "categoria": row.get("categoria") or "material",
                       "unid": texto("unid") or "un", "qtd": float(row.get("qtd") or 0),
                       "custo_unit": float(row.get("custo_unit") or 0), "fonte": texto("fonte"),
-                      "codigo": texto("codigo"), "data_base": texto("data_base")})
+                      "codigo": texto("codigo"), "data_base": texto("data_base"),
+                      "fase": texto("fase") if texto("fase") in ids_fases else ids_fases[0]})
     O["fornecimentos"] = novos
     c1, c2 = st.columns(2)
     O["prazo_fornecimento_dias"] = int(c1.number_input("Prazo de fornecimento dos equipamentos — lead time (dias úteis)",
@@ -427,20 +483,97 @@ with abas[2]:
 # ----------------------------------------------------------------------------- 4 preço (entradas antes do cálculo)
 with abas[3]:
     topo_preco = st.container()
-    with st.expander("Modelo de preço desta opção e parâmetros comerciais da proposta", expanded=False):
-        c1, c2, c3 = st.columns(3)
-        mods = list(MODELOS)
-        if O.get("modalidade") == "turnkey":
-            O["modelo_preco"] = "fechado"
-            c1.info("Turnkey: a proposta usa sempre o preço global (escopo fechado). Hora técnica e % sobre obra "
-                    "aparecem só como referência.")
-        else:
-            O["modelo_preco"] = c1.radio("Modelo usado na proposta (DOCX)", mods, index=mods.index(O.get("modelo_preco", "fechado")),
-                                         format_func=MODELOS.get, key=k("modelo", O["id"]))
-        O["fee_pct"] = c2.number_input("% sobre o valor da obra", 0.0, 100.0, float(O.get("fee_pct") or 0) * 100,
-                                       step=0.5, key=k("fee_pct", O["id"])) / 100
-        O["fee_base"] = float(c3.number_input("Valor da obra / CAPEX (R$) — 0 usa o custo dos fornecimentos", 0.0, 1e10,
-                                              float(O.get("fee_base") or 0), step=1000.0, key=k("fee_base", O["id"])))
+    if O["modalidade"] == "fases":
+        st.markdown("**Cobrança de cada fase**")
+        ests = {o["id"]: o["nome"] for o in P["opcoes"] if o.get("modalidade") == "estimativa"}
+        for n, fz in enumerate(O["fases"], 1):
+            cob = fz["cobranca"]
+            with st.expander(f"Fase {n} — {fz['nome']} · {COBRANCAS[cob]}", expanded=cob in ("percentual", "pacote")):
+                if cob in ("fechado", "hora"):
+                    st.caption("Escopo fechado: preço pela cadeia de custos da fase. Hora técnica: horas × taxa de venda, "
+                               "faturadas pelo apontamento (estimado, com teto). Troque a cobrança na aba Escopo.")
+                    continue
+                kf = lambda *x: k("fz", O["id"], fz["id"], *x)  # noqa: E731
+                ob, pc, pk, de = fz["obra"], fz["percentual"], fz["pacote"], fz["desempenho"]
+                if cob == "percentual":
+                    c1, c2, c3 = st.columns(3)
+                    pc["pct"] = c1.number_input("% sobre a obra", 0.0, 50.0, float(pc["pct"]) * 100, step=0.25, key=kf("pct")) / 100
+                    pc["forma"] = c2.selectbox("Forma", list(FORMAS_PCT), index=list(FORMAS_PCT).index(pc.get("forma", "medicoes")),
+                                               format_func=FORMAS_PCT.get, key=kf("forma"))
+                    if pc["forma"] == "fixo_mais_medicoes":
+                        pc["parcela_fixa"] = c3.number_input("Parcela fixa — mobilização e planejamento (R$)", 0.0, 1e8,
+                                                             float(pc.get("parcela_fixa") or 0), step=500.0, key=kf("fixa"))
+                st.markdown("Valor global da obra (base do % e da taxa de desempenho)")
+                c1, c2, c3 = st.columns(3)
+                modos = {"opcao": "Estimativa interna", "informado": "Valor informado", "fornecimentos": "Custo dos fornecimentos da fase"}
+                ob["base_modo"] = c1.selectbox("Base", list(modos), index=list(modos).index(ob.get("base_modo", "informado")),
+                                               format_func=modos.get, key=kf("bmodo"))
+                if ob["base_modo"] == "opcao":
+                    if ests:
+                        ids_e = list(ests)
+                        ob["base_opcao"] = c2.selectbox("Estimativa", ids_e, format_func=ests.get, key=kf("bop"),
+                                                        index=ids_e.index(ob["base_opcao"]) if ob.get("base_opcao") in ids_e else 0)
+                        partes = {"obra": "Fornecimentos e execução (com BDI)", "global": "Valor global (inclui serviços)"}
+                        ob["base_parte"] = c3.selectbox("Parte", list(partes), format_func=partes.get, key=kf("bparte"),
+                                                        index=list(partes).index(ob.get("base_parte", "obra")))
+                    else:
+                        c2.warning("Crie uma opção 'Estimativa interna' (aba Escopo → Nova opção → Modalidade).")
+                elif ob["base_modo"] == "informado":
+                    ob["base_valor"] = c2.number_input("Valor global da obra (R$)", 0.0, 1e11, float(ob.get("base_valor") or 0),
+                                                       step=10000.0, key=kf("bval"))
+                if cob == "percentual":
+                    c1, c2, _ = st.columns(3)
+                    ob["meses"] = int(c1.number_input("Duração da obra (meses; 0 = prazo pelas horas)", 0, 120,
+                                                      int(ob.get("meses") or 0), key=kf("meses")))
+                    curvas = {"s": "Curva S", "linear": "Linear"}
+                    ob["curva"] = c2.selectbox("Curva das medições", list(curvas), format_func=curvas.get, key=kf("curva"),
+                                               index=list(curvas).index(ob.get("curva", "s")))
+                if cob == "pacote":
+                    st.markdown("Pacote de horas")
+                    formas = {"mensal": "Mensal (h/mês × meses)", "total": "Total sob demanda"}
+                    c1, c2, c3, c4 = st.columns(4)
+                    pk["forma"] = c1.selectbox("Forma", list(formas), format_func=formas.get, key=kf("pkf"),
+                                               index=list(formas).index(pk.get("forma", "mensal")))
+                    if pk["forma"] == "mensal":
+                        pk["horas_mes"] = c2.number_input("Horas por mês (0 = pelos serviços da fase)", 0.0, 2000.0,
+                                                          float(pk.get("horas_mes") or 0), step=4.0, key=kf("pkh"))
+                        pk["meses"] = int(c3.number_input("Meses", 1, 120, int(pk.get("meses") or 1), key=kf("pkm")))
+                        pk["acumula_saldo"] = c4.checkbox("Saldo do mês acumula", bool(pk.get("acumula_saldo")), key=kf("pks"))
+                    else:
+                        pk["horas"] = c2.number_input("Horas do pacote (0 = pelos serviços da fase)", 0.0, 20000.0,
+                                                      float(pk.get("horas") or 0), step=8.0, key=kf("pkt"))
+                        pk["validade_meses"] = int(c3.number_input("Validade (meses)", 1, 120, int(pk.get("validade_meses") or 12),
+                                                                   key=kf("pkv")))
+                        pk["parcelas"] = int(c4.number_input("Parcelas", 1, 60, int(pk.get("parcelas") or 1), key=kf("pkp")))
+                    c1, c2, _, _ = st.columns(4)
+                    pk["desconto"] = c1.number_input("Desconto sobre a taxa de venda (%)", 0.0, 60.0, float(pk.get("desconto") or 0) * 100,
+                                                     step=1.0, key=kf("pkd")) / 100
+                    pk["excedente_pct"] = c2.number_input("Acréscimo na hora excedente (%)", 0.0, 100.0,
+                                                          float(pk.get("excedente_pct") or 0) * 100, step=5.0, key=kf("pke")) / 100
+                de["ativo"] = st.checkbox("Taxa de desempenho (variável, fora do preço)", bool(de.get("ativo")), key=kf("de"),
+                                          help="Participação na economia sobre o valor global estimado, bônus por antecipação "
+                                               "do prazo e por retrabalho dentro da meta, limitados a um teto.")
+                if de["ativo"]:
+                    c1, c2, c3, c4, c5 = st.columns(5)
+                    de["economia_pct"] = c1.number_input("Participação na economia (%)", 0.0, 100.0, de["economia_pct"] * 100,
+                                                         step=1.0, key=kf("dee")) / 100
+                    de["prazo_pct_semana"] = c2.number_input("% dos honorários por semana antecipada", 0.0, 20.0,
+                                                             de["prazo_pct_semana"] * 100, step=0.5, key=kf("dep")) / 100
+                    de["retrabalho_meta"] = c3.number_input("Meta de retrabalho (% do medido)", 0.0, 20.0,
+                                                            de["retrabalho_meta"] * 100, step=0.5, key=kf("dem")) / 100
+                    de["retrabalho_bonus_pct"] = c4.number_input("Bônus por retrabalho na meta (%)", 0.0, 50.0,
+                                                                 de["retrabalho_bonus_pct"] * 100, step=1.0, key=kf("deb")) / 100
+                    de["teto_pct"] = c5.number_input("Teto (% dos honorários)", 0.0, 200.0, de["teto_pct"] * 100, step=5.0,
+                                                     key=kf("det")) / 100
+                    cen = de["cenario"]
+                    c1, c2, c3, _, _ = st.columns(5)
+                    cen["economia"] = c1.number_input("Simulação: economia obtida (%)", 0.0, 100.0, cen["economia"] * 100,
+                                                      step=1.0, key=kf("dce")) / 100
+                    cen["dias_antecipados"] = int(c2.number_input("Simulação: dias antecipados", 0, 365,
+                                                                  int(cen["dias_antecipados"]), key=kf("dcd")))
+                    cen["retrabalho_ok"] = c3.checkbox("Simulação: retrabalho na meta", bool(cen["retrabalho_ok"]),
+                                                       key=kf("dcr"))
+    with st.expander("Parâmetros comerciais da proposta", expanded=False):
         st.divider()
         PR = P["parametros"]
         st.markdown("**Parâmetros desta proposta** (cópia dos parâmetros da empresa; mudar aqui não altera outras propostas)")
@@ -517,13 +650,10 @@ with abas[3]:
         PR["pagamento"]["sinal"] = c3.number_input("Sinal na assinatura (%)", 0.0, 100.0, PR["pagamento"]["sinal"] * 100,
                                                    step=5.0, key=k("p_sinal")) / 100
         c1, c2, c3, c4 = st.columns(4)
-        PR["turnkey"]["garantia_pct"] = c1.number_input("Turnkey: provisão de garantia (% do custo de fornecimento)", 0.0, 20.0,
+        PR["turnkey"]["garantia_pct"] = c1.number_input("Estimativa: provisão de garantia (% do custo de fornecimento)", 0.0, 20.0,
                                                         PR["turnkey"]["garantia_pct"] * 100, step=0.5, key=k("p_gar")) / 100
-        PR["turnkey"]["garantia_meses"] = int(c2.number_input("Turnkey: garantia (meses)", 0, 120,
+        PR["turnkey"]["garantia_meses"] = int(c2.number_input("Estimativa: garantia (meses)", 0, 120,
                                                               int(PR["turnkey"]["garantia_meses"]), key=k("p_gar_m")))
-        PR["turnkey"]["retencao_aceite"] = c2.number_input(
-            "Turnkey: parcela mínima no aceite (%)", 0.0, 50.0, PR["turnkey"].get("retencao_aceite", 0.10) * 100, step=5.0,
-            key=k("p_ret"), help="Retida até o comissionamento e o termo de aceite.") / 100
         PR["cub"]["valor"] = c3.number_input(f"CUB/m² {PR['cub'].get('padrao', '')} (R$) — 0 = sem referência", 0.0, 1e5,
                                              float(PR["cub"].get("valor") or 0), step=10.0, key=k("p_cub"),
                                              help="Importe ou consulte na aba 10 (SINDUSCON / CBIC).")
@@ -546,119 +676,173 @@ R = RES["opcoes"][ss.op_idx] if RES else None
 
 def tabela_indicadores(resultados):
     linhas = [
+        ("Modalidade", lambda r: "Estimativa interna" if r["interno"] else f"{len(r['fases'])} fase(s)"),
         ("Horas técnicas", lambda r: num_br(r["total_h"])),
         ("Prazo (dias corridos)", lambda r: str(r["prazo_dias_corridos"])),
         ("Custo dos serviços", lambda r: moeda(r["custo_servicos"])),
-        ("Preço — escopo fechado", lambda r: moeda(r["preco_fechado"])),
-        ("Preço — hora técnica (estimado)", lambda r: moeda(r["preco_hora"])),
-        ("Preço — hora técnica (teto)", lambda r: moeda(r["preco_hora_teto"])),
-        ("Preço — % sobre obra", lambda r: moeda(r["preco_fee"]) if r["preco_fee"] is not None else "—"),
+        ("Preço — parcela fixa", lambda r: moeda(r["preco_fixo"])),
+        ("Preço — parcela estimada", lambda r: moeda(r["preco_estimado"])),
+        ("Taxa de desempenho — potencial (fora do preço)", lambda r: moeda(r["potencial_desempenho"]) if r["teto_desempenho"] else "—"),
+        ("Referência: tudo em escopo fechado", lambda r: moeda(r["preco_fechado"])),
         ("Preço mínimo dos serviços (margem zero)", lambda r: moeda(r["preco_minimo_servicos"])),
-        ("Margem efetiva — escopo fechado", lambda r: pct(r["margem_efetiva"]["fechado"])),
+        ("Margem efetiva", lambda r: pct(r["margem_efetiva"])),
         ("R$/h", lambda r: moeda(r["rs_h"]) if r["rs_h"] else "—"),
         ("R$/m²", lambda r: moeda(r["rs_m2"]) if r["rs_m2"] else "—"),
         ("Referência: % do CUB × área", lambda r: moeda(r["ref_cub"]) if r.get("ref_cub") else "—"),
-        ("Modalidade", lambda r: "Turnkey" if r["modalidade"] == "turnkey" else "Serviços"),
-        ("Modelo escolhido", lambda r: MODELOS[r["modelo_preco"]]),
-        ("PREÇO DA PROPOSTA", lambda r: moeda(r["preco"])),
+        ("PREÇO TOTAL", lambda r: moeda(r["preco"])),
     ]
     return pd.DataFrame({"Indicador": [n for n, _ in linhas],
                          **{r["nome"]: [f(r) for _, f in linhas] for r in resultados}})
 
 
+def detalhe_fase(fr):
+    """Cadeia de preço, horas e o que é próprio da cobrança da fase (% da obra, pacote, taxa de desempenho)."""
+    cob = fr["cobranca"]
+    c1, c2 = st.columns([1.1, 1])
+    with c1:
+        st.markdown("**Formação do preço (base: escopo fechado)**")
+        cadeia = [("Mão de obra", fr["custo_mo"]), ("Overhead", fr["overhead"]), ("Custos diretos", fr["diretos_total"]),
+                  ("Custo da fase", fr["custo_servicos"]), (f"Contingência ({pct(fr['cont_pct'])})", fr["contingencia"]),
+                  ("Preço dos serviços — escopo fechado", fr["preco_servicos"]), ("Fornecimentos (com BDI)", fr["preco_fornec"]),
+                  ("Hora técnica (estimado)", fr["preco_hora"]), ("PREÇO DA FASE", fr["preco"])]
+        st.dataframe(pd.DataFrame([{"Item": a, "Valor": moeda(b)} for a, b in cadeia]), hide_index=True, width="stretch")
+        if fr["diretos"]:
+            st.dataframe(pd.DataFrame([{"Custo direto": d["descricao"], "Memória": d["servico_nome"],
+                                        "Valor": moeda(d["valor"])} for d in fr["diretos"]]), hide_index=True, width="stretch")
+    with c2:
+        st.markdown("**Horas por perfil**" + (" (pacote vendido)" if cob == "pacote" else ""))
+        PRf = P["parametros"]["perfis"]
+        st.dataframe(pd.DataFrame([{"Perfil": CAT["perfis"][p], "Horas": num_br(h), "Custo": moeda(h * PRf[p]["custo_h"]),
+                                    "Venda": moeda(h * PRf[p]["taxa_venda_h"])}
+                                   for p, h in fr["horas_perfil"].items() if h > 0]), hide_index=True, width="stretch")
+        if cob == "percentual":
+            hp = fr["percentual"]
+            st.markdown(md(f"**% da obra:** {pct(hp['pct'])} × base {moeda(fr['base'])} ({fr['base_origem']}) → "
+                           f"fixo {moeda(hp['fixo'])} + estimado {moeda(hp['estimado'])}."))
+            if fr["pct_minimo"] is not None:
+                st.caption(f"% mínimo para cobrir o custo (margem zero): {pct(fr['pct_minimo'])} · % que igualaria o escopo "
+                           f"fechado: {pct(fr['pct_equivalente_fechado'])}.")
+        elif cob == "pacote":
+            pk = fr["pacote"]
+            st.markdown(md(f"**Pacote:** {num_br(pk['horas'], 0)} h ({num_br(pk['horas_mes'], 0)} h/mês) × taxa "
+                           f"{moeda(pk['taxa'])}/h (cheia {moeda(pk['taxa_cheia'])}, desconto {pct(pk['desconto'])}) · "
+                           f"{pk['parcelas']} parcela(s) de {moeda(pk['parcela'])} · hora excedente {moeda(pk['taxa_excedente'])}."))
+    if cob == "percentual" and fr["percentual"]["faturamento"] and len(fr["percentual"]["faturamento"]) > 1:
+        dff = pd.DataFrame([{"Mês": m["mes"], "Medição estimada": m["medicao"], "Honorário": m["honorario"]}
+                            for m in fr["percentual"]["faturamento"]])
+        st.markdown("**Faturamento estimado mês a mês** (curva das medições)")
+        st.altair_chart(alt.Chart(dff).mark_bar(color=AZUL).encode(
+            x=alt.X("Mês:O"), y=alt.Y("Honorário:Q", title="Honorário (R$)", axis=alt.Axis(format="~s")),
+            tooltip=["Mês", alt.Tooltip("Medição estimada:Q", format=",.0f"), alt.Tooltip("Honorário:Q", format=",.2f")]
+        ).properties(height=200), width="stretch")
+    if fr["desempenho"]:
+        d = fr["desempenho"]
+        st.markdown("**Taxa de desempenho (simulação; fora do preço)**")
+        st.dataframe(pd.DataFrame([{"Economia": moeda(d["economia"]), "Prazo": moeda(d["prazo"]),
+                                    "Retrabalho": moeda(d["retrabalho"]), "Teto": moeda(d["teto"]),
+                                    "Potencial": moeda(d["potencial"]) + (" (no teto)" if d["limitado"] else "")}]),
+                     hide_index=True, width="stretch")
+
+
 with abas[3]:
     with topo_preco:
+        tem_escopo = R and (R["linhas"] or any(f["cobranca"] == "pacote" for f in R["fases"]))
         if erro_calc:
             st.error(f"Não foi possível calcular: {erro_calc}")
-        elif not R["linhas"]:
+        elif not tem_escopo:
             st.info("Adicione serviços na aba Escopo para ver o preço.")
+        elif R["interno"]:
+            st.subheader(f"Estimativa interna — {O['nome']}")
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Valor global estimado", moeda(R["preco"]))
+            c2.metric("Obra: fornecimentos e execução (com BDI)", moeda(R["valor_obra"]))
+            c3.metric("Serviços incluídos na estimativa", moeda(R["preco_servicos"]))
+            st.caption("Não gera proposta. Vincule-a como base do % da assessoria (fases por % ou pacote) e como CAPEX "
+                       "na aba 9.")
+            detalhe_fase(R["fases"][0])
         else:
             st.subheader(f"Preço — {O['nome']}")
-            c1, c2, c3, c4, c5 = st.columns(5)
-            c1.metric("Preço global (turnkey)" if R["modalidade"] == "turnkey" else "Escopo fechado",
-                      moeda(R["preco_fechado"]))
-            c2.metric("Hora técnica (estimado)", moeda(R["preco_hora"]), help=f"Teto: {moeda(R['preco_hora_teto'])}")
-            c3.metric("% sobre obra", moeda(R["preco_fee"]) if R["preco_fee"] is not None else "sem base")
-            c4.metric("Preço mínimo (margem zero)", moeda(R["preco_minimo_servicos"]))
-            c5.metric("Margem efetiva (fechado)", pct(R["margem_efetiva"]["fechado"]))
-            st.caption(md(f"Modelo usado na proposta: **{MODELOS[R['modelo_preco']]}** → {moeda(R['preco'])}. "
-                       f"{num_br(R['total_h'])} h · {R['prazo_dias_corridos']} dias corridos · "
-                       f"{R['dias_campo']} dia(s) de campo · ART {moeda(R['art'])}."
-                       + (f" Referência pelo CUB: {moeda(R['ref_cub'])}." if R.get("ref_cub") else "")))
-            c1, c2 = st.columns([1.1, 1])
-            with c1:
-                st.markdown("**Formação do preço — escopo fechado**")
-                cadeia = [("Mão de obra", R["custo_mo"]), ("Overhead", R["overhead"]), ("Custos diretos", R["diretos_total"]),
-                          ("Custo dos serviços", R["custo_servicos"]),
-                          (f"Contingência ({pct(R['cont_pct'])})", R["contingencia"]),
-                          (f"Impostos ({pct(R['imp_pct'])})", R["impostos"]), (f"Margem ({pct(R['margem_pct'])})", R["margem"]),
-                          ("Preço dos serviços", R["preco_servicos"]), ("Fornecimentos (com BDI)", R["preco_fornec"]),
-                          ("PREÇO — ESCOPO FECHADO", R["preco_fechado"])]
-                st.dataframe(pd.DataFrame([{"Item": a, "Valor": moeda(b)} for a, b in cadeia]), hide_index=True, width="stretch")
-                if R["diretos"]:
-                    st.markdown("**Custos diretos**")
-                    st.dataframe(pd.DataFrame([{"Descrição": d["descricao"], "Serviço / memória": d["servico_nome"],
-                                                "Qtd": f"{num_br(d['qtd'], 2)} {d['unid']}", "Valor": moeda(d["valor"])}
-                                               for d in R["diretos"]]), hide_index=True, width="stretch")
-            with c2:
-                st.markdown("**Horas por perfil**")
-                PRf = P["parametros"]["perfis"]
-                st.dataframe(pd.DataFrame([{"Perfil": CAT["perfis"][p], "Horas": num_br(h),
-                                            "Custo": moeda(h * PRf[p]["custo_h"]),
-                                            "Venda (hora técnica)": moeda(h * PRf[p]["taxa_venda_h"])}
-                                           for p, h in R["horas_perfil"].items() if h > 0]),
-                             hide_index=True, width="stretch")
-                if R["fee_pct"] > 0 and R["capex_minimo_fee"]:
-                    st.caption(f"Para o modelo % ({pct(R['fee_pct'])}) igualar o escopo fechado, o valor da obra precisaria "
-                               f"ser de pelo menos {moeda(R['capex_minimo_fee'])}.")
-            if len(RES["opcoes"]) > 1:
-                st.markdown("**Comparativo das opções**")
-                st.dataframe(tabela_indicadores(RES["opcoes"]), hide_index=True, width="stretch")
-                dfc = pd.DataFrame([{"Opção": r["nome"], "Modelo": MODELOS[m], "Preço": v}
-                                    for r in RES["opcoes"]
-                                    for m, v in (("fechado", r["preco_fechado"]), ("hora", r["preco_hora"]),
-                                                 ("fee", r["preco_fee"] or 0))])
-                graf = alt.Chart(dfc).mark_bar().encode(
-                    x=alt.X("Opção:N", sort=None, title=None), xOffset="Modelo:N",
-                    y=alt.Y("Preço:Q", title="R$"),
-                    color=alt.Color("Modelo:N", scale=alt.Scale(range=[AZUL, COBRE, GRAFITE]), legend=alt.Legend(orient="bottom")),
-                    tooltip=["Opção", "Modelo", alt.Tooltip("Preço:Q", format=",.2f")]).properties(height=280)
-                st.altair_chart(graf, width="stretch")
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("Preço total", moeda(R["preco"]), help="Parcela fixa + parcela estimada")
+            c2.metric("Parcela fixa", moeda(R["preco_fixo"]))
+            c3.metric("Parcela estimada", moeda(R["preco_estimado"]), help="Hora técnica e % sobre as medições da obra")
+            c4.metric("Margem efetiva", pct(R["margem_efetiva"]))
+            if R["teto_desempenho"]:
+                st.caption(md(f"Taxa de desempenho (variável, fora do preço): potencial {moeda(R['potencial_desempenho'])} "
+                              f"no cenário simulado, teto {moeda(R['teto_desempenho'])}."))
+            st.dataframe(pd.DataFrame([{
+                "Fase": f"{n}. {f['nome']}", "Cobrança": COBRANCAS[f["cobranca"]], "Preço": moeda(f["preco"]),
+                "Fixo": moeda(f["preco_fixo"]), "Estimado": moeda(f["preco_estimado"]), "Custo": moeda(f["custo_servicos"]),
+                "Margem efetiva": pct(f["margem_efetiva"]), "Horas": num_br(f["total_h"]), "Prazo (dias)": sum(
+                    e["dias_corridos"] for e in R["cronograma"] if e["fase"] == f["id"])}
+                for n, f in enumerate(R["fases"], 1)]), hide_index=True, width="stretch")
+            st.caption(md(f"{num_br(R['total_h'])} h · {R['prazo_dias_corridos']} dias corridos · ART {moeda(R['art'])} "
+                          f"(uma por fase) · referência: tudo em escopo fechado {moeda(R['preco_fechado'])}."
+                          + (f" Referência pelo CUB: {moeda(R['ref_cub'])}." if R.get("ref_cub") else "")))
+            nomes_f = {f["id"]: f"{n}. {f['nome']} · {COBRANCAS[f['cobranca']]}" for n, f in enumerate(R["fases"], 1)}
+            fsel = st.selectbox("Detalhar a fase", list(nomes_f), format_func=nomes_f.get, key=k("det_fase", O["id"]))
+            detalhe_fase(next(f for f in R["fases"] if f["id"] == fsel))
+        if RES and len(RES["opcoes"]) > 1 and not erro_calc:
+            st.markdown("**Comparativo das opções**")
+            st.dataframe(tabela_indicadores(RES["opcoes"]), hide_index=True, width="stretch")
+            dfc = pd.DataFrame([{"Opção": r["nome"], "Fase": f"{n}. {f['nome']}", "Preço": f["preco"]}
+                                for r in RES["opcoes"] if not r["interno"] for n, f in enumerate(r["fases"], 1)])
+            if not dfc.empty:
+                st.altair_chart(alt.Chart(dfc).mark_bar().encode(
+                    x=alt.X("Opção:N", sort=None, title=None, axis=alt.Axis(labelAngle=0, labelLimit=320)),
+                    y=alt.Y("Preço:Q", title="R$", stack=True, axis=alt.Axis(format="~s")),
+                    color=alt.Color("Fase:N", legend=alt.Legend(orient="bottom", labelLimit=320)),
+                    tooltip=["Opção", "Fase", alt.Tooltip("Preço:Q", format=",.2f")]).properties(height=280), width="stretch")
 
 # ----------------------------------------------------------------------------- 5 prazo e pagamento
 with abas[4]:
-    if R and R["linhas"]:
+    if R and (R["linhas"] or any(f["cobranca"] == "pacote" for f in R["fases"])):
         st.subheader(f"Cronograma — {O['nome']}")
-        dfg = pd.DataFrame([{"Etapa": e["rotulo"], "Início": e["inicio"], "Fim": e["fim"] + 1, "Horas": round(e["horas"], 1),
+        varias_f = len(R["fases"]) > 1
+        num_f = {f["id"]: n for n, f in enumerate(R["fases"], 1)}
+        dfg = pd.DataFrame([{"Etapa": (f"F{num_f[e['fase']]} · " if varias_f else "") + e["rotulo"],
+                             "Início": e["inicio"], "Fim": e["fim"] + 1, "Horas": round(e["horas"], 1),
                              "Dias úteis": e["dias_uteis"], "Dias corridos": e["dias_corridos"], "Marco": e["marco"]}
                             for e in R["cronograma"]])
         graf = alt.Chart(dfg).mark_bar(color=AZUL, cornerRadius=2).encode(
             x=alt.X("Início:Q", title="Dia útil"), x2="Fim:Q",
-            y=alt.Y("Etapa:N", sort=None, title=None, axis=alt.Axis(labelLimit=320)),
+            y=alt.Y("Etapa:N", sort=None, title=None, axis=alt.Axis(labelLimit=360)),
             tooltip=["Etapa", "Dias úteis", "Horas", "Marco"]).properties(height=36 * len(dfg) + 40)
         st.altair_chart(graf, width="stretch")
         st.dataframe(dfg.drop(columns=["Fim"]), hide_index=True, width="stretch")
-        st.caption(f"Prazo total: {R['prazo_dias_uteis']} dias úteis ≈ {R['prazo_dias_corridos']} dias corridos. "
-                   "Dias úteis = horas da etapa ÷ (8 h × equipe); etapas em sequência.")
-        st.subheader("Forma de pagamento")
-        dpg = pd.DataFrame([{"marco": m["marco"], "pct": round(m["pct"] * 100, 2)} for m in R["pagamento"]])
-        edg = st.data_editor(dpg, num_rows="dynamic", width="stretch", key=k("pag", O["id"]),
-                             column_config={"marco": st.column_config.TextColumn("Marco (texto da proposta)", width="large"),
-                                            "pct": st.column_config.NumberColumn("%", min_value=0.0, max_value=100.0, format="%.1f")})
-        novos = [{"marco": str(r["marco"]).strip(), "pct": round(float(r["pct"] or 0) / 100, 4)}
-                 for _, r in edg.iterrows() if str(r.get("marco") or "").strip()]
-        padrao_pg = [{"marco": m["marco"], "pct": round(m["pct"], 4)} for m in R["pagamento"]]
-        if novos != padrao_pg:
-            O["pagamento"] = novos
-        soma = sum(m["pct"] for m in novos)
-        c1, c2 = st.columns([3, 1])
-        if abs(soma - 1) > 0.001:
-            c1.error(f"As parcelas somam {pct(soma)}; precisam somar 100%.")
+        st.caption(f"Prazo total: {R['prazo_dias_uteis']} dias úteis ≈ {R['prazo_dias_corridos']} dias corridos. Fases em "
+                   "sequência; dias úteis = horas da etapa ÷ (8 h × equipe); fases de obra duram os meses da obra.")
+        if R["interno"]:
+            st.info("Estimativa interna: não tem forma de pagamento (não gera proposta).")
         else:
-            c1.success(md("Parcelas somam 100%. " + " · ".join(f"{pct(m['pct'])}: {moeda(m['pct'] * R['preco'])}" for m in novos)))
-        if c2.button("Recalcular parcelas padrão"):
-            O["pagamento"] = []
-            estrutura_mudou()
+            cfg_f = {f["id"]: f for f in O["fases"]}
+            for n, fr in enumerate(R["fases"], 1):
+                st.subheader(f"Pagamento — Fase {n}: {fr['nome']}" if varias_f else "Forma de pagamento")
+                fz = cfg_f[fr["id"]]
+                if fr["cobranca"] in ("percentual", "pacote"):
+                    for m in fr["pagamento"]:
+                        st.markdown(f"- {pct(m['pct'])} {m['marco']}")
+                    st.caption("Condição definida pela forma de cobrança (configure na aba Preço).")
+                    continue
+                dpg = pd.DataFrame([{"marco": m["marco"], "pct": round(m["pct"] * 100, 2)} for m in fr["pagamento"]])
+                edg = st.data_editor(dpg, num_rows="dynamic", width="stretch", key=k("pag", O["id"], fr["id"]),
+                                     column_config={"marco": st.column_config.TextColumn("Marco (texto da proposta)", width="large"),
+                                                    "pct": st.column_config.NumberColumn("%", min_value=0.0, max_value=100.0, format="%.1f")})
+                novos = [{"marco": str(r["marco"]).strip(), "pct": round(float(r["pct"] or 0) / 100, 4)}
+                         for _, r in edg.iterrows() if str(r.get("marco") or "").strip()]
+                padrao_pg = [{"marco": m["marco"], "pct": round(m["pct"], 4)} for m in fr["pagamento"]]
+                if novos != padrao_pg:
+                    fz["pagamento"] = novos
+                soma = sum(m["pct"] for m in novos)
+                c1, c2 = st.columns([3, 1])
+                if abs(soma - 1) > 0.001:
+                    c1.error(f"As parcelas somam {pct(soma)}; precisam somar 100%.")
+                else:
+                    c1.success(md("Parcelas somam 100%. " + " · ".join(f"{pct(m['pct'])}: {moeda(m['pct'] * fr['preco'])}"
+                                                                        for m in novos)))
+                if c2.button("Recalcular parcelas padrão", key=k("pag_padrao", O["id"], fr["id"])):
+                    fz["pagamento"] = []
+                    estrutura_mudou()
     else:
         st.info("Adicione serviços na aba Escopo para ver o cronograma.")
 
@@ -668,7 +852,7 @@ with abas[5]:
     if RES:
         for av in RES["avisos"]:
             st.warning(av)
-    pronto = RES and any(r["linhas"] for r in RES["opcoes"])
+    pronto = RES and any(r["linhas"] or any(f["cobranca"] == "pacote" for f in r["fases"]) for r in RES["opcoes"])
     if not pronto:
         st.info("Adicione serviços para exportar.")
     else:
@@ -685,7 +869,8 @@ with abas[5]:
             xlsx, nome_x = arquivos["xlsx"]
             st.download_button(f"📊 {nome_x}", xlsx, file_name=nome_x,
                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-            st.caption("Planilha com fórmulas vivas: todas as opções, parâmetros, fornecimentos, cronograma e pagamento.")
+            st.caption("Planilha com fórmulas vivas: preço por fase de todas as opções (inclusive a estimativa interna), "
+                       "parâmetros, fornecimentos, cronograma e pagamento. A estimativa interna não gera proposta DOCX.")
             for conteudo, nome, pend in arquivos["docx"]:
                 st.download_button(f"📄 {nome}", conteudo, file_name=nome,
                                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
@@ -859,7 +1044,7 @@ with abas[8]:
     VB = P["viabilidade"]
     st.subheader("Estudo de viabilidade — breakeven, payback, VPL e TIR")
     st.caption("Compara alternativas de intervenção com o sistema atual e com o projeto original. O CAPEX de uma "
-               "alternativa pode vir do preço de uma opção desta proposta (por exemplo, o turnkey) mais um extra. "
+               "alternativa pode vir do preço de uma opção desta proposta (por exemplo, a estimativa interna do valor global da obra) mais um extra. "
                "Breakeven: quando as contas empatam (economia acumulada = CAPEX). Payback: quando o projeto se paga, "
                "com a economia descontada pela TMA.")
     VB["titulo"] = st.text_input("Título do estudo", VB["titulo"], key=k("v_tit"))

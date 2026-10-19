@@ -39,8 +39,8 @@ def test_cadeia_de_preco_fecha_exatamente(cat, params):
     imp = pm.aliquota_impostos(params)
     honor = sum(r["horas_perfil"][k] * params["perfis"][k]["taxa_venda_h"] for k in cat["perfis"])
     assert r["preco_hora"] == pytest.approx(honor + r["diretos_total"] * (1 + params["reembolsaveis_adm"]) / (1 - imp))
-    assert r["preco_fee"] is None
-    assert r["margem_efetiva"]["fechado"] == pytest.approx(
+    assert r["preco"] == pytest.approx(r["preco_fechado"])
+    assert r["margem_efetiva"] == pytest.approx(
         (r["preco_servicos"] * (1 - imp) - r["custo_servicos"]) / r["preco_servicos"])
 
 
@@ -50,17 +50,21 @@ def test_impostos_lucro_presumido_e_simples(params):
     assert pm.aliquota_impostos(simples) == pytest.approx(0.112)
 
 
-def test_fornecimento_com_bdi_e_fee(cat, params):
+def test_fornecimento_com_bdi_e_percentual(cat, params):
     p = _proposta(params, cat, ("geral.gestao_obra", {}))
     o = p["opcoes"][0]
     o["fornecimentos"] = [{"descricao": "Condensadora", "categoria": "equipamento", "unid": "un", "qtd": 2, "custo_unit": 10000.0}]
-    o["fee_pct"] = 0.08
     r = motor.precificar(cat, p)["opcoes"][0]
     bdi = params["bdi_fornecimento"]["equipamento"]
-    assert r["preco_fornec"] == pytest.approx(20000 * (1 + bdi))
+    assert r["preco_fornec"] == pytest.approx(20000 * (1 + bdi))      # sem fase: fica na primeira
     assert r["preco_fechado"] == pytest.approx(r["preco_servicos"] + r["preco_fornec"])
-    assert r["fee_base"] == pytest.approx(20000)
-    assert r["preco_fee"] == pytest.approx(0.08 * 20000 + r["preco_fornec"])
+    f = o["fases"][0]
+    f["cobranca"] = "percentual"
+    f["percentual"].update(pct=0.08, forma="fixo_global")
+    f["obra"].update(base_modo="fornecimentos", meses=0)
+    r = motor.precificar(cat, p)["opcoes"][0]
+    assert r["fases"][0]["base"] == pytest.approx(20000)
+    assert r["preco"] == pytest.approx(0.08 * 20000 + r["preco_fornec"])
 
 
 def test_deslocamento_por_faixa(params):
@@ -81,8 +85,9 @@ def test_cronograma_e_pagamento(cat, params):
         assert b["inicio"] == a["fim"] + 1
     for e in cr:
         assert e["dias_uteis"] == max(1, math.ceil(e["horas"] / (8 * params["cronograma"]["equipe"])))
-    assert sum(m["pct"] for m in r["pagamento"]) == pytest.approx(1)
-    assert r["pagamento"][0]["pct"] == params["pagamento"]["sinal"]
+    pag = r["fases"][0]["pagamento"]
+    assert sum(m["pct"] for m in pag) == pytest.approx(1)
+    assert pag[0]["pct"] == params["pagamento"]["sinal"]
 
 
 def test_aviso_de_visto_fora_de_rj_sp(cat, params):
@@ -106,7 +111,10 @@ def test_exemplos_precificam(caminho, cat, params):
     res = motor.precificar(cat, p)
     for r in res["opcoes"]:
         assert r["linhas"] and r["preco"] > 0
-        assert sum(m["pct"] for m in r["pagamento"]) == pytest.approx(1)
+        for f in r["fases"]:
+            assert f["preco"] > 0
+            if not r["interno"]:
+                assert sum(m["pct"] for m in f["pagamento"]) == pytest.approx(1)
 
 
 def test_calibracao_nao_acumula(cat, params, tmp_path):

@@ -5836,6 +5836,139 @@
    "normas": []
   },
   {
+   "id": "geral.planejamento_obra",
+   "disciplina": "Geral",
+   "tipo": "obra",
+   "nome": "Planejamento e controle da obra (assessoria ao contratante)",
+   "descricao": "Planejamento físico-financeiro, conferência das medições e notas, relatórios de prazo e custo e controle de mudanças, do lado do contratante (base para o % sobre as medições e para a taxa de desempenho).",
+   "dados": [
+    {
+     "id": "meses",
+     "rotulo": "Duração da obra",
+     "tipo": "int",
+     "padrao": 4,
+     "unidade": "meses",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "medicoes_mes",
+     "rotulo": "Medições por mês",
+     "tipo": "int",
+     "padrao": 1,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "frentes",
+     "rotulo": "Frentes / contratos acompanhados",
+     "tipo": "int",
+     "padrao": 1,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "planejamento",
+     "nome": "Planejamento inicial: cronograma físico-financeiro, curva S e linha de base de custo e prazo",
+     "entregavel": "Cronograma físico-financeiro e linha de base",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 6,
+      "PL": 10
+     },
+     "unid": {},
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "medicoes",
+     "nome": "Conferência das medições e das notas fiscais da obra",
+     "entregavel": "Boletins de medição conferidos",
+     "etapa": "obra",
+     "driver": "meses*medicoes_mes*frentes",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 3,
+      "TC": 2
+     },
+     "fatores": [
+      "complexidade"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "controle",
+     "nome": "Relatórios de avanço, prazo, custo e retrabalho",
+     "entregavel": "Relatórios mensais de desempenho",
+     "etapa": "obra",
+     "driver": "meses*frentes",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 4,
+      "SR": 1
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "mudancas",
+     "nome": "Controle de mudanças, pleitos e aditivos",
+     "entregavel": "Registro de mudanças com parecer",
+     "etapa": "obra",
+     "driver": "meses*frentes",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "SR": 2
+     },
+     "fatores": [
+      "complexidade"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "encerramento",
+     "nome": "Encerramento: balanço final de custo e prazo e apuração da taxa de desempenho",
+     "entregavel": "Relatório final de desempenho",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 4,
+      "PL": 4
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    "Execução da obra, fornecimento de materiais e gestão do canteiro, que permanecem com o executor."
+   ],
+   "premissas": [
+    "O contratante encaminhará as medições e as notas fiscais da obra em até 5 dias do fechamento de cada medição.",
+    "A linha de base de custo e prazo é a aprovada pelo contratante no planejamento inicial."
+   ],
+   "normas": []
+  },
+  {
    "id": "geral.gestao_obra",
    "disciplina": "Geral",
    "tipo": "obra",

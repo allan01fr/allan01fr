@@ -34,10 +34,17 @@ def main(argv=None):
     res = motor.precificar(cat, p)
     os.makedirs(a.saida, exist_ok=True)
 
+    m = exportar_docx.moeda
     for r in res["opcoes"]:
-        print(f"{r['nome']}: {r['total_h']:.1f} h · {r['prazo_dias_corridos']} dias corridos · "
-              f"fechado {exportar_docx.moeda(r['preco_fechado'])} · hora {exportar_docx.moeda(r['preco_hora'])} · "
-              f"proposta ({r['modelo_preco']}) {exportar_docx.moeda(r['preco'])}")
+        if r["interno"]:
+            print(f"{r['nome']} (estimativa interna): valor global {m(r['preco'])} · obra (fornecimentos e execução) "
+                  f"{m(r['valor_obra'])}")
+            continue
+        print(f"{r['nome']}: {r['total_h']:.1f} h · {r['prazo_dias_corridos']} dias corridos · fixo {m(r['preco_fixo'])} "
+              f"+ estimado {m(r['preco_estimado'])} = {m(r['preco'])}")
+        for f in r["fases"]:
+            extra = f" · taxa de desempenho até {m(f['desempenho']['teto'])}" if f["desempenho"] else ""
+            print(f"  {f['nome']} ({motor.ROTULO_COBRANCA[f['cobranca']]}): {m(f['preco'])}{extra}")
     for av in res["avisos"]:
         print("AVISO:", av)
 

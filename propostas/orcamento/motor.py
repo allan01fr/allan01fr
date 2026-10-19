@@ -11,6 +11,12 @@ Escopo fechado:
     preço dos serviços = (MO + overhead + diretos) × (1 + contingência) ÷ (1 − impostos − margem)
     preço total        = preço dos serviços + Σ fornecimentos × (1 + BDI da categoria)
 
+A opção da proposta é uma sequência de fases (ex.: laudo, estudo de viabilidade, projeto,
+assessoria de obra), cada uma com a sua cobrança: escopo fechado, hora técnica, % da obra ou
+pacote de horas (cobranca.py). Cada fase é precificada sozinha, com a sua ART, porque pode ser
+contratada separadamente. A opção "estimativa" é o valor global da obra, interno: base do % da
+assessoria e do CAPEX da viabilidade.
+
 A planilha exportada repete estas mesmas contas em fórmulas; os testes conferem
 que as duas dão o mesmo resultado.
 """
@@ -18,6 +24,7 @@ que as duas dão o mesmo resultado.
 import math
 
 from . import catalogo as ct
+from . import cobranca as cb
 from . import expressao
 from . import parametros as pm
 
@@ -119,12 +126,13 @@ def valor_art(params, valor_contrato):
     return float(art["faixas"][-1]["valor"])
 
 
-def eh_turnkey(opcao):
-    return opcao.get("modalidade") == "turnkey"
+def eh_estimativa(opcao):
+    return opcao.get("modalidade") == "estimativa"
 
 
 def checklist_turnkey(cat, opcao):
-    """Etapas do turnkey: atendida, dispensada (a cargo do contratante), opcional ou faltando."""
+    """Etapas da obra completa consideradas na estimativa do valor global: atendida, dispensada
+    (fora da estimativa), opcional ou faltando."""
     tipos = {ct.servico(cat, it["servico"])["tipo"] for it in opcao["itens"]}
     sids = {it["servico"] for it in opcao["itens"]}
     cats = {f["categoria"] for f in opcao.get("fornecimentos", [])
@@ -146,22 +154,28 @@ def checklist_turnkey(cat, opcao):
     return saida
 
 
-def _fornecimentos(params, opcao):
+def _fornecimentos(params, fornecimentos):
     fornec = []
-    for f in opcao.get("fornecimentos", []):
+    for f in fornecimentos:
         custo = float(f.get("qtd", 0) or 0) * float(f.get("custo_unit", 0) or 0)
         bdi = float(params["bdi_fornecimento"][f["categoria"]])
         fornec.append({**f, "custo": custo, "bdi": bdi, "preco": custo * (1 + bdi)})
     return fornec
 
 
-def precificar_opcao(cat, proposta, opcao):
+def _overhead(params, custo_mo, total_h):
+    if params["overhead"]["metodo"] == "hora":
+        return total_h * pm.overhead_por_hora(params)
+    return custo_mo * float(params["overhead"]["pct"])
+
+
+def _custos(cat, proposta, opcao, indices, fornecimentos, garantia=False, com_art=True):
+    """Horas, custos diretos e cadeia de preço de um conjunto de serviços (uma fase ou a estimativa)."""
     params = proposta["parametros"]
     perfis = list(cat["perfis"])
-    turnkey = eh_turnkey(opcao)
     linhas, diretos_base = [], []
-    for i, it in enumerate(opcao["itens"]):
-        li, di = linhas_item(cat, proposta, it, i)
+    for i in indices:
+        li, di = linhas_item(cat, proposta, opcao["itens"][i], i)
         linhas += li
         diretos_base += di
 
@@ -171,10 +185,10 @@ def precificar_opcao(cat, proposta, opcao):
         diretos_base.append({"item": None, "descricao": "Deslocamento", "servico_nome": memoria,
                              "unid": "vb", "qtd": 1.0, "valor_unit": v_desl, "valor": v_desl})
 
-    fornec = _fornecimentos(params, opcao)
+    fornec = _fornecimentos(params, fornecimentos)
     custo_fornec = sum(f["custo"] for f in fornec)
     preco_fornec = sum(f["preco"] for f in fornec)
-    if turnkey and custo_fornec > 0 and params["turnkey"]["garantia_pct"] > 0:
+    if garantia and custo_fornec > 0 and params["turnkey"]["garantia_pct"] > 0:
         g = params["turnkey"]
         diretos_base.append({"item": None, "descricao": "Provisão de garantia", "garantia": True,
                              "servico_nome": f"{g['garantia_pct']:.1%} do custo de fornecimento e execução · "
@@ -189,10 +203,7 @@ def precificar_opcao(cat, proposta, opcao):
     for l in linhas:
         l["custo_mo"] = sum(l["horas"][p] * custo_h[p] for p in perfis)
     custo_mo = sum(horas_perfil[p] * custo_h[p] for p in perfis)
-    if params["overhead"]["metodo"] == "hora":
-        overhead = total_h * pm.overhead_por_hora(params)
-    else:
-        overhead = custo_mo * float(params["overhead"]["pct"])
+    overhead = _overhead(params, custo_mo, total_h)
 
     risco = proposta["contexto"]["risco"]
     cont_pct = float(params["contingencia"][risco])
@@ -204,7 +215,7 @@ def precificar_opcao(cat, proposta, opcao):
 
     def cadeia(art):
         diretos = list(diretos_base)
-        if opcao["itens"] and art > 0:
+        if com_art and art > 0:
             diretos.append({"item": None, "descricao": "Taxa de ART junto ao CREA", "servico_nome": "",
                             "unid": "un", "qtd": 1.0, "valor_unit": art, "valor": art})
         diretos_total = sum(d["valor"] for d in diretos)
@@ -224,56 +235,175 @@ def precificar_opcao(cat, proposta, opcao):
 
     honorarios_hora = sum(horas_perfil[p] * taxa_h[p] for p in perfis)
     reembolso = diretos_total * (1 + float(params["reembolsaveis_adm"])) / (1 - imp)
-    fee_base = float(opcao.get("fee_base") or 0) or custo_fornec
-    fee_pct = float(opcao.get("fee_pct") or 0)
-    fee_honorarios = fee_pct * fee_base
-
-    def margem_efetiva(preco):
-        return (preco * (1 - imp) - custo_servicos) / preco if preco > 0 else None
-
-    area = float(proposta["contexto"].get("area_ref", 0) or 0)
-    cub = params.get("cub", {})
-    ref_cub = (float(cub.get("pct_honorarios") or 0) * float(cub.get("valor") or 0) * area
-               if float(cub.get("valor") or 0) > 0 and area > 0 else None)
-    preco_fechado = preco_servicos + preco_fornec
     return {
-        "id": opcao["id"], "nome": opcao["nome"],
-        "modalidade": "turnkey" if turnkey else "servicos",
-        "modelo_preco": "fechado" if turnkey else opcao.get("modelo_preco", "fechado"),
         "linhas": linhas, "diretos": diretos, "fornecimentos": fornec,
-        "horas_perfil": horas_perfil, "total_h": total_h, "dias_campo": dias, "art": art,
+        "horas_perfil": horas_perfil, "total_h": total_h, "dias_campo": dias, "art": art if com_art else 0.0,
+        "custo_h": custo_h, "taxa_h": taxa_h,
         "custo_mo": custo_mo, "overhead": overhead, "diretos_total": diretos_total,
         "custo_servicos": custo_servicos, "cont_pct": cont_pct, "contingencia": contingencia,
         "imp_pct": imp, "margem_pct": margem,
         "preco_servicos": preco_servicos, "impostos": preco_servicos * imp, "margem": preco_servicos * margem,
         "custo_fornec": custo_fornec, "preco_fornec": preco_fornec,
-        "preco_fechado": preco_fechado,
+        "preco_fechado": preco_servicos + preco_fornec,
         "honorarios_hora": honorarios_hora, "reembolso": reembolso,
         "preco_hora": honorarios_hora + reembolso + preco_fornec,
         "preco_hora_teto": honorarios_hora * (1 + cont_pct) + reembolso + preco_fornec,
-        "fee_pct": fee_pct, "fee_base": fee_base, "fee_honorarios": fee_honorarios,
-        "preco_fee": (fee_honorarios + preco_fornec) if fee_base > 0 else None,
         "preco_minimo_servicos": custo_servicos / (1 - imp),
-        "margem_efetiva": {
-            "fechado": margem_efetiva(preco_servicos),
-            "hora": margem_efetiva(honorarios_hora + reembolso),
-            "fee": margem_efetiva(fee_honorarios) if fee_base > 0 else None,
-        },
-        "capex_minimo_fee": (preco_servicos / fee_pct) if fee_pct > 0 else None,
-        "ref_cub": ref_cub,
-        "rs_h": preco_servicos / total_h if total_h > 0 else None,
-        "rs_m2": preco_fechado / area if area > 0 else None,
-        "checklist_turnkey": checklist_turnkey(cat, opcao) if turnkey else [],
     }
 
 
-def preco_escolhido(res):
-    """Preço da opção no modelo escolhido; turnkey é sempre preço global (escopo fechado)."""
-    if res["modelo_preco"] == "hora":
-        return res["preco_hora"]
-    if res["modelo_preco"] == "fee" and res["preco_fee"] is not None:
-        return res["preco_fee"]
-    return res["preco_fechado"]
+def _margem_efetiva(honorarios, custo, imp):
+    return (honorarios * (1 - imp) - custo) / honorarios if honorarios > 0 else None
+
+
+def base_obra(fase, res_fase, estimativas):
+    """Valor global da obra que serve de base ao % e à taxa de desempenho. Devolve (valor, origem)."""
+    ob = fase["obra"]
+    if ob.get("base_modo") == "opcao":
+        e = (estimativas or {}).get(ob.get("base_opcao"))
+        if e is None:
+            return 0.0, f"estimativa {ob.get('base_opcao') or '—'} não encontrada"
+        if ob.get("base_parte") == "global":
+            return e["preco_fechado"], f"preço global da estimativa {e['id']}"
+        return e["preco_fornec"], f"fornecimentos e execução da estimativa {e['id']}"
+    if ob.get("base_modo") == "fornecimentos":
+        return res_fase["custo_fornec"], "custo dos fornecimentos da fase"
+    return float(ob.get("base_valor") or 0), "valor informado"
+
+
+def _etapa_obra(fase, meses):
+    return [{"etapa": "obra", "rotulo": f"{fase['nome']} — durante a obra ({meses} meses)",
+             "marco": "Conclusão da obra e relatório final", "campo": True, "horas": 0.0, "meses": meses,
+             "dias_uteis": 21 * meses, "dias_corridos": 30 * meses, "inicio": 1, "fim": 21 * meses}]
+
+
+def precificar_fase(cat, proposta, opcao, fase, estimativas=None):
+    params = proposta["parametros"]
+    estimativa = eh_estimativa(opcao)
+    cob = "fechado" if estimativa else fase["cobranca"]      # o valor global da obra é sempre um preço fechado
+    if estimativa:   # a estimativa considera todos os serviços e fornecimentos da opção
+        idx, forn = list(range(len(opcao["itens"]))), opcao["fornecimentos"]
+    else:   # sem fase válida (arquivo feito à mão), o serviço ou fornecimento fica na primeira fase
+        ids = [f["id"] for f in opcao["fases"]]
+
+        def da_fase(x):
+            return (x.get("fase") if x.get("fase") in ids else ids[0]) == fase["id"]
+        idx = [i for i, it in enumerate(opcao["itens"]) if da_fase(it)]
+        forn = [f for f in opcao["fornecimentos"] if da_fase(f)]
+    r = _custos(cat, proposta, opcao, idx, forn, garantia=estimativa,
+                com_art=bool(idx) or cob in ("percentual", "pacote"))
+    r.update({"id": fase["id"], "nome": fase["nome"], "cobranca": cob, "servicos": idx,
+              "horas_servicos": dict(r["horas_perfil"]), "desempenho": None})
+    imp = r["imp_pct"]
+    meses = None
+    if cob == "hora":
+        honorarios = r["honorarios_hora"] + r["reembolso"]
+        r.update(preco=r["preco_hora"], preco_fixo=0.0, preco_estimado=r["preco_hora"])
+    elif cob == "percentual":
+        base, origem = base_obra(fase, r, estimativas)
+        meses = int(fase["obra"].get("meses") or 0)      # 0 = prazo pelas horas dos serviços (% sem obra acompanhada)
+        hp = cb.honorario_percentual(fase["percentual"], base, max(1, meses), fase["obra"].get("curva", "s"))
+        honorarios = hp["total"]
+        r.update(percentual=hp, base=base, base_origem=origem,
+                 preco=honorarios + r["preco_fornec"], preco_fixo=hp["fixo"] + r["preco_fornec"], preco_estimado=hp["estimado"],
+                 pct_minimo=r["preco_minimo_servicos"] / base if base > 0 else None,
+                 pct_equivalente_fechado=r["preco_servicos"] / base if base > 0 else None)
+    elif cob == "pacote":
+        pk = cb.pacote(fase["pacote"], r["horas_servicos"], params["cobranca"]["pacote"]["mix_padrao"],
+                       r["custo_h"], r["taxa_h"])
+        meses = pk["meses"]
+        # o custo do pacote é o das horas vendidas, não o das horas estimadas para os serviços
+        custo_mo = sum(pk["horas_perfil"][p] * r["custo_h"][p] for p in pk["horas_perfil"])
+        overhead = _overhead(params, custo_mo, pk["horas"])
+        honorarios = pk["honorarios"] + r["reembolso"]
+        pk["parcela"] = (pk["honorarios"] + r["reembolso"]) / pk["parcelas"]      # o cliente paga o pacote inteiro
+        r.update(pacote=pk, horas_perfil=pk["horas_perfil"], total_h=pk["horas"], custo_mo=custo_mo, overhead=overhead,
+                 custo_servicos=custo_mo + overhead + r["diretos_total"],
+                 preco=honorarios + r["preco_fornec"], preco_fixo=honorarios + r["preco_fornec"], preco_estimado=0.0)
+        r["preco_minimo_servicos"] = r["custo_servicos"] / (1 - imp)
+        r["base"], r["base_origem"] = base_obra(fase, r, estimativas)
+    else:
+        honorarios = r["preco_servicos"]
+        r.update(preco=r["preco_fechado"], preco_fixo=r["preco_fechado"], preco_estimado=0.0)
+    r["honorarios"] = honorarios
+    r["margem_efetiva"] = _margem_efetiva(honorarios, r["custo_servicos"], imp)
+
+    de = fase.get("desempenho") or {}
+    if cob in ("percentual", "pacote") and de.get("ativo"):
+        r["desempenho"] = cb.taxa_desempenho(de, honorarios, r.get("base", 0.0))
+
+    if meses:
+        r["cronograma"] = _etapa_obra(fase, meses)
+    else:
+        r["cronograma"] = cronograma(cat, proposta, opcao, r)
+    for e in r["cronograma"]:
+        e["fase"] = fase["id"]
+    if fase.get("pagamento") and cob in ("fechado", "hora"):
+        r["pagamento"] = fase["pagamento"]
+    elif cob == "percentual":
+        r["pagamento"] = cb.marcos_percentual(r["percentual"])
+    elif cob == "pacote":
+        r["pagamento"] = cb.marcos_pacote(r["pacote"])
+    elif cob == "hora":
+        r["pagamento"] = [{"marco": "mensalmente, conforme as horas apontadas em relatório e os reembolsáveis comprovados, "
+                                    "contra apresentação de nota fiscal", "pct": 1.0}]
+    elif estimativa:
+        r["pagamento"] = []
+    else:
+        r["pagamento"] = pagamento_padrao(proposta, r["cronograma"], r)
+    return r
+
+
+SOMAS = ("total_h", "dias_campo", "art", "custo_mo", "overhead", "diretos_total", "custo_servicos", "contingencia",
+         "preco_servicos", "impostos", "margem", "custo_fornec", "preco_fornec", "preco_fechado", "honorarios_hora",
+         "reembolso", "preco_hora", "preco_hora_teto", "preco_minimo_servicos", "honorarios", "preco", "preco_fixo",
+         "preco_estimado")
+
+
+def precificar_opcao(cat, proposta, opcao, estimativas=None):
+    params = proposta["parametros"]
+    perfis = list(cat["perfis"])
+    estimativa = eh_estimativa(opcao)
+    fases_cfg = opcao["fases"][:1] if estimativa else opcao["fases"]
+    fases = [precificar_fase(cat, proposta, opcao, f, estimativas) for f in fases_cfg]
+    res = {k: sum(f[k] for f in fases) for k in SOMAS}
+    # cronograma: as fases correm em sequência
+    cron, inicio = [], 1
+    for f in fases:
+        for e in f["cronograma"]:
+            e["inicio"], e["fim"] = inicio, inicio + e["dias_uteis"] - 1
+            inicio += e["dias_uteis"]
+            cron.append(e)
+    imp = pm.aliquota_impostos(params)
+    area = float(proposta["contexto"].get("area_ref", 0) or 0)
+    cub = params.get("cub", {})
+    ref_cub = (float(cub.get("pct_honorarios") or 0) * float(cub.get("valor") or 0) * area
+               if float(cub.get("valor") or 0) > 0 and area > 0 else None)
+    desemp = [f["desempenho"] for f in fases if f["desempenho"]]
+    res.update({
+        "id": opcao["id"], "nome": opcao["nome"],
+        "modalidade": "estimativa" if estimativa else "fases", "interno": estimativa,
+        "fases": fases,
+        "linhas": [l for f in fases for l in f["linhas"]],
+        "diretos": [d for f in fases for d in f["diretos"]],
+        "fornecimentos": [x for f in fases for x in f["fornecimentos"]],
+        "horas_perfil": {p: sum(f["horas_perfil"].get(p, 0) for f in fases) for p in perfis},
+        "imp_pct": imp, "margem_pct": float(params["margem"]),
+        "cont_pct": float(params["contingencia"][proposta["contexto"]["risco"]]),
+        "margem_efetiva": _margem_efetiva(res["honorarios"], res["custo_servicos"], imp),
+        "potencial_desempenho": sum(d["potencial"] for d in desemp),
+        "teto_desempenho": sum(d["teto"] for d in desemp),
+        "cronograma": cron,
+        "prazo_dias_uteis": sum(e["dias_uteis"] for e in cron),
+        "prazo_dias_corridos": sum(e["dias_corridos"] for e in cron),
+        "ref_cub": ref_cub,
+        "rs_h": res["preco_servicos"] / res["total_h"] if res["total_h"] > 0 else None,
+        "rs_m2": res["preco"] / area if area > 0 else None,
+        "checklist_turnkey": checklist_turnkey(cat, opcao) if estimativa else [],
+    })
+    if estimativa:
+        res["valor_obra"] = res["preco_fornec"]
+    return res
 
 
 # ----------------------------------------------------------------------------- prazo e pagamento
@@ -316,34 +446,6 @@ def _arredonda_5(x):
     return round(x * 20) / 20
 
 
-def pagamento_turnkey(cat, proposta, res):
-    """Sinal, entrega dos equipamentos, conclusão da instalação e aceite, pelo peso de cada etapa no preço.
-    O aceite retém no mínimo `turnkey.retencao_aceite` (padrão 10%), tirado primeiro da instalação e depois dos equipamentos."""
-    sinal = float(proposta["parametros"]["pagamento"]["sinal"])
-    retencao = float(proposta["parametros"]["turnkey"].get("retencao_aceite", 0.10))
-    total = res["preco_fechado"] or 1
-    equip = sum(f["preco"] for f in res["fornecimentos"] if f["categoria"] in CATEGORIAS_EQUIP)
-    execu = sum(f["preco"] for f in res["fornecimentos"] if f["categoria"] in CATEGORIAS_EXEC)
-    mo_obra = sum(l["custo_mo"] for l in res["linhas"] if ct.servico(cat, l["servico"])["tipo"] == "obra")
-    if res["custo_mo"] > 0:
-        execu += res["preco_servicos"] * mo_obra / res["custo_mo"]
-    p_equip = _arredonda_5((1 - sinal) * equip / total)
-    p_exec = _arredonda_5((1 - sinal) * execu / total)
-    falta = round(retencao - (1 - sinal - p_equip - p_exec), 4)
-    if falta > 0:
-        tira = min(falta, p_exec)
-        p_exec, falta = round(p_exec - tira, 4), round(falta - tira, 4)
-        p_equip = round(max(p_equip - falta, 0.0), 4)
-    marcos = [
-        {"marco": "na assinatura do instrumento contratual ou no aceite formal desta proposta", "pct": sinal},
-        {"marco": "na entrega dos equipamentos e materiais em obra", "pct": p_equip},
-        {"marco": "na conclusão da instalação", "pct": p_exec},
-        {"marco": "no comissionamento e na assinatura do termo de aceite, contra apresentação de nota fiscal",
-         "pct": round(1 - sinal - p_equip - p_exec, 4)},
-    ]
-    return [m for m in marcos if m["pct"] > 0]
-
-
 def pagamento_padrao(proposta, etapas, res):
     """Sinal + parcela na conclusão do campo/execução + saldo na entrega, proporcionais às horas."""
     sinal = float(proposta["parametros"]["pagamento"]["sinal"])
@@ -363,46 +465,53 @@ def pagamento_padrao(proposta, etapas, res):
     return [m for m in marcos if m["pct"] > 0]
 
 
-def pagamento(cat, proposta, opcao, etapas, res):
-    if opcao.get("pagamento"):
-        return opcao["pagamento"]
-    if eh_turnkey(opcao) and res["fornecimentos"]:
-        return pagamento_turnkey(cat, proposta, res)
-    return pagamento_padrao(proposta, etapas, res)
-
-
 # ----------------------------------------------------------------------------- proposta inteira
+ROTULO_COBRANCA = {"fechado": "escopo fechado", "hora": "hora técnica", "percentual": "% da obra",
+                   "pacote": "pacote de horas"}
+
+
 def avisos(proposta, resultados):
     av = []
     uf = (proposta["cliente"].get("uf") or "").strip().upper()
     if uf and uf not in UFS_SEM_VISTO:
         av.append(f"Serviço em {uf}: atuação fora de RJ e SP exige visto no CREA-{uf} (Lei 5.194/1966, art. 58).")
+    ids_est = {r["id"] for r in resultados if r["interno"]}
+    if resultados and len(ids_est) == len(resultados):
+        av.append("Todas as opções são estimativas internas: nenhuma proposta será gerada para o cliente.")
+    cfg_fases = {o["id"]: {f["id"]: f for f in o["fases"]} for o in proposta["opcoes"]}
     for r in resultados:
-        if not r["linhas"]:
+        if r["interno"]:
+            faltando = [e["rotulo"] for e in r["checklist_turnkey"] if e["status"] == "faltando"]
+            if faltando:
+                av.append(f"{r['nome']} (estimativa): faltam as etapas {', '.join(faltando)} — inclua ou marque como "
+                          "fora da estimativa.")
+            continue
+        if not r["linhas"] and not any(f["cobranca"] == "pacote" for f in r["fases"]):
             av.append(f"{r['nome']}: nenhum serviço com horas — adicione serviços na aba Escopo.")
-        soma = sum(m["pct"] for m in r["pagamento"])
-        if r["linhas"] and abs(soma - 1) > 0.001:
-            av.append(f"{r['nome']}: as parcelas de pagamento somam {soma:.0%}, não 100%.")
-        if r["modelo_preco"] == "fee" and r["preco_fee"] is None:
-            av.append(f"{r['nome']}: modelo % sobre obra sem base — informe o valor da obra/CAPEX.")
-        me = r["margem_efetiva"].get(r["modelo_preco"])
-        if me is not None and me < 0:
-            av.append(f"{r['nome']}: no modelo escolhido o preço não cobre o custo (margem efetiva {me:.0%}).")
-        faltando = [e["rotulo"] for e in r["checklist_turnkey"] if e["status"] == "faltando"]
-        if faltando:
-            av.append(f"{r['nome']} (turnkey): faltam as etapas {', '.join(faltando)} — inclua no escopo ou marque "
-                      "como fornecidas pelo contratante.")
+        for f in r["fases"]:
+            nome = f"{r['nome']} / {f['nome']}"
+            soma = sum(m["pct"] for m in f["pagamento"])
+            if f["pagamento"] and abs(soma - 1) > 0.001:
+                av.append(f"{nome}: as parcelas de pagamento somam {soma:.0%}, não 100%.")
+            if not f["linhas"] and f["cobranca"] in ("fechado", "hora"):
+                av.append(f"{nome}: fase sem serviços.")
+            if f["cobranca"] == "percentual" and f["base"] <= 0:
+                av.append(f"{nome}: % da obra sem base ({f['base_origem']}) — informe o valor da obra ou vincule a "
+                          "estimativa interna.")
+            ob = cfg_fases[r["id"]][f["id"]]["obra"]
+            if f["cobranca"] in ("percentual", "pacote") and ob.get("base_modo") == "opcao" and ob.get("base_opcao") not in ids_est:
+                av.append(f"{nome}: a base aponta para a opção '{ob.get('base_opcao')}', que não é uma estimativa interna.")
+            if f["cobranca"] == "pacote" and f["pacote"]["horas"] <= 0:
+                av.append(f"{nome}: pacote sem horas — informe as horas ou inclua serviços na fase.")
+            if f["margem_efetiva"] is not None and f["margem_efetiva"] < 0:
+                av.append(f"{nome}: a cobrança ({ROTULO_COBRANCA[f['cobranca']]}) não cobre o custo "
+                          f"(margem efetiva {f['margem_efetiva']:.0%}).")
     return av
 
 
 def precificar(cat, proposta):
-    resultados = []
-    for o in proposta["opcoes"]:
-        r = precificar_opcao(cat, proposta, o)
-        r["cronograma"] = cronograma(cat, proposta, o, r)
-        r["prazo_dias_uteis"] = sum(e["dias_uteis"] for e in r["cronograma"])
-        r["prazo_dias_corridos"] = sum(e["dias_corridos"] for e in r["cronograma"])
-        r["pagamento"] = pagamento(cat, proposta, o, r["cronograma"], r)
-        r["preco"] = preco_escolhido(r)
-        resultados.append(r)
+    """Estimativas primeiro: o % da assessoria e a taxa de desempenho usam o valor global delas."""
+    estimativas = {o["id"]: precificar_opcao(cat, proposta, o) for o in proposta["opcoes"] if eh_estimativa(o)}
+    resultados = [estimativas[o["id"]] if o["id"] in estimativas else precificar_opcao(cat, proposta, o, estimativas)
+                  for o in proposta["opcoes"]]
     return {"opcoes": resultados, "avisos": avisos(proposta, resultados)}

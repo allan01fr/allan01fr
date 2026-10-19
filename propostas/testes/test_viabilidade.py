@@ -120,12 +120,13 @@ def test_capex_vinculado_ao_preco_da_opcao():
     assert alt(v, {"B": 1.0})["capex"] == pytest.approx(C)      # opção inexistente: vale o CAPEX informado
 
 
-def test_exemplo_turnkey_usa_o_preco_da_opcao(cat, params):
-    p = abrir_exemplo(os.path.join(RAIZ, "exemplos", "hvac_turnkey.json"), cat, params)
+def test_exemplo_usa_o_valor_global_da_estimativa(cat, params):
+    p = abrir_exemplo(os.path.join(RAIZ, "exemplos", "hvac_retrofit_fases.json"), cat, params)
     res = motor.precificar(cat, p)
     e = vb.calcular(p["viabilidade"], {r["id"]: r["preco"] for r in res["opcoes"]})
-    turnkey = next(a for a in e["alternativas"] if "opção A" in a["capex_origem"])
-    assert turnkey["capex"] == pytest.approx(res["opcoes"][0]["preco_fechado"])
+    retrofit = next(a for a in e["alternativas"] if a["capex_origem"] == "preço da opção E")
+    estimativa = next(r for r in res["opcoes"] if r["interno"])
+    assert retrofit["capex"] == pytest.approx(estimativa["preco"])
 
 
 # ----------------------------------------------------------------------------- planilha
@@ -146,7 +147,7 @@ def _sem_erros(wb):
 
 
 def test_planilha_tem_formulas_e_abas(cat, params):
-    p = abrir_exemplo(os.path.join(RAIZ, "exemplos", "hvac_turnkey.json"), cat, params)
+    p = abrir_exemplo(os.path.join(RAIZ, "exemplos", "hvac_retrofit_fases.json"), cat, params)
     e = vb.calcular(p["viabilidade"], {r["id"]: r["preco"] for r in motor.precificar(cat, p)["opcoes"]})
     wb = load_workbook(io.BytesIO(exportar_viabilidade.gerar(p, e)))
     assert {"Resumo", "Premissas", "Alternativas", "FluxoCaixa", "Sensibilidade"} <= set(wb.sheetnames)
@@ -155,7 +156,7 @@ def test_planilha_tem_formulas_e_abas(cat, params):
 
 @pytest.mark.skipif(shutil.which("soffice") is None, reason="LibreOffice não instalado")
 def test_planilha_recalculada_bate_com_o_motor(cat, params, tmp_path):
-    p = abrir_exemplo(os.path.join(RAIZ, "exemplos", "hvac_turnkey.json"), cat, params)
+    p = abrir_exemplo(os.path.join(RAIZ, "exemplos", "hvac_retrofit_fases.json"), cat, params)
     v = p["viabilidade"]
     # casos-limite junto com o exemplo: sem economia e retorno além do horizonte
     v["alternativas"] += [{**vb.nova_alternativa("Sem economia"), "capex": 10000.0},

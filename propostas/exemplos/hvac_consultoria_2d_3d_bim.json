@@ -2,7 +2,7 @@
  "versao": 1,
  "numero": "PC-KTK-EX01/2026",
  "revisao": "00",
- "data": "2026-10-18",
+ "data": "2026-10-19",
  "validade_dias": 15,
  "prazo_pagamento_dias": 15,
  "cliente": {
@@ -104,8 +104,7 @@
   },
   "turnkey": {
    "garantia_pct": 0.02,
-   "garantia_meses": 12,
-   "retencao_aceite": 0.1
+   "garantia_meses": 12
   },
   "cub": {
    "uf": "RJ",
@@ -141,6 +140,32 @@
    "sinal": 0.3
   },
   "fee_pct_padrao": 0.06,
+  "cobranca": {
+   "percentual": {
+    "forma": "medicoes",
+    "curva": "s",
+    "meses": 6
+   },
+   "pacote": {
+    "desconto": 0.1,
+    "excedente_pct": 0.0,
+    "meses": 6,
+    "validade_meses": 12,
+    "parcelas": 3,
+    "mix_padrao": {
+     "SR": 0.2,
+     "PL": 0.5,
+     "TC": 0.3
+    }
+   },
+   "desempenho": {
+    "economia_pct": 0.1,
+    "prazo_pct_semana": 0.02,
+    "retrabalho_meta": 0.02,
+    "retrabalho_bonus_pct": 0.05,
+    "teto_pct": 0.3
+   }
+  },
   "notas": {
    "impostos": "Lucro Presumido: PIS 0,65% + COFINS 3% + IRPJ 4,8% e CSLL 2,88% (sobre base presumida de 32%) + ISS. No Simples, informe a alíquota efetiva do seu anexo.",
    "bdi_fornecimento": "BDI completo (tributos, administração, risco e lucro). Referência inicial: medianas do TCU, Acórdão 2.622/2013 — confira e ajuste.",
@@ -153,9 +178,99 @@
   {
    "id": "A",
    "nome": "Opção A — 2D",
+   "modalidade": "fases",
+   "fases": [
+    {
+     "id": "F1",
+     "nome": "Diagnóstico: as-built, desempenho e balanceamento",
+     "cobranca": "fechado",
+     "obra": {
+      "base_modo": "informado",
+      "base_valor": 0.0,
+      "base_opcao": "",
+      "base_parte": "obra",
+      "meses": 6,
+      "curva": "s"
+     },
+     "percentual": {
+      "pct": 0.06,
+      "forma": "medicoes",
+      "parcela_fixa": 0.0
+     },
+     "pacote": {
+      "forma": "mensal",
+      "horas_mes": 0.0,
+      "meses": 6,
+      "acumula_saldo": false,
+      "horas": 0.0,
+      "validade_meses": 12,
+      "parcelas": 3,
+      "desconto": 0.1,
+      "excedente_pct": 0.0
+     },
+     "desempenho": {
+      "ativo": false,
+      "economia_pct": 0.1,
+      "prazo_pct_semana": 0.02,
+      "retrabalho_meta": 0.02,
+      "retrabalho_bonus_pct": 0.05,
+      "teto_pct": 0.3,
+      "cenario": {
+       "economia": 0.05,
+       "dias_antecipados": 15,
+       "retrabalho_ok": true
+      }
+     },
+     "pagamento": []
+    },
+    {
+     "id": "F2",
+     "nome": "Estudo de viabilidade das alternativas de retrofit",
+     "cobranca": "fechado",
+     "obra": {
+      "base_modo": "informado",
+      "base_valor": 0.0,
+      "base_opcao": "",
+      "base_parte": "obra",
+      "meses": 6,
+      "curva": "s"
+     },
+     "percentual": {
+      "pct": 0.06,
+      "forma": "medicoes",
+      "parcela_fixa": 0.0
+     },
+     "pacote": {
+      "forma": "mensal",
+      "horas_mes": 0.0,
+      "meses": 6,
+      "acumula_saldo": false,
+      "horas": 0.0,
+      "validade_meses": 12,
+      "parcelas": 3,
+      "desconto": 0.1,
+      "excedente_pct": 0.0
+     },
+     "desempenho": {
+      "ativo": false,
+      "economia_pct": 0.1,
+      "prazo_pct_semana": 0.02,
+      "retrabalho_meta": 0.02,
+      "retrabalho_bonus_pct": 0.05,
+      "teto_pct": 0.3,
+      "cenario": {
+       "economia": 0.05,
+       "dias_antecipados": 15,
+       "retrabalho_ok": true
+      }
+     },
+     "pagamento": []
+    }
+   ],
    "itens": [
     {
      "servico": "hvac.asbuilt",
+     "fase": "F1",
      "dados": {
       "area": 1500.0,
       "pavimentos": 3,
@@ -168,6 +283,7 @@
     },
     {
      "servico": "hvac.desempenho",
+     "fase": "F1",
      "dados": {
       "sistemas": 8,
       "tr": 75.0,
@@ -180,6 +296,7 @@
     },
     {
      "servico": "hvac.tab",
+     "fase": "F1",
      "dados": {
       "terminais": 60,
       "utas": 6,
@@ -193,6 +310,7 @@
     },
     {
      "servico": "hvac.cfd",
+     "fase": "F1",
      "dados": {
       "zonas": 2,
       "tipo": "2d",
@@ -204,6 +322,7 @@
     },
     {
      "servico": "hvac.emergencial",
+     "fase": "F1",
      "dados": {
       "sistemas": 8
      },
@@ -213,6 +332,7 @@
     },
     {
      "servico": "hvac.viabilidade",
+     "fase": "F2",
      "dados": {
       "alternativas": 2,
       "nivel_fin": "simplificado",
@@ -224,6 +344,7 @@
     },
     {
      "servico": "geral.reunioes",
+     "fase": "F2",
      "dados": {
       "reunioes": 2,
       "horas": 2.0
@@ -235,20 +356,105 @@
    ],
    "fornecimentos": [],
    "prazo_execucao_dias": 0,
-   "pagamento": [],
-   "modelo_preco": "fechado",
-   "fee_pct": 0.06,
-   "fee_base": 0.0,
-   "modalidade": "servicos",
    "prazo_fornecimento_dias": 0,
    "turnkey_dispensas": []
   },
   {
    "id": "B",
    "nome": "Opção B — 3D",
+   "modalidade": "fases",
+   "fases": [
+    {
+     "id": "F1",
+     "nome": "Diagnóstico: as-built, desempenho e balanceamento",
+     "cobranca": "fechado",
+     "obra": {
+      "base_modo": "informado",
+      "base_valor": 0.0,
+      "base_opcao": "",
+      "base_parte": "obra",
+      "meses": 6,
+      "curva": "s"
+     },
+     "percentual": {
+      "pct": 0.06,
+      "forma": "medicoes",
+      "parcela_fixa": 0.0
+     },
+     "pacote": {
+      "forma": "mensal",
+      "horas_mes": 0.0,
+      "meses": 6,
+      "acumula_saldo": false,
+      "horas": 0.0,
+      "validade_meses": 12,
+      "parcelas": 3,
+      "desconto": 0.1,
+      "excedente_pct": 0.0
+     },
+     "desempenho": {
+      "ativo": false,
+      "economia_pct": 0.1,
+      "prazo_pct_semana": 0.02,
+      "retrabalho_meta": 0.02,
+      "retrabalho_bonus_pct": 0.05,
+      "teto_pct": 0.3,
+      "cenario": {
+       "economia": 0.05,
+       "dias_antecipados": 15,
+       "retrabalho_ok": true
+      }
+     },
+     "pagamento": []
+    },
+    {
+     "id": "F2",
+     "nome": "Estudo de viabilidade das alternativas de retrofit",
+     "cobranca": "fechado",
+     "obra": {
+      "base_modo": "informado",
+      "base_valor": 0.0,
+      "base_opcao": "",
+      "base_parte": "obra",
+      "meses": 6,
+      "curva": "s"
+     },
+     "percentual": {
+      "pct": 0.06,
+      "forma": "medicoes",
+      "parcela_fixa": 0.0
+     },
+     "pacote": {
+      "forma": "mensal",
+      "horas_mes": 0.0,
+      "meses": 6,
+      "acumula_saldo": false,
+      "horas": 0.0,
+      "validade_meses": 12,
+      "parcelas": 3,
+      "desconto": 0.1,
+      "excedente_pct": 0.0
+     },
+     "desempenho": {
+      "ativo": false,
+      "economia_pct": 0.1,
+      "prazo_pct_semana": 0.02,
+      "retrabalho_meta": 0.02,
+      "retrabalho_bonus_pct": 0.05,
+      "teto_pct": 0.3,
+      "cenario": {
+       "economia": 0.05,
+       "dias_antecipados": 15,
+       "retrabalho_ok": true
+      }
+     },
+     "pagamento": []
+    }
+   ],
    "itens": [
     {
      "servico": "hvac.asbuilt",
+     "fase": "F1",
      "dados": {
       "area": 1500.0,
       "pavimentos": 3,
@@ -261,6 +467,7 @@
     },
     {
      "servico": "hvac.desempenho",
+     "fase": "F1",
      "dados": {
       "sistemas": 8,
       "tr": 75.0,
@@ -273,6 +480,7 @@
     },
     {
      "servico": "hvac.tab",
+     "fase": "F1",
      "dados": {
       "terminais": 60,
       "utas": 6,
@@ -286,6 +494,7 @@
     },
     {
      "servico": "hvac.cfd",
+     "fase": "F1",
      "dados": {
       "zonas": 2,
       "tipo": "3d",
@@ -297,6 +506,7 @@
     },
     {
      "servico": "hvac.emergencial",
+     "fase": "F1",
      "dados": {
       "sistemas": 8
      },
@@ -306,6 +516,7 @@
     },
     {
      "servico": "hvac.viabilidade",
+     "fase": "F2",
      "dados": {
       "alternativas": 3,
       "nivel_fin": "completo",
@@ -317,6 +528,7 @@
     },
     {
      "servico": "geral.reunioes",
+     "fase": "F2",
      "dados": {
       "reunioes": 3,
       "horas": 2.0
@@ -328,20 +540,105 @@
    ],
    "fornecimentos": [],
    "prazo_execucao_dias": 0,
-   "pagamento": [],
-   "modelo_preco": "fechado",
-   "fee_pct": 0.06,
-   "fee_base": 0.0,
-   "modalidade": "servicos",
    "prazo_fornecimento_dias": 0,
    "turnkey_dispensas": []
   },
   {
    "id": "C",
    "nome": "Opção C — BIM",
+   "modalidade": "fases",
+   "fases": [
+    {
+     "id": "F1",
+     "nome": "Diagnóstico: as-built, desempenho e balanceamento",
+     "cobranca": "fechado",
+     "obra": {
+      "base_modo": "informado",
+      "base_valor": 0.0,
+      "base_opcao": "",
+      "base_parte": "obra",
+      "meses": 6,
+      "curva": "s"
+     },
+     "percentual": {
+      "pct": 0.06,
+      "forma": "medicoes",
+      "parcela_fixa": 0.0
+     },
+     "pacote": {
+      "forma": "mensal",
+      "horas_mes": 0.0,
+      "meses": 6,
+      "acumula_saldo": false,
+      "horas": 0.0,
+      "validade_meses": 12,
+      "parcelas": 3,
+      "desconto": 0.1,
+      "excedente_pct": 0.0
+     },
+     "desempenho": {
+      "ativo": false,
+      "economia_pct": 0.1,
+      "prazo_pct_semana": 0.02,
+      "retrabalho_meta": 0.02,
+      "retrabalho_bonus_pct": 0.05,
+      "teto_pct": 0.3,
+      "cenario": {
+       "economia": 0.05,
+       "dias_antecipados": 15,
+       "retrabalho_ok": true
+      }
+     },
+     "pagamento": []
+    },
+    {
+     "id": "F2",
+     "nome": "Estudo de viabilidade das alternativas de retrofit",
+     "cobranca": "fechado",
+     "obra": {
+      "base_modo": "informado",
+      "base_valor": 0.0,
+      "base_opcao": "",
+      "base_parte": "obra",
+      "meses": 6,
+      "curva": "s"
+     },
+     "percentual": {
+      "pct": 0.06,
+      "forma": "medicoes",
+      "parcela_fixa": 0.0
+     },
+     "pacote": {
+      "forma": "mensal",
+      "horas_mes": 0.0,
+      "meses": 6,
+      "acumula_saldo": false,
+      "horas": 0.0,
+      "validade_meses": 12,
+      "parcelas": 3,
+      "desconto": 0.1,
+      "excedente_pct": 0.0
+     },
+     "desempenho": {
+      "ativo": false,
+      "economia_pct": 0.1,
+      "prazo_pct_semana": 0.02,
+      "retrabalho_meta": 0.02,
+      "retrabalho_bonus_pct": 0.05,
+      "teto_pct": 0.3,
+      "cenario": {
+       "economia": 0.05,
+       "dias_antecipados": 15,
+       "retrabalho_ok": true
+      }
+     },
+     "pagamento": []
+    }
+   ],
    "itens": [
     {
      "servico": "hvac.asbuilt",
+     "fase": "F1",
      "dados": {
       "area": 1500.0,
       "pavimentos": 3,
@@ -354,6 +651,7 @@
     },
     {
      "servico": "hvac.desempenho",
+     "fase": "F1",
      "dados": {
       "sistemas": 8,
       "tr": 75.0,
@@ -366,6 +664,7 @@
     },
     {
      "servico": "hvac.tab",
+     "fase": "F1",
      "dados": {
       "terminais": 60,
       "utas": 6,
@@ -379,6 +678,7 @@
     },
     {
      "servico": "hvac.cfd",
+     "fase": "F1",
      "dados": {
       "zonas": 4,
       "tipo": "3d",
@@ -390,6 +690,7 @@
     },
     {
      "servico": "hvac.emergencial",
+     "fase": "F1",
      "dados": {
       "sistemas": 8
      },
@@ -399,6 +700,7 @@
     },
     {
      "servico": "hvac.viabilidade",
+     "fase": "F2",
      "dados": {
       "alternativas": 4,
       "nivel_fin": "completo",
@@ -410,6 +712,7 @@
     },
     {
      "servico": "geral.reunioes",
+     "fase": "F2",
      "dados": {
       "reunioes": 4,
       "horas": 2.0
@@ -421,11 +724,6 @@
    ],
    "fornecimentos": [],
    "prazo_execucao_dias": 0,
-   "pagamento": [],
-   "modelo_preco": "fechado",
-   "fee_pct": 0.06,
-   "fee_base": 0.0,
-   "modalidade": "servicos",
    "prazo_fornecimento_dias": 0,
    "turnkey_dispensas": []
   }

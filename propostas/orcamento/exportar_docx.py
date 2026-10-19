@@ -6,6 +6,10 @@ substitui os campos entre colchetes e ajusta o número de linhas das tabelas e
 dos itens de lista (escopo, exclusões, premissas, prazos, honorários,
 pagamento), clonando a linha ou o parágrafo do próprio template.
 
+Com várias fases, os honorários, os prazos e o pagamento saem por fase, e as fases de obra
+trazem as regras do % sobre as medições, do pacote de horas e da taxa de desempenho. A
+estimativa interna do valor global não gera proposta.
+
 `substituir()` vem de kaptek-doc/scripts/preencher.py (habilidade KAPTEK).
 """
 
@@ -25,9 +29,6 @@ TEMPLATE = os.path.join(RAIZ, "modelos", "proposta.docx")
 
 FRASE_DESLOCAMENTO = ("Não estão inclusos deslocamentos fora da Região Metropolitana do Rio de Janeiro, "
                       "que serão orçados à parte mediante aprovação prévia.")
-ORDEM_EVENTOS = ("Projeto e engenharia", "Fornecimento de equipamentos", "Fornecimento de materiais",
-                 "Execução e instalação", "Gestão da obra", "Comissionamento, TAB e start-up",
-                 "Treinamento, manuais e data book")
 PREMISSAS_FINAIS = [
     "Os prazos são contados em dias corridos a partir do cumprimento cumulativo das premissas acima.",
     "Atraso na liberação de acesso ou de documentação suspende a contagem dos prazos, sem ônus para a contratada.",
@@ -190,82 +191,171 @@ def _rateio_servicos(opcao, res):
     return [(i, n, v) for (i, n, _), v in zip(pesos, valores)]
 
 
-def _eventos_turnkey(cat, opcao, res):
-    """Preço global repartido em eventos por etapa (projeto, equipamentos, materiais, execução...)."""
-    mapa = cat["turnkey"]["eventos"]
-    soma = {}
-    for i, _, v in _rateio_servicos(opcao, res):
-        ev = mapa.get(ct.servico(cat, opcao["itens"][i]["servico"])["tipo"], ORDEM_EVENTOS[0])
-        soma[ev] = soma.get(ev, 0) + v
-    for f in res["fornecimentos"]:
-        ev = mapa.get(f["categoria"], "Execução e instalação")
-        soma[ev] = soma.get(ev, 0) + f["preco"]
-    ordem = [e for e in ORDEM_EVENTOS if e in soma] + [e for e in soma if e not in ORDEM_EVENTOS]
-    valores = [round(soma[e], 2) for e in ordem]
-    if valores:   # fecha o total exato no maior evento
-        k = valores.index(max(valores))
-        valores[k] = round(valores[k] + round(res["preco_fechado"], 2) - round(sum(valores), 2), 2)
-    return list(zip(ordem, valores))
+def _h(v):
+    return f"{v:,.0f}".replace(",", ".") + " h"
+
+
+def _linhas_percentual(fr, prefixo):
+    hp = fr["percentual"]
+    pct, base = pct_br(hp["pct"]), moeda(hp["base"])
+    if hp["forma"] == "fixo_global":
+        return [(f"{prefixo}{pct} sobre o valor global estimado da obra ({base}), faturado conforme as medições",
+                 pct, "—", moeda(hp["fixo"]))]
+    linhas = []
+    if hp["forma"] == "fixo_mais_medicoes" and hp["parcela_fixa"] > 0:
+        linhas.append((f"{prefixo}parcela fixa (mobilização e planejamento inicial)", "1", moeda(hp["parcela_fixa"]),
+                       moeda(hp["parcela_fixa"])))
+    linhas.append((f"{prefixo}{pct} sobre o valor de cada medição da obra (valor global estimado em {base})",
+                   pct, "—", f"≈ {moeda(hp['estimado'])} (estimado)"))
+    return linhas
+
+
+def _linhas_pacote(fr, prefixo):
+    pk = fr["pacote"]
+    if pk["forma"] == "mensal":
+        desc = f"{prefixo}pacote de {pk['horas_mes']:.0f} h/mês × {pk['meses']} meses ({_h(pk['horas'])})"
+    else:
+        desc = f"{prefixo}pacote de {_h(pk['horas'])}, a consumir em até {pk['meses']} meses"
+    total = fr["preco"] - fr["preco_fornec"]
+    return [(desc, _h(pk["horas"]), moeda(total / pk["horas"]) if pk["horas"] else "—", moeda(total)),
+            ("Hora excedente ao pacote (sob demanda, mediante autorização prévia)", "1 h", moeda(pk["taxa_excedente"]),
+             "sob demanda")]
+
+
+def _linhas_fase(cat, params, opcao, fr, prefixo="", detalhar=True):
+    """Linhas de honorários de uma fase. `detalhar` (fase única) lista serviços, perfis e fornecimentos."""
+    linhas = []
+    cob = fr["cobranca"]
+    if cob == "hora":
+        if detalhar:
+            for p, nome in cat["perfis"].items():
+                h = fr["horas_perfil"][p]
+                if h > 0:
+                    taxa = float(params["perfis"][p]["taxa_venda_h"])
+                    linhas.append((f"Hora técnica — {nome}", f"{h:.1f} h".replace(".", ","), moeda(taxa), moeda(h * taxa)))
+            if fr["reembolso"] > 0:
+                linhas.append(("Despesas reembolsáveis (estimativa, inclui ART)", "1", moeda(fr["reembolso"]), moeda(fr["reembolso"])))
+        else:
+            valor = fr["honorarios"]
+            linhas.append((f"{prefixo}hora técnica (estimado, teto {moeda(fr['preco_hora_teto'] - fr['preco_fornec'])})",
+                           _h(fr["total_h"]), moeda(valor / fr["total_h"]) if fr["total_h"] else "—", moeda(valor)))
+    elif cob == "percentual":
+        linhas += _linhas_percentual(fr, prefixo or "Honorários de engenharia — ")
+    elif cob == "pacote":
+        linhas += _linhas_pacote(fr, prefixo or "Fiscalização e planejamento — ")
+    elif detalhar:
+        for _, nome, v in _rateio_servicos(opcao, fr):
+            linhas.append((f"Honorários de engenharia — {nome}", "1", moeda(v), moeda(v)))
+    else:
+        linhas.append((f"{prefixo}escopo fechado", "1 vb", moeda(fr["preco_servicos"]), moeda(fr["preco_servicos"])))
+    if fr["fornecimentos"]:
+        if detalhar:
+            for f in fr["fornecimentos"]:
+                qtd = float(f.get("qtd") or 0)
+                unit = f["preco"] / qtd if qtd else f["preco"]
+                q_txt = f"{qtd:g} {f.get('unid', '')}".strip().replace(".", ",")
+                linhas.append((f.get("descricao", "Fornecimento"), q_txt, moeda(unit), moeda(f["preco"])))
+        else:
+            linhas.append((f"{prefixo}fornecimentos", "1 vb", moeda(fr["preco_fornec"]), moeda(fr["preco_fornec"])))
+    if fr["desempenho"]:
+        linhas.append((f"{prefixo}taxa de desempenho (variável, adicional; critérios nas condições de pagamento)",
+                       "—", f"até {moeda(fr['desempenho']['teto'])}", "variável"))
+    return linhas
 
 
 def _linhas_honorarios(cat, params, opcao, res):
+    fases = res["fases"]
     linhas = []
-    modelo = res["modelo_preco"]
-    if res.get("modalidade") == "turnkey":
-        for ev, v in _eventos_turnkey(cat, opcao, res):
-            linhas.append((ev, "1 vb", moeda(v), moeda(v)))
-        if any(d["descricao"].startswith("Taxa de ART") for d in res["diretos"]):
-            linhas.append(("Taxa de ART junto ao CREA", "1", "inclusa", "inclusa"))
-        return linhas
-    if modelo == "hora":
-        for p, nome in cat["perfis"].items():
-            h = res["horas_perfil"][p]
-            if h > 0:
-                taxa = float(params["perfis"][p]["taxa_venda_h"])
-                linhas.append((f"Hora técnica — {nome}", f"{h:.1f} h".replace(".", ","), moeda(taxa), moeda(h * taxa)))
-        if res["reembolso"] > 0:
-            linhas.append(("Despesas reembolsáveis (estimativa, inclui ART)", "1", moeda(res["reembolso"]), moeda(res["reembolso"])))
-    elif modelo == "fee" and res["preco_fee"] is not None:
-        linhas.append((f"Honorários de engenharia — {pct_br(res['fee_pct'])} sobre o valor da obra estimado em {moeda(res['fee_base'])}",
-                       "1", moeda(res["fee_honorarios"]), moeda(res["fee_honorarios"])))
+    if len(fases) == 1:
+        linhas = _linhas_fase(cat, params, opcao, fases[0])
     else:
-        for _, nome, v in _rateio_servicos(opcao, res):
-            linhas.append((f"Honorários de engenharia — {nome}", "1", moeda(v), moeda(v)))
-    for f in res["fornecimentos"]:
-        qtd = float(f.get("qtd") or 0)
-        unit = f["preco"] / qtd if qtd else f["preco"]
-        q_txt = f"{qtd:g} {f.get('unid', '')}".strip().replace(".", ",")
-        linhas.append((f.get("descricao", "Fornecimento"), q_txt, moeda(unit), moeda(f["preco"])))
-    if any(d["descricao"].startswith("Taxa de ART") for d in res["diretos"]) and modelo != "hora":
-        linhas.append(("Taxa de ART junto ao CREA", "1", "inclusa", "inclusa"))
+        for n, fr in enumerate(fases, 1):
+            linhas += _linhas_fase(cat, params, opcao, fr, prefixo=f"Fase {n} — {fr['nome']}: ", detalhar=False)
+    if any(d["descricao"].startswith("Taxa de ART") for d in res["diretos"]) and not \
+            (len(fases) == 1 and fases[0]["cobranca"] == "hora"):
+        linhas.append(("Taxa de ART junto ao CREA" + (" (uma por fase)" if len(fases) > 1 else ""), "1", "inclusa", "inclusa"))
     return linhas
 
 
 def _total_texto(res):
-    if res["modelo_preco"] == "hora":
-        return f"{moeda(res['preco_hora'])} (estimado; teto {moeda(res['preco_hora_teto'])})"
+    if len(res["fases"]) == 1 and res["fases"][0]["cobranca"] == "hora":
+        return f"{moeda(res['preco'])} (estimado; teto {moeda(res['fases'][0]['preco_hora_teto'])})"
+    if res["preco_estimado"] > 0:
+        return f"{moeda(res['preco_fixo'])} + {moeda(res['preco_estimado'])} estimados"
     return moeda(res["preco"])
 
 
 def _exclusoes(cat, opcao, res):
-    textos = ct.textos_validos(cat, [it["servico"] for it in opcao["itens"]], bool(res["fornecimentos"]), "exclusoes")
-    if res.get("modalidade") == "turnkey":
-        for e in res["checklist_turnkey"]:
-            if e["status"] == "dispensada":
-                textos.append(f"{e['rotulo']}: a cargo do contratante.")
-            elif e["status"] == "opcional":
-                textos.append(f"{e['rotulo']}: não incluídas nesta proposta.")
-        textos += [t for t in cat["turnkey"]["exclusoes"] if t not in textos]
+    return ct.textos_validos(cat, [it["servico"] for it in opcao["itens"]], bool(res["fornecimentos"]), "exclusoes")
+
+
+def _premissas_fases(res):
+    textos = []
+    if len(res["fases"]) > 1:
+        textos.append("As fases são sequenciais: cada fase se inicia após o aceite da anterior e pode ser contratada "
+                      "separadamente, pelos valores indicados para ela.")
+    for n, fr in enumerate(res["fases"], 1):
+        nome = f"Fase {n} ({fr['nome']})" if len(res["fases"]) > 1 else fr["nome"]
+        if fr["cobranca"] == "percentual":
+            if fr["percentual"]["forma"] == "fixo_global":
+                textos.append(f"{nome}: honorário fixo, calculado sobre o valor global estimado da obra; não se altera com "
+                              "variações do valor da obra, salvo aditivo de escopo.")
+            else:
+                textos.append(f"{nome}: o valor das medições considerado é o aprovado pela fiscalização do contratante; "
+                              "o honorário estimado acompanha o valor efetivamente medido.")
+        elif fr["cobranca"] == "pacote":
+            pk = fr["pacote"]
+            if pk["forma"] == "mensal":
+                saldo = "acumula para os meses seguintes, até o fim do contrato" if pk["acumula_saldo"] else \
+                    "não acumula para os meses seguintes"
+                textos.append(f"{nome}: pacote mensal de {pk['horas_mes']:.0f} horas, apontadas em relatório mensal de horas e "
+                              f"atividades; o saldo não utilizado {saldo}.")
+            else:
+                textos.append(f"{nome}: pacote de {pk['horas']:.0f} horas, consumidas sob demanda em até {pk['meses']} meses "
+                              "e apontadas em relatório mensal de horas e atividades.")
+            textos.append(f"{nome}: horas excedentes, mediante autorização prévia, são cobradas a "
+                          f"{moeda(pk['taxa_excedente'])} por hora.")
     return textos
 
 
 def _premissas(cat, proposta, opcao, res):
     textos = [p for p in ct.textos_validos(cat, [it["servico"] for it in opcao["itens"]], bool(res["fornecimentos"]),
                                            "premissas") if p not in PREMISSAS_FINAIS]
-    if res.get("modalidade") == "turnkey":
-        g = proposta["parametros"]["turnkey"]
-        textos += [t.format(garantia_meses=g["garantia_meses"]) for t in cat["turnkey"]["premissas"]]
-    return textos + PREMISSAS_FINAIS
+    return textos + _premissas_fases(res) + PREMISSAS_FINAIS
+
+
+def _clausulas_desempenho(n, fr, varias):
+    d, cfg = fr["desempenho"], fr["_cfg_desempenho"]
+    nome = f"da fase {n}" if varias else "da assessoria"
+    criterios = []
+    if cfg["economia_pct"] > 0:
+        criterios.append(f"{pct_br(cfg['economia_pct'])} da economia apurada entre o valor global estimado da obra "
+                         f"({moeda(d['base_global'])}) e o custo final")
+    if cfg["prazo_pct_semana"] > 0:
+        criterios.append(f"{pct_br(cfg['prazo_pct_semana'])} dos honorários {nome} por semana de antecipação da conclusão "
+                         "em relação ao prazo previsto")
+    if cfg["retrabalho_bonus_pct"] > 0:
+        criterios.append(f"{pct_br(cfg['retrabalho_bonus_pct'])} dos honorários {nome} se o índice de retrabalho (custo de "
+                         f"retrabalho ÷ valor medido) ficar igual ou abaixo de {pct_br(cfg['retrabalho_meta'])}")
+    if not criterios:
+        return []
+    return [f"Taxa de desempenho {nome} (variável, adicional aos honorários): " + "; ".join(criterios) + ".",
+            f"A taxa de desempenho é limitada a {pct_br(cfg['teto_pct'])} dos honorários {nome} ({moeda(d['teto'])}), apurada no "
+            "encerramento da obra com base nas medições aprovadas e nos registros de prazo e de retrabalho, e paga na "
+            "assinatura do termo de recebimento definitivo."]
+
+
+def _pagamento(res):
+    fases = res["fases"]
+    varias = len(fases) > 1
+    itens = []
+    for n, fr in enumerate(fases, 1):
+        pre = f"Fase {n} ({fr['nome']}): " if varias else ""
+        for m in fr["pagamento"]:
+            itens.append(f"{pre}{m['marco']}." if abs(m["pct"] - 1) < 1e-9 else f"{pre}{pct_br(m['pct'])} {m['marco']}.")
+        if fr["desempenho"]:
+            itens += _clausulas_desempenho(n, fr, varias)
+    return [i[0].upper() + i[1:] for i in itens]
 
 
 def _minuscula(texto):
@@ -276,17 +366,42 @@ def _minuscula(texto):
 
 
 def _linhas_escopo(res):
-    """Uma linha por serviço: atividades e entregáveis da opção."""
-    grupos = []
-    for l in res["linhas"]:
-        if not grupos or grupos[-1]["item"] != l["item"]:
-            grupos.append({"item": l["item"], "nome": l["servico_nome"], "ativ": [], "entr": []})
-        g = grupos[-1]
-        g["ativ"].append(_minuscula(l["nome"]))
-        if l["entregavel"] and l["entregavel"] not in g["entr"]:
-            g["entr"].append(l["entregavel"])
-    return [(f"{i + 1:02d}", f"{g['nome']}: {'; '.join(g['ativ'])}.", "; ".join(g["entr"]))
-            for i, g in enumerate(grupos)]
+    """Uma linha por serviço (numerada por fase quando há mais de uma) com atividades e entregáveis."""
+    varias = len(res["fases"]) > 1
+    saida = []
+    for n, fr in enumerate(res["fases"], 1):
+        grupos = []
+        for l in fr["linhas"]:
+            if not grupos or grupos[-1]["item"] != l["item"]:
+                grupos.append({"item": l["item"], "nome": l["servico_nome"], "ativ": [], "entr": []})
+            g = grupos[-1]
+            g["ativ"].append(_minuscula(l["nome"]))
+            if l["entregavel"] and l["entregavel"] not in g["entr"]:
+                g["entr"].append(l["entregavel"])
+        for k, g in enumerate(grupos, 1):
+            num = f"{n}.{k}" if varias else f"{len(saida) + 1:02d}"
+            saida.append((num, f"{g['nome']}: {'; '.join(g['ativ'])}.", "; ".join(g["entr"])))
+        if not grupos and fr["cobranca"] == "pacote":
+            num = f"{n}.1" if varias else f"{len(saida) + 1:02d}"
+            saida.append((num, f"{fr['nome']}: fiscalização e planejamento da obra sob demanda, dentro do pacote de horas.",
+                          "Relatórios mensais de horas e atividades"))
+    return saida
+
+
+def _linhas_prazos(res):
+    fases = res["fases"]
+    if len(fases) == 1:
+        prazos = [(e["rotulo"], f"{e['dias_corridos']} dias", e["marco"]) for e in res["cronograma"]]
+    else:
+        prazos = []
+        for n, fr in enumerate(fases, 1):
+            etapas = [e for e in res["cronograma"] if e["fase"] == fr["id"]]
+            meses = next((e["meses"] for e in etapas if e.get("meses")), None)
+            dias = sum(e["dias_corridos"] for e in etapas)
+            prazos.append((f"Fase {n} — {fr['nome']}", f"durante a obra ({meses} meses)" if meses else f"{dias} dias",
+                           etapas[-1]["marco"] if etapas else "Conclusão da fase"))
+    prazos.append(("Prazo total estimado", f"{res['prazo_dias_corridos']} dias", "Conclusão dos serviços"))
+    return prazos
 
 
 def _texto_objeto(proposta, opcao, res, varias):
@@ -296,11 +411,10 @@ def _texto_objeto(proposta, opcao, res, varias):
             nomes.append(l["servico_nome"])
     base = (proposta.get("objeto") or "serviços técnicos de engenharia").rstrip(".")
     sufixo = f" — {opcao['nome']}" if varias else ""
-    if res.get("modalidade") == "turnkey":
-        etapas = [_minuscula(e["rotulo"]) for e in res["checklist_turnkey"] if e["status"] == "atendida"]
-        return (f"Implantação em regime turnkey (empreitada por preço global, com responsabilidade única pelo fornecimento, "
-                f"pela execução, pelas subcontratações e pela entrega do sistema em operação): {base}{sufixo}. "
-                f"Compreende: {'; '.join(etapas)}, conforme as atividades e os entregáveis relacionados na seção 3.")
+    if len(res["fases"]) > 1:
+        fases = "; ".join(f"Fase {n} — {_minuscula(fr['nome'])}" for n, fr in enumerate(res["fases"], 1))
+        return (f"Prestação de serviços técnicos de engenharia, em {len(res['fases'])} fases: {base}{sufixo}. "
+                f"Compreende: {fases}, conforme as atividades e os entregáveis relacionados na seção 3.")
     return (f"Prestação de serviços técnicos de engenharia: {base}{sufixo}. "
             f"Compreende: {'; '.join(nomes)}, conforme as atividades e os entregáveis relacionados na seção 3.")
 
@@ -309,6 +423,9 @@ def _texto_objeto(proposta, opcao, res, varias):
 def gerar_opcao(cat, proposta, opcao, res, varias=False):
     """Preenche o template para uma opção. Devolve (bytes, nome_arquivo, pendencias)."""
     params = proposta["parametros"]
+    cfg_fases = {f["id"]: f for f in opcao["fases"]}
+    for fr in res["fases"]:
+        fr["_cfg_desempenho"] = cfg_fases.get(fr["id"], {}).get("desempenho", {})
     doc = Document(TEMPLATE)
     cl = proposta["cliente"]
     numero = proposta["numero"] + (f"-{opcao['id']}" if varias else "")
@@ -338,10 +455,7 @@ def gerar_opcao(cat, proposta, opcao, res, varias=False):
     _definir(rev.rows[1].cells[1].paragraphs[0], _data_br(proposta["data"]))
 
     _preencher_linhas(_tabela(doc, "#", "Serviço"), _linhas_escopo(res))
-
-    prazos = [(e["rotulo"], f"{e['dias_corridos']} dias", e["marco"]) for e in res["cronograma"]]
-    prazos.append(("Prazo total estimado", f"{res['prazo_dias_corridos']} dias", "Conclusão dos serviços"))
-    _preencher_linhas(_tabela(doc, "Etapa", "Prazo"), prazos)
+    _preencher_linhas(_tabela(doc, "Etapa", "Prazo"), _linhas_prazos(res))
 
     hon = _tabela(doc, "Descrição", "Qtd.")
     _preencher_linhas(hon, _linhas_honorarios(cat, params, opcao, res), manter_ultima=True)
@@ -350,7 +464,7 @@ def gerar_opcao(cat, proposta, opcao, res, varias=False):
     secoes = _listas_por_secao(doc)
     _ajustar_lista(_lista(secoes, "EXCLUS"), _exclusoes(cat, opcao, res))
     _ajustar_lista(_lista(secoes, "PREMISSAS"), _premissas(cat, proposta, opcao, res))
-    _ajustar_lista(_lista(secoes, "PAGAMENTO"), [f"{pct_br(m['pct'])} {m['marco']}." for m in res["pagamento"]])
+    _ajustar_lista(_lista(secoes, "PAGAMENTO"), _pagamento(res))
 
     pendencias = sorted({m for p in _todos_paragrafos(doc) for m in re.findall(r"\[[^\]]{3,}\]", p.text)})
     buf = io.BytesIO()
@@ -361,9 +475,10 @@ def gerar_opcao(cat, proposta, opcao, res, varias=False):
 
 
 def gerar(cat, proposta, resultado):
-    """Uma proposta por opção: lista de (bytes, nome, pendencias)."""
-    varias = len(proposta["opcoes"]) > 1
-    return [gerar_opcao(cat, proposta, o, r, varias) for o, r in zip(proposta["opcoes"], resultado["opcoes"])]
+    """Uma proposta por opção ofertada (a estimativa interna não vira proposta): lista de (bytes, nome, pendencias)."""
+    pares = [(o, r) for o, r in zip(proposta["opcoes"], resultado["opcoes"]) if not r["interno"]]
+    varias = len(pares) > 1
+    return [gerar_opcao(cat, proposta, o, r, varias) for o, r in pares]
 
 
 def verificar(conteudo):
