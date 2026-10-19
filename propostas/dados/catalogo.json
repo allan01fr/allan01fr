@@ -1,0 +1,6354 @@
+{
+ "versao": 1,
+ "nota": "Produtividades de referência inicial (estimativa KAPTEK, out/2026). Calibre com as horas realizadas na aba Calibração.",
+ "perfis": {
+  "RT": "Responsável técnico / sócio",
+  "SR": "Engenheiro sênior",
+  "PL": "Engenheiro pleno",
+  "PJ": "Projetista / modelador BIM",
+  "TC": "Técnico de campo",
+  "ES": "Estagiário / apoio"
+ },
+ "tipos": {
+  "calculo": "Cálculo / memorial",
+  "projeto": "Projeto e desenhos",
+  "simulacao": "Simulação de engenharia",
+  "consultoria": "Consultoria / diagnóstico",
+  "obra": "Obra / acompanhamento",
+  "comissionamento": "Comissionamento",
+  "ensaio": "Ensaio / certificação",
+  "laudo": "Laudo / inspeção",
+  "entrega": "Entrega técnica / treinamento"
+ },
+ "etapas": [
+  {
+   "id": "mobilizacao",
+   "rotulo": "Mobilização e análise documental",
+   "marco": "Aceite da documentação",
+   "campo": false
+  },
+  {
+   "id": "campo",
+   "rotulo": "Levantamento e vistoria em campo",
+   "marco": "Relatório de vistoria",
+   "campo": true
+  },
+  {
+   "id": "calculo",
+   "rotulo": "Cálculos e análises",
+   "marco": "Memorial de cálculo",
+   "campo": false
+  },
+  {
+   "id": "projeto",
+   "rotulo": "Projeto e desenhos",
+   "marco": "Entrega dos desenhos",
+   "campo": false
+  },
+  {
+   "id": "simulacao",
+   "rotulo": "Simulações de engenharia",
+   "marco": "Relatório de simulação",
+   "campo": false
+  },
+  {
+   "id": "suprimentos",
+   "rotulo": "Suprimentos e entrega de equipamentos",
+   "marco": "Equipamentos entregues em obra",
+   "campo": false
+  },
+  {
+   "id": "obra",
+   "rotulo": "Execução e acompanhamento de obra",
+   "marco": "Conclusão da execução",
+   "campo": true
+  },
+  {
+   "id": "comissionamento",
+   "rotulo": "Comissionamento",
+   "marco": "Termo de comissionamento",
+   "campo": true
+  },
+  {
+   "id": "ensaio",
+   "rotulo": "Ensaios e certificação",
+   "marco": "Relatórios de ensaio",
+   "campo": true
+  },
+  {
+   "id": "emissao",
+   "rotulo": "Emissão e apresentação",
+   "marco": "Entrega da revisão final",
+   "campo": false
+  }
+ ],
+ "fatores": {
+  "complexidade": {
+   "rotulo": "Complexidade",
+   "opcoes": [
+    {
+     "valor": "baixa",
+     "rotulo": "Baixa",
+     "num": 0.85
+    },
+    {
+     "valor": "media",
+     "rotulo": "Média",
+     "num": 1.0
+    },
+    {
+     "valor": "alta",
+     "rotulo": "Alta",
+     "num": 1.3
+    }
+   ]
+  },
+  "documentacao": {
+   "rotulo": "Documentação existente",
+   "opcoes": [
+    {
+     "valor": "completa",
+     "rotulo": "Completa e atualizada",
+     "num": 0.9
+    },
+    {
+     "valor": "parcial",
+     "rotulo": "Parcial",
+     "num": 1.0
+    },
+    {
+     "valor": "inexistente",
+     "rotulo": "Inexistente",
+     "num": 1.25
+    }
+   ]
+  },
+  "acesso": {
+   "rotulo": "Acesso ao local",
+   "opcoes": [
+    {
+     "valor": "livre",
+     "rotulo": "Livre",
+     "num": 1.0
+    },
+    {
+     "valor": "restrito",
+     "rotulo": "Restrito (agendamento, escolta)",
+     "num": 1.15
+    },
+    {
+     "valor": "operacao",
+     "rotulo": "Área em operação ou horário noturno",
+     "num": 1.35
+    }
+   ]
+  },
+  "urgencia": {
+   "rotulo": "Urgência",
+   "opcoes": [
+    {
+     "valor": "normal",
+     "rotulo": "Prazo normal",
+     "num": 1.0
+    },
+    {
+     "valor": "acelerado",
+     "rotulo": "Acelerado",
+     "num": 1.15
+    },
+    {
+     "valor": "urgente",
+     "rotulo": "Urgente",
+     "num": 1.3
+    }
+   ]
+  }
+ },
+ "turnkey": {
+  "descricao": "Modalidade em que a contratada entrega o produto final em operação, por preço global, assumindo todas as etapas e subcontratações.",
+  "etapas": [
+   {
+    "id": "projeto",
+    "rotulo": "Projeto executivo",
+    "tipos": [
+     "projeto",
+     "calculo"
+    ]
+   },
+   {
+    "id": "aprovacoes",
+    "rotulo": "Aprovações e legalização",
+    "servicos": [
+     "inc.aprovacao"
+    ],
+    "opcional": true
+   },
+   {
+    "id": "equipamentos",
+    "rotulo": "Fornecimento de equipamentos e materiais",
+    "categorias": [
+     "equipamento",
+     "material"
+    ]
+   },
+   {
+    "id": "execucao",
+    "rotulo": "Execução e instalação (equipe própria ou subcontratada)",
+    "categorias": [
+     "mo_execucao",
+     "subcontrato"
+    ]
+   },
+   {
+    "id": "gestao",
+    "rotulo": "Gestão da obra",
+    "tipos": [
+     "obra"
+    ]
+   },
+   {
+    "id": "comissionamento",
+    "rotulo": "Comissionamento, TAB e start-up",
+    "tipos": [
+     "comissionamento",
+     "ensaio"
+    ]
+   },
+   {
+    "id": "entrega",
+    "rotulo": "Treinamento, manuais e data book",
+    "tipos": [
+     "entrega"
+    ]
+   }
+  ],
+  "eventos": {
+   "projeto": "Projeto e engenharia",
+   "calculo": "Projeto e engenharia",
+   "simulacao": "Projeto e engenharia",
+   "consultoria": "Projeto e engenharia",
+   "laudo": "Projeto e engenharia",
+   "obra": "Gestão da obra",
+   "comissionamento": "Comissionamento, TAB e start-up",
+   "ensaio": "Comissionamento, TAB e start-up",
+   "entrega": "Treinamento, manuais e data book",
+   "equipamento": "Fornecimento de equipamentos",
+   "material": "Fornecimento de materiais",
+   "mo_execucao": "Execução e instalação",
+   "subcontrato": "Execução e instalação"
+  },
+  "exclusoes": [
+   "Obras civis, alimentação elétrica até o quadro do sistema e demais infraestruturas não descritas no escopo.",
+   "Taxas de concessionárias e de órgãos públicos."
+  ],
+  "premissas": [
+   "A contratada assume a responsabilidade única pela entrega do sistema em operação, incluindo as subcontratações.",
+   "Garantia de {garantia_meses} meses para equipamentos e serviços, contada da assinatura do termo de aceite.",
+   "Área de trabalho, energia e água de obra serão disponibilizadas pelo contratante."
+  ]
+ },
+ "servicos": [
+  {
+   "id": "hvac.carga_termica",
+   "disciplina": "HVAC-R",
+   "tipo": "calculo",
+   "nome": "Cálculo de carga térmica",
+   "descricao": "Cálculo de carga térmica por ambiente, com memorial e resumo de vazões.",
+   "dados": [
+    {
+     "id": "area",
+     "rotulo": "Área",
+     "tipo": "float",
+     "padrao": 1000.0,
+     "unidade": "m²",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "ambientes",
+     "rotulo": "Ambientes / zonas",
+     "tipo": "int",
+     "padrao": 15,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "uso",
+     "rotulo": "Uso predominante",
+     "tipo": "opcoes",
+     "padrao": "comercial",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "comercial",
+       "rotulo": "Escritório / comercial",
+       "num": 1.0
+      },
+      {
+       "valor": "hospitalar",
+       "rotulo": "Hospitalar / laboratório / sala limpa",
+       "num": 1.3
+      },
+      {
+       "valor": "industrial",
+       "rotulo": "Industrial / processo",
+       "num": 1.2
+      }
+     ]
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mob",
+     "nome": "Análise de plantas, fachadas e uso dos ambientes",
+     "entregavel": "Lista de premissas de cálculo",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 2,
+      "PL": 2
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "lev",
+     "nome": "Levantamento de ocupação, iluminação e equipamentos",
+     "entregavel": "Planilha de dados de entrada",
+     "etapa": "campo",
+     "driver": "area",
+     "b": 0.9,
+     "fixo": {
+      "TC": 2
+     },
+     "unid": {
+      "PL": 0.004,
+      "TC": 0.004
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "calc",
+     "nome": "Cálculo de carga térmica por ambiente (NBR 16401-1)",
+     "entregavel": "Planilha de cargas por ambiente",
+     "etapa": "calculo",
+     "driver": "ambientes",
+     "b": 0.9,
+     "fixo": {
+      "SR": 2,
+      "PL": 4
+     },
+     "unid": {
+      "PL": 0.8,
+      "PJ": 0.2
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia",
+      "uso"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "mem",
+     "nome": "Memorial de cálculo e resumo de cargas e vazões",
+     "entregavel": "Memorial de cálculo",
+     "etapa": "emissao",
+     "driver": "ambientes",
+     "b": 1.0,
+     "fixo": {
+      "RT": 1,
+      "SR": 3,
+      "PL": 3,
+      "ES": 2
+     },
+     "unid": {
+      "PL": 0.1
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    {
+     "texto": "Projeto de climatização, especificação de equipamentos e desenhos.",
+     "exceto_se": [
+      "hvac.projeto"
+     ]
+    },
+    "Revisões decorrentes de alteração de premissas ou de escopo após o aceite desta proposta."
+   ],
+   "premissas": [
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite.",
+    "Arquitetura e demais disciplinas serão fornecidas em DWG ou IFC atualizados."
+   ],
+   "normas": [
+    "ABNT NBR 16401-1",
+    "ASHRAE Handbook — Fundamentals"
+   ]
+  },
+  {
+   "id": "hvac.projeto",
+   "disciplina": "HVAC-R",
+   "tipo": "projeto",
+   "nome": "Projeto de climatização (HVAC)",
+   "descricao": "Projeto de ar-condicionado, ventilação e exaustão, do estudo de concepção à emissão com ART.",
+   "dados": [
+    {
+     "id": "area",
+     "rotulo": "Área",
+     "tipo": "float",
+     "padrao": 1500.0,
+     "unidade": "m²",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "tr",
+     "rotulo": "Capacidade estimada",
+     "tipo": "float",
+     "padrao": 75.0,
+     "unidade": "TR",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "pavimentos",
+     "rotulo": "Pavimentos",
+     "tipo": "int",
+     "padrao": 3,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "sistema",
+     "rotulo": "Sistema de climatização",
+     "tipo": "opcoes",
+     "padrao": "vrf",
+     "ajuda": "Como o ar é resfriado: tipo de sistema de ar-condicionado.",
+     "opcoes": [
+      {
+       "valor": "split",
+       "rotulo": "Split / multi-split (expansão direta)",
+       "num": 0.8
+      },
+      {
+       "valor": "vrf",
+       "rotulo": "VRF — fluxo de refrigerante variável (expansão direta)",
+       "num": 1.0
+      },
+      {
+       "valor": "self",
+       "rotulo": "Self-contained / rooftop (expansão direta dutada)",
+       "num": 1.0
+      },
+      {
+       "valor": "agua_gelada",
+       "rotulo": "Água gelada — chiller + fancoils / UTAs (expansão indireta)",
+       "num": 1.35
+      }
+     ]
+    },
+    {
+     "id": "ventilacao_tipo",
+     "rotulo": "Ventilação / distribuição de ar",
+     "tipo": "opcoes",
+     "padrao": "renovacao",
+     "ajuda": "Como o ar é distribuído e renovado; independe do sistema de climatização.",
+     "opcoes": [
+      {
+       "valor": "nenhuma",
+       "rotulo": "Sem ventilação mecânica",
+       "num": 1.0
+      },
+      {
+       "valor": "renovacao",
+       "rotulo": "Renovação de ar simples (ventiladores, caixas de filtragem)",
+       "num": 1.0
+      },
+      {
+       "valor": "doas",
+       "rotulo": "Ar exterior dedicado (DOAS / UTA de ar externo)",
+       "num": 1.15
+      },
+      {
+       "valor": "cav",
+       "rotulo": "Volume de ar constante (CAV)",
+       "num": 1.1
+      },
+      {
+       "valor": "vav",
+       "rotulo": "Volume de ar variável (VAV)",
+       "num": 1.3
+      }
+     ]
+    },
+    {
+     "id": "caixas_vav",
+     "rotulo": "Caixas VAV",
+     "tipo": "int",
+     "padrao": 0,
+     "unidade": "un",
+     "ajuda": "Só para distribuição VAV.",
+     "min": 0
+    },
+    {
+     "id": "fase",
+     "rotulo": "Fase do projeto",
+     "tipo": "opcoes",
+     "padrao": "executivo",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "basico",
+       "rotulo": "Projeto básico",
+       "num": 0.55
+      },
+      {
+       "valor": "executivo",
+       "rotulo": "Projeto executivo",
+       "num": 1.0
+      },
+      {
+       "valor": "completo",
+       "rotulo": "Básico + executivo",
+       "num": 1.3
+      }
+     ]
+    },
+    {
+     "id": "nivel",
+     "rotulo": "Nível de entrega",
+     "tipo": "opcoes",
+     "padrao": "2d",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "2d",
+       "rotulo": "2D (CAD / PDF)",
+       "num": 1.0
+      },
+      {
+       "valor": "3d",
+       "rotulo": "3D (modelo geométrico)",
+       "num": 1.25
+      },
+      {
+       "valor": "bim",
+       "rotulo": "BIM (IFC / Revit, LOD 300)",
+       "num": 1.5
+      }
+     ]
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mob",
+     "nome": "Análise de arquitetura, estrutura e premissas do cliente",
+     "entregavel": "Lista de premissas de projeto",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 1,
+      "SR": 3,
+      "PL": 2
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "concepcao",
+     "nome": "Concepção e estudo de alternativas de sistema",
+     "entregavel": "Estudo de concepção",
+     "etapa": "calculo",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 2,
+      "SR": 6,
+      "PL": 4
+     },
+     "unid": {},
+     "fatores": [
+      "complexidade",
+      "sistema",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "carga",
+     "nome": "Cálculo de carga térmica e de vazões de ar",
+     "entregavel": "Planilha de cargas e vazões",
+     "etapa": "calculo",
+     "driver": "area",
+     "b": 0.9,
+     "fixo": {
+      "SR": 2,
+      "PL": 4
+     },
+     "unid": {
+      "PL": 0.01
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "ar_ext",
+     "nome": "Cálculo de ar exterior, renovação e exaustão (NBR 16401-3)",
+     "entregavel": "Memória de cálculo de ventilação",
+     "etapa": "calculo",
+     "driver": "area*(1-ventilacao_tipo__nenhuma)",
+     "b": 0.9,
+     "fixo": {},
+     "unid": {
+      "PL": 0.004
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia",
+      "ventilacao_tipo"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "vav",
+     "nome": "Seleção das caixas VAV e definição da sequência de controle",
+     "entregavel": "Tabela de caixas VAV e sequência de controle",
+     "etapa": "calculo",
+     "driver": "caixas_vav*ventilacao_tipo__vav",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 0.6,
+      "SR": 0.1,
+      "PJ": 0.3
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "dim",
+     "nome": "Dimensionamento de dutos e tubulações e seleção de equipamentos",
+     "entregavel": "Memorial de dimensionamento",
+     "etapa": "calculo",
+     "driver": "tr",
+     "b": 0.9,
+     "fixo": {
+      "SR": 2
+     },
+     "unid": {
+      "PL": 0.4,
+      "SR": 0.08
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia",
+      "sistema",
+      "fase"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "desenho",
+     "nome": "Desenhos: plantas, cortes, detalhes e fluxogramas",
+     "entregavel": "Pranchas do projeto",
+     "etapa": "projeto",
+     "driver": "area",
+     "b": 0.9,
+     "fixo": {
+      "PJ": 8
+     },
+     "unid": {
+      "PJ": 0.05,
+      "PL": 0.006
+     },
+     "fatores": [
+      "complexidade",
+      "urgencia",
+      "nivel",
+      "fase",
+      "sistema",
+      "ventilacao_tipo"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "compat",
+     "nome": "Compatibilização com arquitetura, estrutura e demais instalações",
+     "entregavel": "Relatório de interferências",
+     "etapa": "projeto",
+     "driver": "pavimentos",
+     "b": 1.0,
+     "fixo": {
+      "SR": 2
+     },
+     "unid": {
+      "PL": 2,
+      "PJ": 2
+     },
+     "fatores": [
+      "complexidade",
+      "nivel"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "memorial",
+     "nome": "Memorial descritivo, especificações técnicas e lista de materiais",
+     "entregavel": "Memorial descritivo e lista de materiais",
+     "etapa": "emissao",
+     "driver": "tr",
+     "b": 0.9,
+     "fixo": {
+      "SR": 4,
+      "PL": 4
+     },
+     "unid": {
+      "PL": 0.15,
+      "ES": 0.08
+     },
+     "fatores": [
+      "fase",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "rev",
+     "nome": "Revisão técnica, ART e emissão",
+     "entregavel": "Projeto emitido com ART",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 3,
+      "SR": 2,
+      "ES": 2
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    {
+     "texto": "Execução de obras, serviços de manutenção corretiva ou fornecimento de materiais e equipamentos.",
+     "exceto_fornecimento": true
+    },
+    "Projetos de arquitetura, estrutura e elétrica de força, salvo quando listados no escopo.",
+    "Taxas, emolumentos e custos de protocolo junto a órgãos públicos, concessionárias e corpo de bombeiros.",
+    "Revisões decorrentes de alteração de premissas ou de escopo após o aceite desta proposta."
+   ],
+   "premissas": [
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite.",
+    "Arquitetura e demais disciplinas serão fornecidas em DWG ou IFC atualizados.",
+    "Estão incluídas até duas rodadas de revisão por comentários do contratante."
+   ],
+   "normas": [
+    "ABNT NBR 16401 (partes 1, 2 e 3)",
+    "ASHRAE 62.1",
+    "SMACNA (dutos)"
+   ]
+  },
+  {
+   "id": "hvac.asbuilt",
+   "disciplina": "HVAC-R",
+   "tipo": "consultoria",
+   "nome": "Levantamento as-built de instalações HVAC-R",
+   "descricao": "Levantamento das instalações existentes e comparação com o projeto original, em 2D, 3D ou BIM.",
+   "dados": [
+    {
+     "id": "area",
+     "rotulo": "Área",
+     "tipo": "float",
+     "padrao": 1500.0,
+     "unidade": "m²",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "pavimentos",
+     "rotulo": "Pavimentos",
+     "tipo": "int",
+     "padrao": 3,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "sistemas",
+     "rotulo": "Sistemas / equipamentos principais",
+     "tipo": "int",
+     "padrao": 8,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "nivel",
+     "rotulo": "Nível de entrega",
+     "tipo": "opcoes",
+     "padrao": "2d",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "2d",
+       "rotulo": "2D (CAD / PDF)",
+       "num": 1.0
+      },
+      {
+       "valor": "3d",
+       "rotulo": "3D (modelo geométrico)",
+       "num": 1.25
+      },
+      {
+       "valor": "bim",
+       "rotulo": "BIM (IFC / Revit, LOD 300)",
+       "num": 1.5
+      }
+     ]
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mob",
+     "nome": "Análise da documentação original (projeto, memoriais, manuais)",
+     "entregavel": "Lista de documentos e lacunas",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 3,
+      "PL": 3,
+      "ES": 2
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "campo2d",
+     "nome": "Levantamento em campo com trena laser e registro fotográfico",
+     "entregavel": "Croquis e relatório fotográfico",
+     "etapa": "campo",
+     "driver": "area*nivel__2d",
+     "b": 0.9,
+     "fixo": {},
+     "unid": {
+      "TC": 0.008,
+      "PL": 0.003
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "captura3d",
+     "nome": "Acompanhamento da captura 3D e registro da nuvem de pontos",
+     "entregavel": "Nuvem de pontos registrada",
+     "etapa": "campo",
+     "driver": "area*(nivel__3d+nivel__bim)",
+     "b": 0.9,
+     "fixo": {},
+     "unid": {
+      "TC": 0.004,
+      "PJ": 0.004
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "cadastro",
+     "nome": "Cadastro de equipamentos (placas, capacidades, estado de conservação)",
+     "entregavel": "Cadastro de equipamentos",
+     "etapa": "campo",
+     "driver": "sistemas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 0.75,
+      "PL": 0.25
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "modelagem",
+     "nome": "Modelagem as-built: CAD 2D, modelo 3D ou BIM",
+     "entregavel": "Plantas / modelo as-built",
+     "etapa": "projeto",
+     "driver": "area*(nivel__2d+3.6*nivel__3d+6.7*nivel__bim)",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PJ": 0.0055,
+      "PL": 0.0015
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "comparativo",
+     "nome": "Comparativo as-built × projeto original e lista de divergências",
+     "entregavel": "Relatório de divergências",
+     "etapa": "calculo",
+     "driver": "sistemas*(1+0.5*nivel__3d+nivel__bim)",
+     "b": 1.0,
+     "fixo": {
+      "SR": 4,
+      "PL": 4
+     },
+     "unid": {
+      "PL": 0.5,
+      "SR": 0.25
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Emissão das plantas ou do modelo e relatório de as-built",
+     "entregavel": "Relatório de as-built",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 2,
+      "SR": 2,
+      "PJ": 4
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [
+    {
+     "id": "captura3d",
+     "nome": "Captura 3D terceirizada (LiDAR / fotogrametria)",
+     "qtd": "area*nivel__3d",
+     "valor_unit": 4.0,
+     "unid": "m²"
+    },
+    {
+     "id": "laser",
+     "nome": "Escaneamento a laser terceirizado (nuvem registrada)",
+     "qtd": "area*nivel__bim",
+     "valor_unit": 8.0,
+     "unid": "m²"
+    }
+   ],
+   "exclusoes": [
+    {
+     "texto": "Projeto de modificação ou de retrofit das instalações.",
+     "exceto_se": [
+      "hvac.projeto"
+     ]
+    },
+    "Andaimes, plataformas, acesso por corda e abertura de forros, a cargo do contratante.",
+    "Revisões decorrentes de alteração de premissas ou de escopo após o aceite desta proposta."
+   ],
+   "premissas": [
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite.",
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante.",
+    "Forros removíveis e shafts serão abertos pelo contratante para inspeção."
+   ],
+   "normas": [
+    "ABNT NBR 16401-1"
+   ]
+  },
+  {
+   "id": "hvac.desempenho",
+   "disciplina": "HVAC-R",
+   "tipo": "consultoria",
+   "nome": "Avaliação de desempenho real × estimativa de projeto",
+   "descricao": "Medição do desempenho dos sistemas e comparação com a estimativa de projeto (carga, vazão, eficiência, consumo).",
+   "dados": [
+    {
+     "id": "sistemas",
+     "rotulo": "Sistemas avaliados",
+     "tipo": "int",
+     "padrao": 8,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "tr",
+     "rotulo": "Capacidade total",
+     "tipo": "float",
+     "padrao": 75.0,
+     "unidade": "TR",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "metodo",
+     "rotulo": "Método",
+     "tipo": "opcoes",
+     "padrao": "pontual",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "pontual",
+       "rotulo": "Medições pontuais",
+       "num": 1.0
+      },
+      {
+       "valor": "campanha",
+       "rotulo": "Campanha com registradores (data loggers)",
+       "num": 1.0
+      },
+      {
+       "valor": "calibrado",
+       "rotulo": "Campanha + modelo energético calibrado",
+       "num": 1.0
+      }
+     ]
+    },
+    {
+     "id": "dias_registro",
+     "rotulo": "Dias de registro contínuo",
+     "tipo": "int",
+     "padrao": 7,
+     "unidade": "dias",
+     "ajuda": "Usado na campanha e no modelo calibrado.",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mob",
+     "nome": "Levantamento dos dados de projeto (cargas, vazões, eficiências de catálogo)",
+     "entregavel": "Base de comparação de projeto",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 2,
+      "PL": 3
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "medicoes",
+     "nome": "Medições em campo: temperaturas, vazões, potência elétrica e pressões",
+     "entregavel": "Planilha de medições",
+     "etapa": "campo",
+     "driver": "sistemas",
+     "b": 0.9,
+     "fixo": {
+      "TC": 2
+     },
+     "unid": {
+      "TC": 1.5,
+      "PL": 0.75
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "registradores",
+     "nome": "Instalação, verificação e retirada de registradores",
+     "entregavel": "Séries de dados registradas",
+     "etapa": "campo",
+     "driver": "sistemas*(metodo__campanha+metodo__calibrado)",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 0.5,
+      "PL": 0.25
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "analise",
+     "nome": "Análise de desempenho (kW/TR, COP, vazões) contra a estimativa de projeto",
+     "entregavel": "Quadro real × projeto",
+     "etapa": "calculo",
+     "driver": "sistemas",
+     "b": 0.9,
+     "fixo": {
+      "SR": 4,
+      "PL": 4
+     },
+     "unid": {
+      "PL": 1.5,
+      "SR": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "modelo",
+     "nome": "Modelo energético calibrado e comparação com o consumo real",
+     "entregavel": "Modelo calibrado (ASHRAE Guideline 14)",
+     "etapa": "simulacao",
+     "driver": "tr*metodo__calibrado",
+     "b": 0.8,
+     "fixo": {},
+     "unid": {
+      "PL": 0.5,
+      "SR": 0.15
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Relatório de desempenho com indicadores e recomendações",
+     "entregavel": "Relatório de desempenho",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 2,
+      "SR": 4,
+      "PL": 4,
+      "ES": 2
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [
+    {
+     "id": "loggers",
+     "nome": "Locação de registradores e analisador de energia",
+     "qtd": "dias_registro*(metodo__campanha+metodo__calibrado)",
+     "valor_unit": 150.0,
+     "unid": "dia"
+    },
+    {
+     "id": "instrumentos",
+     "nome": "Locação de instrumentos para medições pontuais",
+     "qtd": "ceil(sistemas/4)",
+     "valor_unit": 180.0,
+     "unid": "dia"
+    }
+   ],
+   "exclusoes": [
+    {
+     "texto": "Execução de obras, serviços de manutenção corretiva ou fornecimento de materiais e equipamentos.",
+     "exceto_fornecimento": true
+    },
+    {
+     "texto": "Correção das não conformidades identificadas, troca de componentes e serviços de manutenção.",
+     "exceto_fornecimento": true
+    },
+    "Revisões decorrentes de alteração de premissas ou de escopo após o aceite desta proposta."
+   ],
+   "premissas": [
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite.",
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante.",
+    "Os sistemas estarão em operação normal durante as medições.",
+    "As faturas de energia dos últimos 12 meses serão fornecidas pelo contratante."
+   ],
+   "normas": [
+    "ABNT NBR 16401-1",
+    "ASHRAE Guideline 14",
+    "ASHRAE 90.1"
+   ]
+  },
+  {
+   "id": "hvac.tab",
+   "disciplina": "HVAC-R",
+   "tipo": "comissionamento",
+   "nome": "TAB — teste, ajuste e balanceamento de ar",
+   "descricao": "Medição e ajuste das vazões nos terminais e nas unidades de tratamento, com mapa de zonas sem alcance e de correntes de ar.",
+   "dados": [
+    {
+     "id": "terminais",
+     "rotulo": "Difusores / grelhas",
+     "tipo": "int",
+     "padrao": 60,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "utas",
+     "rotulo": "UTAs / fancoils / ventiladores",
+     "tipo": "int",
+     "padrao": 6,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "caixas_vav",
+     "rotulo": "Caixas VAV",
+     "tipo": "int",
+     "padrao": 0,
+     "unidade": "un",
+     "ajuda": "Quando a distribuição de ar é VAV.",
+     "min": 0
+    },
+    {
+     "id": "amostragem",
+     "rotulo": "Amostragem",
+     "tipo": "opcoes",
+     "padrao": "completo",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "amostral",
+       "rotulo": "Amostral (30% dos terminais)",
+       "num": 0.3
+      },
+      {
+       "valor": "completo",
+       "rotulo": "Completa (100%)",
+       "num": 1.0
+      }
+     ]
+    },
+    {
+     "id": "ajuste",
+     "rotulo": "Escopo",
+     "tipo": "opcoes",
+     "padrao": "ajuste",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "diagnostico",
+       "rotulo": "Só medição e diagnóstico",
+       "num": 1.0
+      },
+      {
+       "valor": "ajuste",
+       "rotulo": "Medição e ajuste (rebalanceamento)",
+       "num": 1.0
+      }
+     ]
+    }
+   ],
+   "atividades": [
+    {
+     "id": "plano",
+     "nome": "Plano de TAB e protocolo de medição",
+     "entregavel": "Plano de TAB",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 3,
+      "PL": 2
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "terminais",
+     "nome": "Medição de vazão nos terminais (balômetro / anemômetro)",
+     "entregavel": "Planilha de vazões por terminal",
+     "etapa": "campo",
+     "driver": "terminais*amostragem",
+     "b": 1.0,
+     "fixo": {
+      "TC": 4
+     },
+     "unid": {
+      "TC": 0.35,
+      "PL": 0.08
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "utas",
+     "nome": "Medições em UTAs e ventiladores (vazão, pressão estática, rotação, corrente)",
+     "entregavel": "Folhas de dados das UTAs",
+     "etapa": "campo",
+     "driver": "utas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 1.5,
+      "PL": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "ajuste",
+     "nome": "Ajuste de dampers e rebalanceamento iterativo",
+     "entregavel": "Vazões ajustadas",
+     "etapa": "campo",
+     "driver": "terminais*amostragem*ajuste__ajuste",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 0.25,
+      "PL": 0.05
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "vav",
+     "nome": "Verificação e ajuste das caixas VAV (vazões mínima e máxima)",
+     "entregavel": "Folhas de ajuste das caixas VAV",
+     "etapa": "campo",
+     "driver": "caixas_vav",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 0.75,
+      "PL": 0.25
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "analise",
+     "nome": "Mapa de vazões, zonas sem alcance e correntes de ar, diagnóstico",
+     "entregavel": "Mapa de balanceamento",
+     "etapa": "calculo",
+     "driver": "terminais*amostragem",
+     "b": 1.0,
+     "fixo": {
+      "SR": 3,
+      "PL": 3
+     },
+     "unid": {
+      "PL": 0.1,
+      "SR": 0.03
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Relatório de TAB",
+     "entregavel": "Relatório de TAB",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 1,
+      "SR": 2,
+      "PL": 3,
+      "ES": 2
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [
+    {
+     "id": "balometro",
+     "nome": "Locação de balômetro e kit de medição",
+     "qtd": "ceil((terminais*amostragem*0.35+utas*1.5+caixas_vav*0.75)/8)",
+     "valor_unit": 250.0,
+     "unid": "dia"
+    }
+   ],
+   "exclusoes": [
+    {
+     "texto": "Correção das não conformidades identificadas, troca de componentes e serviços de manutenção.",
+     "exceto_fornecimento": true
+    },
+    "Andaimes, plataformas, acesso por corda e abertura de forros, a cargo do contratante.",
+    "Revisões decorrentes de alteração de premissas ou de escopo após o aceite desta proposta."
+   ],
+   "premissas": [
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante.",
+    "Os sistemas estarão em operação normal durante as medições.",
+    "Dampers e registros estarão acessíveis e operáveis."
+   ],
+   "normas": [
+    "ABNT NBR 16401-1 e 16401-3",
+    "ASHRAE 111",
+    "Procedimentos NEBB / AABC"
+   ]
+  },
+  {
+   "id": "hvac.cfd",
+   "disciplina": "HVAC-R",
+   "tipo": "simulacao",
+   "nome": "Simulação CFD de distribuição de ar e conforto",
+   "descricao": "Simulação de escoamento e temperatura para localizar correntes de ar e zonas sem alcance e comparar alternativas de insuflamento.",
+   "dados": [
+    {
+     "id": "zonas",
+     "rotulo": "Ambientes / zonas simulados",
+     "tipo": "int",
+     "padrao": 2,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "tipo",
+     "rotulo": "Tipo de estudo",
+     "tipo": "opcoes",
+     "padrao": "3d",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "2d",
+       "rotulo": "Estudo 2D (Clima2D)",
+       "num": 1.0
+      },
+      {
+       "valor": "3d",
+       "rotulo": "CFD 3D (OpenFOAM / SimScale / Ansys)",
+       "num": 1.0
+      }
+     ]
+    },
+    {
+     "id": "cenarios",
+     "rotulo": "Cenários por zona",
+     "tipo": "int",
+     "padrao": 2,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "geometria",
+     "nome": "Preparação de geometria e condições de contorno",
+     "entregavel": "Modelo geométrico",
+     "etapa": "simulacao",
+     "driver": "zonas*(0.3*tipo__2d+tipo__3d)",
+     "b": 0.9,
+     "fixo": {},
+     "unid": {
+      "PL": 6,
+      "PJ": 2
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "simulacao",
+     "nome": "Malha, simulação e verificação de independência de malha",
+     "entregavel": "Resultados de simulação",
+     "etapa": "simulacao",
+     "driver": "zonas*cenarios*(0.25*tipo__2d+tipo__3d)",
+     "b": 0.9,
+     "fixo": {},
+     "unid": {
+      "PL": 4,
+      "SR": 1
+     },
+     "fatores": [
+      "complexidade",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "pos",
+     "nome": "Pós-processamento: velocidades, temperaturas, PMV/PPD e risco de corrente de ar",
+     "entregavel": "Mapas de conforto",
+     "etapa": "simulacao",
+     "driver": "zonas*cenarios",
+     "b": 0.9,
+     "fixo": {},
+     "unid": {
+      "PL": 1.5
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Relatório de simulação",
+     "entregavel": "Relatório de simulação CFD",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 1,
+      "SR": 3,
+      "PL": 3
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [
+    {
+     "id": "nuvem",
+     "nome": "Processamento em nuvem / licença de CFD",
+     "qtd": "zonas*cenarios*tipo__3d",
+     "valor_unit": 250.0,
+     "unid": "simulação"
+    }
+   ],
+   "exclusoes": [
+    {
+     "texto": "Validação experimental em campo, salvo se contratada (TAB).",
+     "exceto_se": [
+      "hvac.tab"
+     ]
+    },
+    "Revisões decorrentes de alteração de premissas ou de escopo após o aceite desta proposta."
+   ],
+   "premissas": [
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite.",
+    "Geometria e condições de insuflamento serão fornecidas ou levantadas em outro item desta proposta.",
+    "O estudo 2D serve para comparar alternativas e não substitui a CFD 3D em laudo."
+   ],
+   "normas": [
+    "ISO 7730 / ABNT NBR 16401-2",
+    "ASHRAE 55"
+   ]
+  },
+  {
+   "id": "hvac.energetica",
+   "disciplina": "HVAC-R",
+   "tipo": "simulacao",
+   "nome": "Simulação energética do edifício",
+   "descricao": "Modelo energético anual do edifício para comparar alternativas de sistema e de envoltória.",
+   "dados": [
+    {
+     "id": "area",
+     "rotulo": "Área",
+     "tipo": "float",
+     "padrao": 3000.0,
+     "unidade": "m²",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "zonas",
+     "rotulo": "Zonas térmicas",
+     "tipo": "int",
+     "padrao": 20,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "alternativas",
+     "rotulo": "Alternativas simuladas",
+     "tipo": "int",
+     "padrao": 2,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "calibracao",
+     "rotulo": "Calibrar com o consumo real (ASHRAE Guideline 14)",
+     "tipo": "bool",
+     "padrao": false,
+     "ajuda": ""
+    }
+   ],
+   "atividades": [
+    {
+     "id": "geometria",
+     "nome": "Modelagem da geometria e da envoltória",
+     "entregavel": "Modelo geométrico",
+     "etapa": "simulacao",
+     "driver": "area",
+     "b": 0.85,
+     "fixo": {
+      "PJ": 4
+     },
+     "unid": {
+      "PJ": 0.006,
+      "PL": 0.002
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "entradas",
+     "nome": "Cargas internas, agendas e sistemas HVAC",
+     "entregavel": "Modelo de entrada",
+     "etapa": "simulacao",
+     "driver": "zonas",
+     "b": 0.85,
+     "fixo": {
+      "PL": 4
+     },
+     "unid": {
+      "PL": 0.75
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "simulacao",
+     "nome": "Simulação do caso base e das alternativas",
+     "entregavel": "Resultados anuais por alternativa",
+     "etapa": "simulacao",
+     "driver": "1+alternativas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 3,
+      "SR": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "calibracao",
+     "nome": "Calibração com faturas e medições",
+     "entregavel": "Indicadores de calibração (CV-RMSE, NMBE)",
+     "etapa": "simulacao",
+     "driver": "zonas*calibracao",
+     "b": 0.85,
+     "fixo": {},
+     "unid": {
+      "PL": 0.5,
+      "SR": 0.1
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Relatório de simulação energética",
+     "entregavel": "Relatório de simulação energética",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 1,
+      "SR": 3,
+      "PL": 4
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [
+    {
+     "id": "licenca",
+     "nome": "Licença de software de simulação (rateio)",
+     "qtd": "1",
+     "valor_unit": 300.0,
+     "unid": "vb"
+    }
+   ],
+   "exclusoes": [
+    "Revisões decorrentes de alteração de premissas ou de escopo após o aceite desta proposta."
+   ],
+   "premissas": [
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite.",
+    "Arquitetura e demais disciplinas serão fornecidas em DWG ou IFC atualizados."
+   ],
+   "normas": [
+    "ASHRAE 90.1",
+    "ASHRAE Guideline 14",
+    "EnergyPlus / OpenStudio"
+   ]
+  },
+  {
+   "id": "hvac.pmoc",
+   "disciplina": "HVAC-R",
+   "tipo": "laudo",
+   "nome": "PMOC — Plano de Manutenção, Operação e Controle",
+   "descricao": "Elaboração do PMOC com inventário de equipamentos e, opcionalmente, responsabilidade técnica mensal.",
+   "dados": [
+    {
+     "id": "equipamentos",
+     "rotulo": "Equipamentos",
+     "tipo": "int",
+     "padrao": 20,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "area",
+     "rotulo": "Área",
+     "tipo": "float",
+     "padrao": 1500.0,
+     "unidade": "m²",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "rt_meses",
+     "rotulo": "Meses de responsabilidade técnica",
+     "tipo": "int",
+     "padrao": 0,
+     "unidade": "meses",
+     "ajuda": "Acompanhamento mensal com visita e relatório.",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "inventario",
+     "nome": "Inventário e cadastro de equipamentos",
+     "entregavel": "Cadastro de equipamentos",
+     "etapa": "campo",
+     "driver": "equipamentos",
+     "b": 1.0,
+     "fixo": {
+      "TC": 2
+     },
+     "unid": {
+      "TC": 0.5,
+      "PL": 0.15
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "plano",
+     "nome": "Elaboração do PMOC: rotinas, periodicidades e registros",
+     "entregavel": "PMOC",
+     "etapa": "calculo",
+     "driver": "equipamentos",
+     "b": 0.8,
+     "fixo": {
+      "SR": 3,
+      "PL": 4
+     },
+     "unid": {
+      "PL": 0.25
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Emissão do PMOC com ART",
+     "entregavel": "PMOC assinado com ART",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 2,
+      "ES": 2
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "rt",
+     "nome": "Responsabilidade técnica e visitas mensais de acompanhamento",
+     "entregavel": "Relatórios mensais de acompanhamento",
+     "etapa": "obra",
+     "driver": "rt_meses",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "RT": 2,
+      "TC": 3
+     },
+     "fatores": [
+      "acesso"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    "Execução das rotinas de manutenção, peças e materiais.",
+    {
+     "texto": "Análises de qualidade do ar, salvo se contratadas.",
+     "exceto_se": [
+      "hvac.qai"
+     ]
+    }
+   ],
+   "premissas": [
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante.",
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite."
+   ],
+   "normas": [
+    "Lei 13.589/2018",
+    "Portaria MS 3.523/1998",
+    "ABNT NBR 13971"
+   ]
+  },
+  {
+   "id": "hvac.qai",
+   "disciplina": "HVAC-R",
+   "tipo": "ensaio",
+   "nome": "Avaliação da qualidade do ar interior",
+   "descricao": "Coleta de amostras e medições conforme a Resolução ANVISA RE 09/2003, com relatório e ART.",
+   "dados": [
+    {
+     "id": "pontos",
+     "rotulo": "Pontos de amostragem",
+     "tipo": "int",
+     "padrao": 3,
+     "unidade": "pontos",
+     "ajuda": "Defina pela área climatizada, conforme a tabela da Resolução ANVISA RE 09/2003.",
+     "min": 0
+    },
+    {
+     "id": "parametros",
+     "rotulo": "Parâmetros",
+     "tipo": "opcoes",
+     "padrao": "completo",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "completo",
+       "rotulo": "Microbiológico + físico-químico",
+       "num": 1.0
+      },
+      {
+       "valor": "fisico",
+       "rotulo": "Só físico-químico (CO₂, temperatura, umidade, aerodispersoides)",
+       "num": 1.0
+      }
+     ]
+    }
+   ],
+   "atividades": [
+    {
+     "id": "plano",
+     "nome": "Plano de amostragem",
+     "entregavel": "Plano de amostragem",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "PL": 2
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "coleta",
+     "nome": "Coleta de amostras e medições em campo",
+     "entregavel": "Fichas de coleta",
+     "etapa": "ensaio",
+     "driver": "pontos",
+     "b": 1.0,
+     "fixo": {
+      "TC": 2
+     },
+     "unid": {
+      "TC": 0.75,
+      "PL": 0.25
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "analise",
+     "nome": "Análise dos laudos laboratoriais e comparação com os padrões referenciais",
+     "entregavel": "Quadro de resultados",
+     "etapa": "calculo",
+     "driver": "pontos",
+     "b": 1.0,
+     "fixo": {
+      "SR": 1,
+      "PL": 2
+     },
+     "unid": {
+      "PL": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Relatório de qualidade do ar com ART",
+     "entregavel": "Relatório de qualidade do ar interior",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 1,
+      "SR": 1,
+      "ES": 2
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [
+    {
+     "id": "lab",
+     "nome": "Análises laboratoriais (fungos e aerodispersoides)",
+     "qtd": "(pontos+1)*parametros__completo",
+     "valor_unit": 280.0,
+     "unid": "amostra"
+    },
+    {
+     "id": "medidor",
+     "nome": "Locação de medidor de CO₂, temperatura e umidade",
+     "qtd": "ceil(pontos/10)",
+     "valor_unit": 120.0,
+     "unid": "dia"
+    }
+   ],
+   "exclusoes": [
+    "Higienização de dutos e correção de não conformidades."
+   ],
+   "premissas": [
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante.",
+    "Os sistemas estarão em operação normal durante as medições."
+   ],
+   "normas": [
+    "Resolução ANVISA RE 09/2003",
+    "Lei 13.589/2018"
+   ]
+  },
+  {
+   "id": "hvac.comissionamento",
+   "disciplina": "HVAC-R",
+   "tipo": "comissionamento",
+   "nome": "Comissionamento de sistemas HVAC",
+   "descricao": "Verificações pré-funcionais, testes funcionais e, opcionalmente, testes integrados com a automação.",
+   "dados": [
+    {
+     "id": "equipamentos",
+     "rotulo": "Equipamentos principais (chillers, UTAs, condensadoras, bombas)",
+     "tipo": "int",
+     "padrao": 12,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "caixas_vav",
+     "rotulo": "Caixas VAV",
+     "tipo": "int",
+     "padrao": 0,
+     "unidade": "un",
+     "ajuda": "Quando a distribuição de ar é VAV.",
+     "min": 0
+    },
+    {
+     "id": "nivel_cx",
+     "rotulo": "Nível do comissionamento",
+     "tipo": "opcoes",
+     "padrao": "funcional",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "funcional",
+       "rotulo": "Testes funcionais",
+       "num": 1.0
+      },
+      {
+       "valor": "integrado",
+       "rotulo": "Funcionais + integrados com automação (BMS)",
+       "num": 1.0
+      }
+     ]
+    }
+   ],
+   "atividades": [
+    {
+     "id": "plano",
+     "nome": "Plano de comissionamento e checklists",
+     "entregavel": "Plano de comissionamento",
+     "etapa": "mobilizacao",
+     "driver": "equipamentos",
+     "b": 1.0,
+     "fixo": {
+      "SR": 4,
+      "PL": 4
+     },
+     "unid": {
+      "PL": 0.2
+     },
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "prefuncional",
+     "nome": "Verificações pré-funcionais (instalação, elétrica, drenos, isolamento)",
+     "entregavel": "Checklists pré-funcionais",
+     "etapa": "comissionamento",
+     "driver": "equipamentos",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 1.0,
+      "PL": 0.3
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "funcional",
+     "nome": "Testes funcionais e de desempenho",
+     "entregavel": "Folhas de teste funcional",
+     "etapa": "comissionamento",
+     "driver": "equipamentos",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 1.5,
+      "PL": 0.75,
+      "SR": 0.15
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "integrado",
+     "nome": "Testes integrados e sequências de controle (BMS)",
+     "entregavel": "Relatório de testes integrados",
+     "etapa": "comissionamento",
+     "driver": "equipamentos*nivel_cx__integrado",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 1.0,
+      "SR": 0.25,
+      "TC": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "vav",
+     "nome": "Testes funcionais das caixas VAV e da sequência de controle",
+     "entregavel": "Folhas de teste das caixas VAV",
+     "etapa": "comissionamento",
+     "driver": "caixas_vav",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 0.4,
+      "PL": 0.2
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "pendencias",
+     "nome": "Gestão de pendências e retestes",
+     "entregavel": "Lista de pendências",
+     "etapa": "comissionamento",
+     "driver": "equipamentos",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 0.25,
+      "TC": 0.25
+     },
+     "fatores": [
+      "complexidade"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Relatório de comissionamento e termo de aceite",
+     "entregavel": "Relatório de comissionamento",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 2,
+      "SR": 3,
+      "PL": 3,
+      "ES": 3
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    {
+     "texto": "Correção de defeitos de instalação e fornecimento de peças.",
+     "exceto_fornecimento": true
+    },
+    {
+     "texto": "TAB, salvo se contratado em item próprio.",
+     "exceto_se": [
+      "hvac.tab"
+     ]
+    }
+   ],
+   "premissas": [
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante.",
+    "A instalação estará concluída e energizada no início dos testes.",
+    {
+     "texto": "O instalador acompanhará os testes com equipe própria.",
+     "exceto_fornecimento": true
+    }
+   ],
+   "normas": [
+    "ABNT NBR 16401-1",
+    "ASHRAE Guideline 0 / Standard 202"
+   ]
+  },
+  {
+   "id": "hvac.emergencial",
+   "disciplina": "HVAC-R",
+   "tipo": "consultoria",
+   "nome": "Plano de ações paliativas e manutenção emergencial",
+   "descricao": "Inspeção expedita dos sistemas críticos e plano de ações imediatas priorizado por risco, com estimativa de custo.",
+   "dados": [
+    {
+     "id": "sistemas",
+     "rotulo": "Sistemas avaliados",
+     "tipo": "int",
+     "padrao": 8,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "inspecao",
+     "nome": "Inspeção expedita dos sistemas críticos",
+     "entregavel": "Registro de falhas e riscos",
+     "etapa": "campo",
+     "driver": "sistemas",
+     "b": 1.0,
+     "fixo": {
+      "PL": 2
+     },
+     "unid": {
+      "TC": 0.75,
+      "PL": 0.25
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "priorizacao",
+     "nome": "Priorização por risco e estimativa de custo das ações",
+     "entregavel": "Plano de ações priorizado",
+     "etapa": "calculo",
+     "driver": "sistemas",
+     "b": 1.0,
+     "fixo": {
+      "SR": 2,
+      "PL": 2
+     },
+     "unid": {
+      "PL": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Emissão do plano de manutenção emergencial",
+     "entregavel": "Plano de manutenção emergencial",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 1,
+      "SR": 2,
+      "PL": 2
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    "Execução das ações de manutenção, peças e materiais."
+   ],
+   "premissas": [
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante."
+   ],
+   "normas": [
+    "ABNT NBR 13971",
+    "Lei 13.589/2018"
+   ]
+  },
+  {
+   "id": "hvac.viabilidade",
+   "disciplina": "HVAC-R",
+   "tipo": "consultoria",
+   "nome": "Estudo de viabilidade técnico-econômica (retrofit / eficiência)",
+   "descricao": "Alternativas de intervenção com CAPEX, OPEX, economia em relação ao sistema atual, breakeven e payback.",
+   "dados": [
+    {
+     "id": "alternativas",
+     "rotulo": "Alternativas estudadas",
+     "tipo": "int",
+     "padrao": 3,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "nivel_fin",
+     "rotulo": "Análise financeira",
+     "tipo": "opcoes",
+     "padrao": "completo",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "simplificado",
+       "rotulo": "Breakeven (empate) e payback descontado",
+       "num": 1.0
+      },
+      {
+       "valor": "completo",
+       "rotulo": "VPL, TIR, LCC e análise de sensibilidade",
+       "num": 1.0
+      }
+     ]
+    },
+    {
+     "id": "cotacoes",
+     "rotulo": "Cotações de fornecedores",
+     "tipo": "int",
+     "padrao": 3,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "baseline",
+     "nome": "Linha de base de consumo e OPEX (faturas e medições)",
+     "entregavel": "Linha de base",
+     "etapa": "calculo",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 2,
+      "PL": 4
+     },
+     "unid": {},
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "alternativas",
+     "nome": "Concepção e pré-dimensionamento das alternativas",
+     "entregavel": "Descrição das alternativas",
+     "etapa": "calculo",
+     "driver": "alternativas",
+     "b": 0.9,
+     "fixo": {},
+     "unid": {
+      "SR": 2,
+      "PL": 4
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "capex",
+     "nome": "Estimativa de CAPEX (cotações e composições de custo)",
+     "entregavel": "Quadro de CAPEX",
+     "etapa": "calculo",
+     "driver": "alternativas+0.5*cotacoes",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 2,
+      "ES": 1
+     },
+     "fatores": [
+      "complexidade",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "economia",
+     "nome": "Estimativa de OPEX e de economia por alternativa",
+     "entregavel": "Quadro de OPEX e economia",
+     "etapa": "calculo",
+     "driver": "alternativas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 2,
+      "SR": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "financeiro",
+     "nome": "Análise financeira: breakeven e payback; VPL, TIR, LCC e sensibilidade no nível completo",
+     "entregavel": "Análise financeira",
+     "etapa": "calculo",
+     "driver": "alternativas*(1+1.5*nivel_fin__completo)",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 1.5,
+      "SR": 0.5
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Relatório de viabilidade e apresentação executiva",
+     "entregavel": "Relatório de viabilidade",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 2,
+      "SR": 3,
+      "PL": 4,
+      "ES": 2
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    {
+     "texto": "Projeto executivo das alternativas.",
+     "exceto_se": [
+      "hvac.projeto"
+     ]
+    },
+    "Garantia de economia (contrato de performance)."
+   ],
+   "premissas": [
+    "As faturas de energia e os custos de manutenção dos últimos 12 meses serão fornecidos pelo contratante.",
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite."
+   ],
+   "normas": [
+    "ABNT NBR ISO 50001",
+    "ASHRAE 90.1"
+   ]
+  },
+  {
+   "id": "mec.ar_comprimido",
+   "disciplina": "Mecânica e utilidades",
+   "tipo": "projeto",
+   "nome": "Projeto de rede de ar comprimido",
+   "descricao": "Dimensionamento de compressores, reservatórios, tratamento e rede de distribuição.",
+   "dados": [
+    {
+     "id": "pontos",
+     "rotulo": "Pontos de consumo",
+     "tipo": "int",
+     "padrao": 20,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "extensao",
+     "rotulo": "Extensão da rede",
+     "tipo": "float",
+     "padrao": 200.0,
+     "unidade": "m",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "compressores",
+     "rotulo": "Compressores",
+     "tipo": "int",
+     "padrao": 2,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "fase",
+     "rotulo": "Fase do projeto",
+     "tipo": "opcoes",
+     "padrao": "executivo",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "basico",
+       "rotulo": "Projeto básico",
+       "num": 0.55
+      },
+      {
+       "valor": "executivo",
+       "rotulo": "Projeto executivo",
+       "num": 1.0
+      },
+      {
+       "valor": "completo",
+       "rotulo": "Básico + executivo",
+       "num": 1.3
+      }
+     ]
+    },
+    {
+     "id": "nivel",
+     "rotulo": "Nível de entrega",
+     "tipo": "opcoes",
+     "padrao": "2d",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "2d",
+       "rotulo": "2D (CAD / PDF)",
+       "num": 1.0
+      },
+      {
+       "valor": "3d",
+       "rotulo": "3D (modelo geométrico)",
+       "num": 1.25
+      },
+      {
+       "valor": "bim",
+       "rotulo": "BIM (IFC / Revit, LOD 300)",
+       "num": 1.5
+      }
+     ]
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mob",
+     "nome": "Análise de layout e premissas de consumo",
+     "entregavel": "Premissas de projeto",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 2,
+      "PL": 2
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "demanda",
+     "nome": "Levantamento de demanda em campo",
+     "entregavel": "Planilha de consumidores",
+     "etapa": "campo",
+     "driver": "pontos",
+     "b": 1.0,
+     "fixo": {
+      "PL": 2
+     },
+     "unid": {
+      "TC": 0.3,
+      "PL": 0.2
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "dim",
+     "nome": "Dimensionamento: compressores, reservatórios, tratamento e perda de carga",
+     "entregavel": "Memorial de cálculo",
+     "etapa": "calculo",
+     "driver": "pontos+3*compressores",
+     "b": 0.9,
+     "fixo": {
+      "SR": 2
+     },
+     "unid": {
+      "PL": 0.5,
+      "SR": 0.1
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia",
+      "fase"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "desenho",
+     "nome": "Desenhos: plantas, isométricos e detalhes",
+     "entregavel": "Pranchas do projeto",
+     "etapa": "projeto",
+     "driver": "extensao",
+     "b": 0.85,
+     "fixo": {
+      "PJ": 6
+     },
+     "unid": {
+      "PJ": 0.06
+     },
+     "fatores": [
+      "complexidade",
+      "urgencia",
+      "nivel",
+      "fase"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "memorial",
+     "nome": "Memorial descritivo e lista de materiais",
+     "entregavel": "Memorial e lista de materiais",
+     "etapa": "emissao",
+     "driver": "pontos",
+     "b": 1.0,
+     "fixo": {
+      "SR": 2,
+      "PL": 3
+     },
+     "unid": {
+      "PL": 0.15
+     },
+     "fatores": [
+      "fase",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "rev",
+     "nome": "Revisão técnica, ART e emissão",
+     "entregavel": "Projeto emitido com ART",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 2,
+      "ES": 1
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    {
+     "texto": "Execução de obras, serviços de manutenção corretiva ou fornecimento de materiais e equipamentos.",
+     "exceto_fornecimento": true
+    },
+    "Revisões decorrentes de alteração de premissas ou de escopo após o aceite desta proposta."
+   ],
+   "premissas": [
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite.",
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante."
+   ],
+   "normas": [
+    "ISO 8573-1 (qualidade do ar comprimido)",
+    "NR-13 (reservatórios)"
+   ]
+  },
+  {
+   "id": "mec.vapor",
+   "disciplina": "Mecânica e utilidades",
+   "tipo": "projeto",
+   "nome": "Rede de vapor e condensado (projeto ou avaliação de perdas)",
+   "descricao": "Projeto da rede de vapor e retorno de condensado ou avaliação de perdas, purgadores e isolamento.",
+   "dados": [
+    {
+     "id": "consumidores",
+     "rotulo": "Consumidores de vapor",
+     "tipo": "int",
+     "padrao": 10,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "extensao",
+     "rotulo": "Extensão da rede",
+     "tipo": "float",
+     "padrao": 300.0,
+     "unidade": "m",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "caldeiras",
+     "rotulo": "Caldeiras",
+     "tipo": "int",
+     "padrao": 1,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "escopo",
+     "rotulo": "Escopo",
+     "tipo": "opcoes",
+     "padrao": "projeto",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "projeto",
+       "rotulo": "Projeto da rede",
+       "num": 1.0
+      },
+      {
+       "valor": "avaliacao",
+       "rotulo": "Avaliação de perdas e eficiência",
+       "num": 1.0
+      }
+     ]
+    },
+    {
+     "id": "fase",
+     "rotulo": "Fase do projeto",
+     "tipo": "opcoes",
+     "padrao": "executivo",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "basico",
+       "rotulo": "Projeto básico",
+       "num": 0.55
+      },
+      {
+       "valor": "executivo",
+       "rotulo": "Projeto executivo",
+       "num": 1.0
+      },
+      {
+       "valor": "completo",
+       "rotulo": "Básico + executivo",
+       "num": 1.3
+      }
+     ]
+    },
+    {
+     "id": "nivel",
+     "rotulo": "Nível de entrega",
+     "tipo": "opcoes",
+     "padrao": "2d",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "2d",
+       "rotulo": "2D (CAD / PDF)",
+       "num": 1.0
+      },
+      {
+       "valor": "3d",
+       "rotulo": "3D (modelo geométrico)",
+       "num": 1.25
+      },
+      {
+       "valor": "bim",
+       "rotulo": "BIM (IFC / Revit, LOD 300)",
+       "num": 1.5
+      }
+     ]
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mob",
+     "nome": "Análise de documentação e balanço de demandas",
+     "entregavel": "Premissas",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 2,
+      "PL": 2
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "campo",
+     "nome": "Levantamento em campo (rede, purgadores, isolamento)",
+     "entregavel": "Relatório de campo",
+     "etapa": "campo",
+     "driver": "consumidores+extensao/50",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 0.5,
+      "PL": 0.3
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "balanco",
+     "nome": "Balanço térmico e dimensionamento de linhas",
+     "entregavel": "Memorial de cálculo",
+     "etapa": "calculo",
+     "driver": "consumidores",
+     "b": 0.9,
+     "fixo": {
+      "SR": 3
+     },
+     "unid": {
+      "PL": 0.8,
+      "SR": 0.2
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "perdas",
+     "nome": "Purgadores, isolamento térmico e perdas",
+     "entregavel": "Quadro de perdas e ganhos",
+     "etapa": "calculo",
+     "driver": "extensao/20",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 0.3
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "desenho",
+     "nome": "Desenhos: fluxograma, plantas e isométricos",
+     "entregavel": "Pranchas do projeto",
+     "etapa": "projeto",
+     "driver": "extensao*escopo__projeto",
+     "b": 0.85,
+     "fixo": {},
+     "unid": {
+      "PJ": 0.07
+     },
+     "fatores": [
+      "complexidade",
+      "urgencia",
+      "nivel",
+      "fase"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Relatório ou memorial com ART",
+     "entregavel": "Relatório técnico",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 2,
+      "SR": 3,
+      "PL": 4
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    {
+     "texto": "Execução de obras, serviços de manutenção corretiva ou fornecimento de materiais e equipamentos.",
+     "exceto_fornecimento": true
+    },
+    {
+     "texto": "Inspeção de caldeiras (NR-13), salvo item próprio.",
+     "exceto_se": [
+      "mec.nr13_inspecao"
+     ]
+    }
+   ],
+   "premissas": [
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite.",
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante."
+   ],
+   "normas": [
+    "NR-13",
+    "ASME B31.1"
+   ]
+  },
+  {
+   "id": "mec.gases",
+   "disciplina": "Mecânica e utilidades",
+   "tipo": "projeto",
+   "nome": "Redes de gases (GN, GLP, gases medicinais e especiais)",
+   "descricao": "Dimensionamento de central, reguladores e rede de distribuição de gases.",
+   "dados": [
+    {
+     "id": "pontos",
+     "rotulo": "Pontos de consumo",
+     "tipo": "int",
+     "padrao": 10,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "extensao",
+     "rotulo": "Extensão da rede",
+     "tipo": "float",
+     "padrao": 150.0,
+     "unidade": "m",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "gas",
+     "rotulo": "Gás",
+     "tipo": "opcoes",
+     "padrao": "combustivel",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "combustivel",
+       "rotulo": "GN / GLP",
+       "num": 1.0
+      },
+      {
+       "valor": "medicinal",
+       "rotulo": "Gases medicinais / especiais",
+       "num": 1.3
+      }
+     ]
+    },
+    {
+     "id": "fase",
+     "rotulo": "Fase do projeto",
+     "tipo": "opcoes",
+     "padrao": "executivo",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "basico",
+       "rotulo": "Projeto básico",
+       "num": 0.55
+      },
+      {
+       "valor": "executivo",
+       "rotulo": "Projeto executivo",
+       "num": 1.0
+      },
+      {
+       "valor": "completo",
+       "rotulo": "Básico + executivo",
+       "num": 1.3
+      }
+     ]
+    },
+    {
+     "id": "nivel",
+     "rotulo": "Nível de entrega",
+     "tipo": "opcoes",
+     "padrao": "2d",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "2d",
+       "rotulo": "2D (CAD / PDF)",
+       "num": 1.0
+      },
+      {
+       "valor": "3d",
+       "rotulo": "3D (modelo geométrico)",
+       "num": 1.25
+      },
+      {
+       "valor": "bim",
+       "rotulo": "BIM (IFC / Revit, LOD 300)",
+       "num": 1.5
+      }
+     ]
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mob",
+     "nome": "Análise de layout e consumos",
+     "entregavel": "Premissas de projeto",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 2,
+      "PL": 1
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "dim",
+     "nome": "Dimensionamento da rede, da central e dos reguladores",
+     "entregavel": "Memorial de cálculo",
+     "etapa": "calculo",
+     "driver": "pontos",
+     "b": 0.9,
+     "fixo": {
+      "SR": 2,
+      "PL": 2
+     },
+     "unid": {
+      "PL": 0.6,
+      "SR": 0.1
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia",
+      "gas"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "desenho",
+     "nome": "Desenhos: plantas, isométricos e detalhes",
+     "entregavel": "Pranchas do projeto",
+     "etapa": "projeto",
+     "driver": "extensao",
+     "b": 0.85,
+     "fixo": {
+      "PJ": 4
+     },
+     "unid": {
+      "PJ": 0.06
+     },
+     "fatores": [
+      "complexidade",
+      "urgencia",
+      "nivel",
+      "fase",
+      "gas"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "memorial",
+     "nome": "Memorial descritivo e lista de materiais",
+     "entregavel": "Memorial e lista de materiais",
+     "etapa": "emissao",
+     "driver": "pontos",
+     "b": 1.0,
+     "fixo": {
+      "SR": 2,
+      "PL": 2
+     },
+     "unid": {
+      "PL": 0.15
+     },
+     "fatores": [
+      "fase",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "rev",
+     "nome": "Revisão técnica, ART e emissão",
+     "entregavel": "Projeto emitido com ART",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 2,
+      "ES": 1
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    {
+     "texto": "Execução de obras, serviços de manutenção corretiva ou fornecimento de materiais e equipamentos.",
+     "exceto_fornecimento": true
+    },
+    "Taxas, emolumentos e custos de protocolo junto a órgãos públicos, concessionárias e corpo de bombeiros.",
+    "Revisões decorrentes de alteração de premissas ou de escopo após o aceite desta proposta."
+   ],
+   "premissas": [
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite.",
+    "Arquitetura e demais disciplinas serão fornecidas em DWG ou IFC atualizados."
+   ],
+   "normas": [
+    "ABNT NBR 15526",
+    "ABNT NBR 13523",
+    "ABNT NBR 12188"
+   ]
+  },
+  {
+   "id": "mec.bombeamento",
+   "disciplina": "Mecânica e utilidades",
+   "tipo": "calculo",
+   "nome": "Memorial de cálculo de bombeamento e tubulações",
+   "descricao": "Cálculo hidráulico de tubulações, seleção de bombas e verificação de NPSH.",
+   "dados": [
+    {
+     "id": "sistemas",
+     "rotulo": "Sistemas de bombeamento",
+     "tipo": "int",
+     "padrao": 2,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "trechos",
+     "rotulo": "Trechos de tubulação",
+     "tipo": "int",
+     "padrao": 20,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mob",
+     "nome": "Análise de documentação e premissas",
+     "entregavel": "Premissas de cálculo",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 1,
+      "PL": 2
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "campo",
+     "nome": "Levantamento em campo das instalações",
+     "entregavel": "Croquis de campo",
+     "etapa": "campo",
+     "driver": "sistemas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 1,
+      "PL": 1
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "hidraulica",
+     "nome": "Cálculo hidráulico (perda de carga e transientes, quando aplicável)",
+     "entregavel": "Memória de cálculo hidráulico",
+     "etapa": "calculo",
+     "driver": "trechos",
+     "b": 0.9,
+     "fixo": {
+      "SR": 1
+     },
+     "unid": {
+      "PL": 0.4
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "selecao",
+     "nome": "Seleção de bombas e verificação de NPSH",
+     "entregavel": "Folhas de seleção",
+     "etapa": "calculo",
+     "driver": "sistemas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 2,
+      "SR": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "memorial",
+     "nome": "Memorial de cálculo com ART",
+     "entregavel": "Memorial de cálculo",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 1,
+      "SR": 2,
+      "PL": 3
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    {
+     "texto": "Execução de obras, serviços de manutenção corretiva ou fornecimento de materiais e equipamentos.",
+     "exceto_fornecimento": true
+    },
+    "Revisões decorrentes de alteração de premissas ou de escopo após o aceite desta proposta."
+   ],
+   "premissas": [
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite.",
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante."
+   ],
+   "normas": [
+    "Hydraulic Institute Standards"
+   ]
+  },
+  {
+   "id": "mec.nr13_inspecao",
+   "disciplina": "Mecânica e utilidades",
+   "tipo": "laudo",
+   "nome": "Inspeção de segurança NR-13 (vasos, caldeiras, tubulações)",
+   "descricao": "Inspeção de segurança periódica, inicial ou extraordinária, com relatórios por equipamento.",
+   "dados": [
+    {
+     "id": "vasos",
+     "rotulo": "Vasos de pressão",
+     "tipo": "int",
+     "padrao": 5,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "caldeiras",
+     "rotulo": "Caldeiras",
+     "tipo": "int",
+     "padrao": 0,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "tubulacoes",
+     "rotulo": "Linhas de tubulação",
+     "tipo": "int",
+     "padrao": 0,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "tipo",
+     "rotulo": "Tipo de inspeção",
+     "tipo": "opcoes",
+     "padrao": "periodica",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "periodica",
+       "rotulo": "Periódica",
+       "num": 1.0
+      },
+      {
+       "valor": "inicial",
+       "rotulo": "Inicial",
+       "num": 1.15
+      },
+      {
+       "valor": "extraordinaria",
+       "rotulo": "Extraordinária",
+       "num": 1.1
+      }
+     ]
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mob",
+     "nome": "Análise de prontuários, registros e relatórios anteriores",
+     "entregavel": "Lista de documentos",
+     "etapa": "mobilizacao",
+     "driver": "vasos+2*caldeiras+0.3*tubulacoes",
+     "b": 1.0,
+     "fixo": {
+      "SR": 2
+     },
+     "unid": {
+      "PL": 0.5
+     },
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "vasos",
+     "nome": "Inspeção de vasos de pressão (externa e interna, quando aplicável)",
+     "entregavel": "Registros de inspeção",
+     "etapa": "campo",
+     "driver": "vasos",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "SR": 1.5,
+      "TC": 1.0
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia",
+      "tipo"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "caldeiras",
+     "nome": "Inspeção de caldeiras",
+     "entregavel": "Registros de inspeção",
+     "etapa": "campo",
+     "driver": "caldeiras",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "SR": 4,
+      "TC": 3
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia",
+      "tipo"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "tubulacoes",
+     "nome": "Inspeção de tubulações",
+     "entregavel": "Registros de inspeção",
+     "etapa": "campo",
+     "driver": "tubulacoes",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "SR": 0.5,
+      "TC": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "integridade",
+     "nome": "Avaliação de integridade e verificação da PMTA",
+     "entregavel": "Memória de cálculo",
+     "etapa": "calculo",
+     "driver": "vasos+2*caldeiras",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "SR": 1,
+      "PL": 1
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Relatórios de inspeção por equipamento",
+     "entregavel": "Relatórios de inspeção NR-13",
+     "etapa": "emissao",
+     "driver": "vasos+caldeiras+0.2*tubulacoes",
+     "b": 1.0,
+     "fixo": {
+      "RT": 1
+     },
+     "unid": {
+      "PL": 1,
+      "ES": 0.5
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [
+    {
+     "id": "espessura",
+     "nome": "Medição de espessura por ultrassom (terceirizada)",
+     "qtd": "vasos+2*caldeiras+tubulacoes",
+     "valor_unit": 180.0,
+     "unid": "equipamento"
+    }
+   ],
+   "exclusoes": [
+    {
+     "texto": "Teste hidrostático, ensaios não destrutivos além da medição de espessura e reparos.",
+     "exceto_se": [
+      "mec.ensaios_pressao"
+     ]
+    },
+    "Calibração de válvulas de segurança e de manômetros (o contratante fornece os certificados)."
+   ],
+   "premissas": [
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite.",
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante.",
+    "Equipamentos liberados, despressurizados e limpos para inspeção interna, com bloqueio de energia pelo contratante."
+   ],
+   "normas": [
+    "NR-13"
+   ]
+  },
+  {
+   "id": "mec.nr13_prontuario",
+   "disciplina": "Mecânica e utilidades",
+   "tipo": "laudo",
+   "nome": "Reconstituição de prontuário NR-13",
+   "descricao": "Levantamento dimensional, cálculos de projeto e PMTA e emissão do prontuário de vasos e caldeiras sem documentação.",
+   "dados": [
+    {
+     "id": "equipamentos",
+     "rotulo": "Vasos / caldeiras sem prontuário",
+     "tipo": "int",
+     "padrao": 2,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "dados_fab",
+     "rotulo": "Dados do fabricante",
+     "tipo": "opcoes",
+     "padrao": "parcial",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "parcial",
+       "rotulo": "Placa e alguns dados do fabricante",
+       "num": 1.0
+      },
+      {
+       "valor": "inexistente",
+       "rotulo": "Sem dados do fabricante",
+       "num": 1.6
+      }
+     ]
+    }
+   ],
+   "atividades": [
+    {
+     "id": "campo",
+     "nome": "Levantamento dimensional e dados de placa",
+     "entregavel": "Croquis dimensionais",
+     "etapa": "campo",
+     "driver": "equipamentos",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 1.5,
+      "SR": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "calculo",
+     "nome": "Cálculos de projeto e PMTA (ASME VIII)",
+     "entregavel": "Memória de cálculo",
+     "etapa": "calculo",
+     "driver": "equipamentos",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "SR": 2,
+      "PL": 2
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia",
+      "dados_fab"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "desenho",
+     "nome": "Desenho do equipamento",
+     "entregavel": "Desenho de conjunto",
+     "etapa": "projeto",
+     "driver": "equipamentos",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PJ": 3
+     },
+     "fatores": [
+      "complexidade"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Emissão do prontuário",
+     "entregavel": "Prontuário NR-13",
+     "etapa": "emissao",
+     "driver": "equipamentos",
+     "b": 1.0,
+     "fixo": {
+      "RT": 1
+     },
+     "unid": {
+      "PL": 0.5,
+      "ES": 0.5
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [
+    {
+     "id": "espessura",
+     "nome": "Medição de espessura por ultrassom (terceirizada)",
+     "qtd": "equipamentos",
+     "valor_unit": 180.0,
+     "unid": "equipamento"
+    }
+   ],
+   "exclusoes": [
+    "Teste hidrostático e reparos.",
+    "Revisões decorrentes de alteração de premissas ou de escopo após o aceite desta proposta."
+   ],
+   "premissas": [
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante.",
+    "As condições de segurança de acesso, incluindo andaimes, plataformas e bloqueio de energia, são de responsabilidade do contratante."
+   ],
+   "normas": [
+    "NR-13",
+    "ASME Section VIII, Div. 1"
+   ]
+  },
+  {
+   "id": "mec.ensaios_pressao",
+   "disciplina": "Mecânica e utilidades",
+   "tipo": "ensaio",
+   "nome": "Ensaios de estanqueidade e pressão",
+   "descricao": "Plano, acompanhamento e certificado de testes hidrostáticos ou pneumáticos.",
+   "dados": [
+    {
+     "id": "circuitos",
+     "rotulo": "Circuitos / linhas",
+     "tipo": "int",
+     "padrao": 4,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "tipo",
+     "rotulo": "Tipo de ensaio",
+     "tipo": "opcoes",
+     "padrao": "hidrostatico",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "hidrostatico",
+       "rotulo": "Hidrostático",
+       "num": 1.0
+      },
+      {
+       "valor": "pneumatico",
+       "rotulo": "Pneumático / estanqueidade com gás",
+       "num": 1.2
+      }
+     ]
+    }
+   ],
+   "atividades": [
+    {
+     "id": "plano",
+     "nome": "Plano de teste e cálculo da pressão de ensaio",
+     "entregavel": "Plano de teste",
+     "etapa": "calculo",
+     "driver": "circuitos",
+     "b": 1.0,
+     "fixo": {
+      "SR": 2
+     },
+     "unid": {
+      "PL": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "execucao",
+     "nome": "Execução e acompanhamento do ensaio",
+     "entregavel": "Registros de ensaio",
+     "etapa": "ensaio",
+     "driver": "circuitos",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 2,
+      "PL": 1
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia",
+      "tipo"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Relatório e certificado de ensaio",
+     "entregavel": "Certificado de ensaio",
+     "etapa": "emissao",
+     "driver": "circuitos",
+     "b": 1.0,
+     "fixo": {
+      "RT": 1,
+      "SR": 1
+     },
+     "unid": {
+      "PL": 0.3
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [
+    {
+     "id": "bomba",
+     "nome": "Locação de bomba de teste e manômetros calibrados",
+     "qtd": "ceil(circuitos/3)",
+     "valor_unit": 300.0,
+     "unid": "dia"
+    }
+   ],
+   "exclusoes": [
+    "Fornecimento de água, gás de teste e drenagem.",
+    "Reparos de vazamentos."
+   ],
+   "premissas": [
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante.",
+    "As condições de segurança de acesso, incluindo andaimes, plataformas e bloqueio de energia, são de responsabilidade do contratante."
+   ],
+   "normas": [
+    "ASME B31.3 / B31.1 (conforme a linha)",
+    "NR-13"
+   ]
+  },
+  {
+   "id": "st.nr12",
+   "disciplina": "Segurança do trabalho",
+   "tipo": "laudo",
+   "nome": "Apreciação de risco de máquinas (NR-12)",
+   "descricao": "Inspeção, apreciação de risco e plano de adequação de máquinas e equipamentos.",
+   "dados": [
+    {
+     "id": "maquinas",
+     "rotulo": "Máquinas",
+     "tipo": "int",
+     "padrao": 10,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "porte",
+     "rotulo": "Complexidade das máquinas",
+     "tipo": "opcoes",
+     "padrao": "media",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "simples",
+       "rotulo": "Máquinas simples",
+       "num": 0.7
+      },
+      {
+       "valor": "media",
+       "rotulo": "Complexidade média",
+       "num": 1.0
+      },
+      {
+       "valor": "complexa",
+       "rotulo": "Linhas integradas / complexas",
+       "num": 1.8
+      }
+     ]
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mob",
+     "nome": "Análise de manuais, layout e inventário de máquinas",
+     "entregavel": "Inventário de máquinas",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 2,
+      "PL": 2
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "inspecao",
+     "nome": "Inspeção das máquinas em campo",
+     "entregavel": "Registros de inspeção",
+     "etapa": "campo",
+     "driver": "maquinas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "SR": 0.75,
+      "TC": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia",
+      "porte"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "apreciacao",
+     "nome": "Apreciação de risco (HRN) e categoria de segurança (NBR 14153)",
+     "entregavel": "Apreciação de risco por máquina",
+     "etapa": "calculo",
+     "driver": "maquinas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 1.5,
+      "SR": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia",
+      "porte"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "medidas",
+     "nome": "Medidas de proteção e plano de adequação",
+     "entregavel": "Plano de adequação",
+     "etapa": "calculo",
+     "driver": "maquinas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 0.75,
+      "SR": 0.25
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia",
+      "porte"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Emissão do laudo NR-12",
+     "entregavel": "Laudo NR-12",
+     "etapa": "emissao",
+     "driver": "maquinas",
+     "b": 1.0,
+     "fixo": {
+      "RT": 2,
+      "SR": 2
+     },
+     "unid": {
+      "PL": 0.3,
+      "ES": 0.3
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    "Projeto e execução das adequações (proteções e sistemas de segurança).",
+    "Validação dos sistemas de comando após a adequação, salvo item próprio."
+   ],
+   "premissas": [
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante.",
+    "As máquinas estarão em operação durante a inspeção, com operador disponível.",
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite."
+   ],
+   "normas": [
+    "NR-12",
+    "ABNT NBR ISO 12100",
+    "ABNT NBR 14153"
+   ]
+  },
+  {
+   "id": "st.insalubridade",
+   "disciplina": "Segurança do trabalho",
+   "tipo": "laudo",
+   "nome": "Laudo de insalubridade (NR-15)",
+   "descricao": "Reconhecimento, avaliações quantitativas e enquadramento dos agentes nos anexos da NR-15.",
+   "dados": [
+    {
+     "id": "ghe",
+     "rotulo": "Grupos homogêneos de exposição (GHE)",
+     "tipo": "int",
+     "padrao": 10,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "agentes",
+     "rotulo": "Agentes por GHE (média)",
+     "tipo": "float",
+     "padrao": 2.0,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "quantitativas",
+     "rotulo": "Avaliações quantitativas (ruído, calor, vibração)",
+     "tipo": "int",
+     "padrao": 10,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "amostras_quimicas",
+     "rotulo": "Amostras de agentes químicos",
+     "tipo": "int",
+     "padrao": 0,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mob",
+     "nome": "Análise de PGR, PCMSO e descrição de funções",
+     "entregavel": "Base documental",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 2,
+      "PL": 2
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "reconhecimento",
+     "nome": "Reconhecimento dos ambientes e das atividades",
+     "entregavel": "Registros de campo",
+     "etapa": "campo",
+     "driver": "ghe",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "SR": 0.5,
+      "TC": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "quantitativas",
+     "nome": "Avaliações quantitativas em campo",
+     "entregavel": "Planilhas de medição",
+     "etapa": "campo",
+     "driver": "quantitativas+0.5*amostras_quimicas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 1.5,
+      "PL": 0.25
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "enquadramento",
+     "nome": "Análise e enquadramento nos anexos da NR-15",
+     "entregavel": "Quadro de enquadramento",
+     "etapa": "calculo",
+     "driver": "ghe*agentes",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 0.5,
+      "SR": 0.25
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Emissão do laudo",
+     "entregavel": "Laudo assinado",
+     "etapa": "emissao",
+     "driver": "ghe",
+     "b": 1.0,
+     "fixo": {
+      "RT": 2,
+      "ES": 2
+     },
+     "unid": {
+      "PL": 0.3
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [
+    {
+     "id": "dosimetros",
+     "nome": "Locação de dosímetros e medidores (ruído, calor, vibração)",
+     "qtd": "ceil(quantitativas/6)",
+     "valor_unit": 200.0,
+     "unid": "dia"
+    },
+    {
+     "id": "quimicos",
+     "nome": "Análises laboratoriais de agentes químicos",
+     "qtd": "amostras_quimicas",
+     "valor_unit": 350.0,
+     "unid": "amostra"
+    }
+   ],
+   "exclusoes": [
+    "Implantação de medidas de controle.",
+    "Revisões decorrentes de alteração de premissas ou de escopo após o aceite desta proposta."
+   ],
+   "premissas": [
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante.",
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite.",
+    "As atividades estarão em condição habitual de trabalho durante as avaliações."
+   ],
+   "normas": [
+    "NR-15 e anexos",
+    "NHO 01 e NHO 06 (Fundacentro)"
+   ]
+  },
+  {
+   "id": "st.ltcat",
+   "disciplina": "Segurança do trabalho",
+   "tipo": "laudo",
+   "nome": "LTCAT — Laudo Técnico das Condições Ambientais do Trabalho",
+   "descricao": "Avaliação das condições ambientais para fins previdenciários (aposentadoria especial).",
+   "dados": [
+    {
+     "id": "ghe",
+     "rotulo": "Grupos homogêneos de exposição (GHE)",
+     "tipo": "int",
+     "padrao": 10,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "agentes",
+     "rotulo": "Agentes por GHE (média)",
+     "tipo": "float",
+     "padrao": 2.0,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "quantitativas",
+     "rotulo": "Avaliações quantitativas (ruído, calor, vibração)",
+     "tipo": "int",
+     "padrao": 10,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "amostras_quimicas",
+     "rotulo": "Amostras de agentes químicos",
+     "tipo": "int",
+     "padrao": 0,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mob",
+     "nome": "Análise de PGR, PCMSO e descrição de funções",
+     "entregavel": "Base documental",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 2,
+      "PL": 2
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "reconhecimento",
+     "nome": "Reconhecimento dos ambientes e das atividades",
+     "entregavel": "Registros de campo",
+     "etapa": "campo",
+     "driver": "ghe",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "SR": 0.5,
+      "TC": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "quantitativas",
+     "nome": "Avaliações quantitativas em campo",
+     "entregavel": "Planilhas de medição",
+     "etapa": "campo",
+     "driver": "quantitativas+0.5*amostras_quimicas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 1.5,
+      "PL": 0.25
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "enquadramento",
+     "nome": "Enquadramento previdenciário (Anexo IV do Decreto 3.048/1999)",
+     "entregavel": "Quadro de enquadramento",
+     "etapa": "calculo",
+     "driver": "ghe*agentes",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 0.5,
+      "SR": 0.25
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Emissão do laudo",
+     "entregavel": "Laudo assinado",
+     "etapa": "emissao",
+     "driver": "ghe",
+     "b": 1.0,
+     "fixo": {
+      "RT": 2,
+      "ES": 2
+     },
+     "unid": {
+      "PL": 0.3
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [
+    {
+     "id": "dosimetros",
+     "nome": "Locação de dosímetros e medidores (ruído, calor, vibração)",
+     "qtd": "ceil(quantitativas/6)",
+     "valor_unit": 200.0,
+     "unid": "dia"
+    },
+    {
+     "id": "quimicos",
+     "nome": "Análises laboratoriais de agentes químicos",
+     "qtd": "amostras_quimicas",
+     "valor_unit": 350.0,
+     "unid": "amostra"
+    }
+   ],
+   "exclusoes": [
+    "Implantação de medidas de controle.",
+    "Revisões decorrentes de alteração de premissas ou de escopo após o aceite desta proposta."
+   ],
+   "premissas": [
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante.",
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite.",
+    "As atividades estarão em condição habitual de trabalho durante as avaliações."
+   ],
+   "normas": [
+    "Decreto 3.048/1999, Anexo IV",
+    "NHO 01 e NHO 06 (Fundacentro)"
+   ]
+  },
+  {
+   "id": "st.periculosidade",
+   "disciplina": "Segurança do trabalho",
+   "tipo": "laudo",
+   "nome": "Laudo de periculosidade (NR-16)",
+   "descricao": "Inspeção das áreas e atividades e enquadramento nos anexos da NR-16.",
+   "dados": [
+    {
+     "id": "areas",
+     "rotulo": "Áreas / atividades avaliadas",
+     "tipo": "int",
+     "padrao": 6,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "funcoes",
+     "rotulo": "Funções",
+     "tipo": "int",
+     "padrao": 8,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mob",
+     "nome": "Análise documental e descrição de funções",
+     "entregavel": "Base documental",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 2,
+      "PL": 1
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "inspecao",
+     "nome": "Inspeção das áreas e atividades",
+     "entregavel": "Registros de campo",
+     "etapa": "campo",
+     "driver": "areas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "SR": 1,
+      "TC": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "enquadramento",
+     "nome": "Enquadramento nos anexos da NR-16",
+     "entregavel": "Quadro de enquadramento",
+     "etapa": "calculo",
+     "driver": "areas+0.3*funcoes",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 0.75,
+      "SR": 0.25
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Emissão do laudo",
+     "entregavel": "Laudo de periculosidade",
+     "etapa": "emissao",
+     "driver": "funcoes",
+     "b": 1.0,
+     "fixo": {
+      "RT": 2,
+      "SR": 1,
+      "ES": 2
+     },
+     "unid": {
+      "PL": 0.2
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    "Implantação de medidas de controle.",
+    "Revisões decorrentes de alteração de premissas ou de escopo após o aceite desta proposta."
+   ],
+   "premissas": [
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante.",
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite."
+   ],
+   "normas": [
+    "NR-16 e anexos",
+    "NR-20 (inflamáveis, quando aplicável)"
+   ]
+  },
+  {
+   "id": "st.pgr",
+   "disciplina": "Segurança do trabalho",
+   "tipo": "laudo",
+   "nome": "PGR — Programa de Gerenciamento de Riscos (NR-01)",
+   "descricao": "Inventário de perigos, avaliação de riscos e plano de ação.",
+   "dados": [
+    {
+     "id": "funcionarios",
+     "rotulo": "Funcionários",
+     "tipo": "int",
+     "padrao": 50,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "ghe",
+     "rotulo": "Grupos homogêneos de exposição (GHE)",
+     "tipo": "int",
+     "padrao": 8,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "unidades",
+     "rotulo": "Estabelecimentos",
+     "tipo": "int",
+     "padrao": 1,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mob",
+     "nome": "Análise documental (CNAE, grau de risco, funções)",
+     "entregavel": "Base documental",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 2,
+      "PL": 2
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "inventario",
+     "nome": "Levantamento em campo e inventário de perigos",
+     "entregavel": "Inventário de riscos",
+     "etapa": "campo",
+     "driver": "ghe+2*unidades+funcionarios/100",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "SR": 0.5,
+      "TC": 0.75
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "avaliacao",
+     "nome": "Avaliação de riscos (matriz probabilidade × severidade)",
+     "entregavel": "Matriz de riscos",
+     "etapa": "calculo",
+     "driver": "ghe",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 1,
+      "SR": 0.25
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "plano",
+     "nome": "Plano de ação",
+     "entregavel": "Plano de ação",
+     "etapa": "calculo",
+     "driver": "ghe",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Emissão do PGR",
+     "entregavel": "PGR",
+     "etapa": "emissao",
+     "driver": "ghe+funcionarios/50",
+     "b": 1.0,
+     "fixo": {
+      "RT": 2,
+      "ES": 2
+     },
+     "unid": {
+      "PL": 0.2
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    "Implantação do plano de ação e treinamentos.",
+    "Revisões decorrentes de alteração de premissas ou de escopo após o aceite desta proposta."
+   ],
+   "premissas": [
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante.",
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite."
+   ],
+   "normas": [
+    "NR-01 (GRO / PGR)",
+    "NR-09"
+   ]
+  },
+  {
+   "id": "st.inspecao",
+   "disciplina": "Segurança do trabalho",
+   "tipo": "laudo",
+   "nome": "Inspeção de segurança (NR-10, NR-33, NR-35)",
+   "descricao": "Inspeção de conformidade com relatório e plano de ação.",
+   "dados": [
+    {
+     "id": "norma",
+     "rotulo": "Norma",
+     "tipo": "opcoes",
+     "padrao": "nr10",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "nr10",
+       "rotulo": "NR-10 — instalações elétricas",
+       "num": 1.0
+      },
+      {
+       "valor": "nr35",
+       "rotulo": "NR-35 — trabalho em altura",
+       "num": 1.0
+      },
+      {
+       "valor": "nr33",
+       "rotulo": "NR-33 — espaços confinados",
+       "num": 1.1
+      }
+     ]
+    },
+    {
+     "id": "pontos",
+     "rotulo": "Áreas / pontos inspecionados",
+     "tipo": "int",
+     "padrao": 10,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mob",
+     "nome": "Análise documental",
+     "entregavel": "Base documental",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 1,
+      "PL": 1
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "inspecao",
+     "nome": "Inspeção em campo",
+     "entregavel": "Registros de inspeção",
+     "etapa": "campo",
+     "driver": "pontos",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "SR": 0.5,
+      "TC": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia",
+      "norma"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "analise",
+     "nome": "Análise de conformidade e plano de ação",
+     "entregavel": "Plano de ação",
+     "etapa": "calculo",
+     "driver": "pontos",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 0.5,
+      "SR": 0.2
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "emissao",
+     "nome": "Emissão do relatório de inspeção",
+     "entregavel": "Relatório de inspeção",
+     "etapa": "emissao",
+     "driver": "pontos",
+     "b": 1.0,
+     "fixo": {
+      "RT": 1,
+      "SR": 1,
+      "ES": 2
+     },
+     "unid": {
+      "PL": 0.2
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    "Execução das adequações.",
+    "Revisões decorrentes de alteração de premissas ou de escopo após o aceite desta proposta."
+   ],
+   "premissas": [
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante.",
+    "As condições de segurança de acesso, incluindo andaimes, plataformas e bloqueio de energia, são de responsabilidade do contratante."
+   ],
+   "normas": [
+    "NR-10",
+    "NR-33",
+    "NR-35"
+   ]
+  },
+  {
+   "id": "st.pericia",
+   "disciplina": "Segurança do trabalho",
+   "tipo": "consultoria",
+   "nome": "Perícia e assistência técnica judicial",
+   "descricao": "Estudo dos autos, diligência, resposta aos quesitos e laudo ou parecer técnico.",
+   "dados": [
+    {
+     "id": "quesitos",
+     "rotulo": "Quesitos",
+     "tipo": "int",
+     "padrao": 20,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "diligencias",
+     "rotulo": "Diligências",
+     "tipo": "int",
+     "padrao": 1,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "volume",
+     "rotulo": "Volume dos autos",
+     "tipo": "opcoes",
+     "padrao": "medio",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "simples",
+       "rotulo": "Simples",
+       "num": 0.8
+      },
+      {
+       "valor": "medio",
+       "rotulo": "Médio",
+       "num": 1.0
+      },
+      {
+       "valor": "complexo",
+       "rotulo": "Complexo / volumoso",
+       "num": 1.5
+      }
+     ]
+    },
+    {
+     "id": "esclarecimentos",
+     "rotulo": "Rodadas de esclarecimentos",
+     "tipo": "int",
+     "padrao": 0,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "autos",
+     "nome": "Estudo dos autos",
+     "entregavel": "Resumo técnico dos autos",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 2,
+      "SR": 4
+     },
+     "unid": {},
+     "fatores": [
+      "volume",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "diligencia",
+     "nome": "Diligência / vistoria",
+     "entregavel": "Registro da diligência",
+     "etapa": "campo",
+     "driver": "diligencias",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "RT": 4,
+      "SR": 2
+     },
+     "fatores": [
+      "acesso",
+      "complexidade"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "quesitos",
+     "nome": "Resposta aos quesitos",
+     "entregavel": "Respostas aos quesitos",
+     "etapa": "calculo",
+     "driver": "quesitos",
+     "b": 0.9,
+     "fixo": {},
+     "unid": {
+      "RT": 0.5,
+      "SR": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "volume"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "laudo",
+     "nome": "Laudo pericial ou parecer técnico",
+     "entregavel": "Laudo / parecer técnico",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 4,
+      "SR": 4,
+      "ES": 2
+     },
+     "unid": {},
+     "fatores": [
+      "volume",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "esclarecimentos",
+     "nome": "Esclarecimentos complementares",
+     "entregavel": "Manifestações técnicas",
+     "etapa": "emissao",
+     "driver": "esclarecimentos",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "RT": 4,
+      "SR": 2
+     },
+     "fatores": [
+      "volume"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    "Comparecimento em audiência, salvo item próprio.",
+    "Ensaios laboratoriais."
+   ],
+   "premissas": [
+    "Acesso aos autos digitais e ao local da diligência.",
+    "Honorários periciais sujeitos à homologação do juízo, quando houver nomeação judicial."
+   ],
+   "normas": [
+    "CPC, arts. 464 a 480",
+    "ABNT NBR 13752"
+   ]
+  },
+  {
+   "id": "hid.hidrossanitario",
+   "disciplina": "Hidráulica e incêndio",
+   "tipo": "projeto",
+   "nome": "Projeto hidrossanitário (água fria e quente, esgoto, pluvial)",
+   "descricao": "Concepção, dimensionamento, desenhos e memorial das instalações hidrossanitárias.",
+   "dados": [
+    {
+     "id": "area",
+     "rotulo": "Área",
+     "tipo": "float",
+     "padrao": 1500.0,
+     "unidade": "m²",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "pavimentos",
+     "rotulo": "Pavimentos",
+     "tipo": "int",
+     "padrao": 3,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "pontos",
+     "rotulo": "Pontos de utilização",
+     "tipo": "int",
+     "padrao": 60,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "fase",
+     "rotulo": "Fase do projeto",
+     "tipo": "opcoes",
+     "padrao": "executivo",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "basico",
+       "rotulo": "Projeto básico",
+       "num": 0.55
+      },
+      {
+       "valor": "executivo",
+       "rotulo": "Projeto executivo",
+       "num": 1.0
+      },
+      {
+       "valor": "completo",
+       "rotulo": "Básico + executivo",
+       "num": 1.3
+      }
+     ]
+    },
+    {
+     "id": "nivel",
+     "rotulo": "Nível de entrega",
+     "tipo": "opcoes",
+     "padrao": "2d",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "2d",
+       "rotulo": "2D (CAD / PDF)",
+       "num": 1.0
+      },
+      {
+       "valor": "3d",
+       "rotulo": "3D (modelo geométrico)",
+       "num": 1.25
+      },
+      {
+       "valor": "bim",
+       "rotulo": "BIM (IFC / Revit, LOD 300)",
+       "num": 1.5
+      }
+     ]
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mob",
+     "nome": "Análise de arquitetura e premissas",
+     "entregavel": "Premissas de projeto",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 1,
+      "SR": 2,
+      "PL": 2
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "calculo",
+     "nome": "Concepção e dimensionamento (água fria e quente, esgoto, pluvial)",
+     "entregavel": "Memorial de cálculo",
+     "etapa": "calculo",
+     "driver": "pontos",
+     "b": 0.9,
+     "fixo": {
+      "SR": 3,
+      "PL": 3
+     },
+     "unid": {
+      "PL": 0.3
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia",
+      "fase"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "desenho",
+     "nome": "Plantas, cortes e detalhes",
+     "entregavel": "Pranchas do projeto",
+     "etapa": "projeto",
+     "driver": "area",
+     "b": 0.9,
+     "fixo": {
+      "PJ": 6
+     },
+     "unid": {
+      "PJ": 0.04
+     },
+     "fatores": [
+      "complexidade",
+      "urgencia",
+      "nivel",
+      "fase"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "isometricos",
+     "nome": "Isométricos e esquemas verticais",
+     "entregavel": "Isométricos",
+     "etapa": "projeto",
+     "driver": "pontos",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PJ": 0.15
+     },
+     "fatores": [
+      "complexidade",
+      "nivel",
+      "fase"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "compat",
+     "nome": "Compatibilização com as demais disciplinas",
+     "entregavel": "Relatório de interferências",
+     "etapa": "projeto",
+     "driver": "pavimentos",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 1.5,
+      "PJ": 1.5
+     },
+     "fatores": [
+      "complexidade",
+      "nivel"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "memorial",
+     "nome": "Memorial descritivo e quantitativos",
+     "entregavel": "Memorial e quantitativos",
+     "etapa": "emissao",
+     "driver": "pontos",
+     "b": 1.0,
+     "fixo": {
+      "SR": 2,
+      "PL": 3
+     },
+     "unid": {
+      "PL": 0.08
+     },
+     "fatores": [
+      "fase",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "rev",
+     "nome": "Revisão técnica, ART e emissão",
+     "entregavel": "Projeto emitido com ART",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 2,
+      "ES": 1
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    {
+     "texto": "Execução de obras, serviços de manutenção corretiva ou fornecimento de materiais e equipamentos.",
+     "exceto_fornecimento": true
+    },
+    "Projetos de arquitetura, estrutura e elétrica de força, salvo quando listados no escopo.",
+    "Taxas, emolumentos e custos de protocolo junto a órgãos públicos, concessionárias e corpo de bombeiros.",
+    "Revisões decorrentes de alteração de premissas ou de escopo após o aceite desta proposta."
+   ],
+   "premissas": [
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite.",
+    "Arquitetura e demais disciplinas serão fornecidas em DWG ou IFC atualizados.",
+    "Estão incluídas até duas rodadas de revisão por comentários do contratante."
+   ],
+   "normas": [
+    "ABNT NBR 5626",
+    "ABNT NBR 8160",
+    "ABNT NBR 10844"
+   ]
+  },
+  {
+   "id": "inc.spci",
+   "disciplina": "Hidráulica e incêndio",
+   "tipo": "projeto",
+   "nome": "Projeto de segurança contra incêndio e pânico",
+   "descricao": "Medidas de segurança, hidrantes, chuveiros automáticos, detecção e alarme, com documentação para aprovação.",
+   "dados": [
+    {
+     "id": "area",
+     "rotulo": "Área construída",
+     "tipo": "float",
+     "padrao": 2000.0,
+     "unidade": "m²",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "pavimentos",
+     "rotulo": "Pavimentos",
+     "tipo": "int",
+     "padrao": 3,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "risco",
+     "rotulo": "Classificação de risco",
+     "tipo": "opcoes",
+     "padrao": "moderado",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "leve",
+       "rotulo": "Risco leve",
+       "num": 0.9
+      },
+      {
+       "valor": "moderado",
+       "rotulo": "Risco moderado",
+       "num": 1.0
+      },
+      {
+       "valor": "elevado",
+       "rotulo": "Risco elevado",
+       "num": 1.3
+      }
+     ]
+    },
+    {
+     "id": "hidrantes",
+     "rotulo": "Hidrantes / mangotinhos",
+     "tipo": "bool",
+     "padrao": true,
+     "ajuda": ""
+    },
+    {
+     "id": "sprinklers",
+     "rotulo": "Chuveiros automáticos",
+     "tipo": "bool",
+     "padrao": false,
+     "ajuda": ""
+    },
+    {
+     "id": "deteccao",
+     "rotulo": "Detecção e alarme",
+     "tipo": "bool",
+     "padrao": true,
+     "ajuda": ""
+    },
+    {
+     "id": "fase",
+     "rotulo": "Fase do projeto",
+     "tipo": "opcoes",
+     "padrao": "executivo",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "basico",
+       "rotulo": "Projeto básico",
+       "num": 0.55
+      },
+      {
+       "valor": "executivo",
+       "rotulo": "Projeto executivo",
+       "num": 1.0
+      },
+      {
+       "valor": "completo",
+       "rotulo": "Básico + executivo",
+       "num": 1.3
+      }
+     ]
+    },
+    {
+     "id": "nivel",
+     "rotulo": "Nível de entrega",
+     "tipo": "opcoes",
+     "padrao": "2d",
+     "ajuda": "",
+     "opcoes": [
+      {
+       "valor": "2d",
+       "rotulo": "2D (CAD / PDF)",
+       "num": 1.0
+      },
+      {
+       "valor": "3d",
+       "rotulo": "3D (modelo geométrico)",
+       "num": 1.25
+      },
+      {
+       "valor": "bim",
+       "rotulo": "BIM (IFC / Revit, LOD 300)",
+       "num": 1.5
+      }
+     ]
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mob",
+     "nome": "Análise da arquitetura e enquadramento (classificação e exigências)",
+     "entregavel": "Quadro de exigências",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 3,
+      "PL": 2
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "medidas",
+     "nome": "Saídas, sinalização, iluminação de emergência e extintores",
+     "entregavel": "Plantas de medidas de segurança",
+     "etapa": "projeto",
+     "driver": "area",
+     "b": 0.9,
+     "fixo": {
+      "PJ": 4
+     },
+     "unid": {
+      "PL": 0.004,
+      "PJ": 0.012
+     },
+     "fatores": [
+      "complexidade",
+      "urgencia",
+      "nivel",
+      "risco"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "hidrantes",
+     "nome": "Hidrantes: cálculo hidráulico, reserva técnica e bombas",
+     "entregavel": "Memória de cálculo de hidrantes",
+     "etapa": "calculo",
+     "driver": "hidrantes*(2+pavimentos)",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 2,
+      "SR": 0.3
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia",
+      "risco"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "sprinklers",
+     "nome": "Chuveiros automáticos: área de operação e cálculo hidráulico",
+     "entregavel": "Memória de cálculo de chuveiros",
+     "etapa": "calculo",
+     "driver": "sprinklers*area/100",
+     "b": 0.85,
+     "fixo": {},
+     "unid": {
+      "PL": 0.15,
+      "SR": 0.03
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia",
+      "risco"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "deteccao",
+     "nome": "Detecção e alarme: layout e central",
+     "entregavel": "Plantas de detecção e alarme",
+     "etapa": "projeto",
+     "driver": "deteccao*area/100",
+     "b": 0.85,
+     "fixo": {},
+     "unid": {
+      "PJ": 0.15,
+      "PL": 0.05
+     },
+     "fatores": [
+      "complexidade",
+      "nivel"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "desenho",
+     "nome": "Pranchas do projeto (plantas, isométricos e detalhes)",
+     "entregavel": "Pranchas do projeto",
+     "etapa": "projeto",
+     "driver": "area",
+     "b": 0.9,
+     "fixo": {},
+     "unid": {
+      "PJ": 0.02
+     },
+     "fatores": [
+      "complexidade",
+      "urgencia",
+      "nivel",
+      "fase"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "memorial",
+     "nome": "Memorial descritivo e documentação para aprovação",
+     "entregavel": "Memorial e documentação",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 2,
+      "SR": 3,
+      "PL": 4,
+      "ES": 3
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    {
+     "texto": "Execução de obras, serviços de manutenção corretiva ou fornecimento de materiais e equipamentos.",
+     "exceto_fornecimento": true
+    },
+    "Taxas, emolumentos e custos de protocolo junto a órgãos públicos, concessionárias e corpo de bombeiros.",
+    {
+     "texto": "Aprovação no Corpo de Bombeiros, salvo item próprio.",
+     "exceto_se": [
+      "inc.aprovacao"
+     ]
+    },
+    "Revisões decorrentes de alteração de premissas ou de escopo após o aceite desta proposta."
+   ],
+   "premissas": [
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite.",
+    "Arquitetura e demais disciplinas serão fornecidas em DWG ou IFC atualizados.",
+    "Estão incluídas até duas rodadas de revisão por comentários do contratante."
+   ],
+   "normas": [
+    "COSCIP-RJ (Decreto 42/2018) e Notas Técnicas do CBMERJ",
+    "ABNT NBR 13714",
+    "ABNT NBR 10897",
+    "ABNT NBR 17240",
+    "ABNT NBR 12693"
+   ]
+  },
+  {
+   "id": "inc.aprovacao",
+   "disciplina": "Hidráulica e incêndio",
+   "tipo": "consultoria",
+   "nome": "Aprovação de projeto no Corpo de Bombeiros",
+   "descricao": "Protocolo, acompanhamento do processo e atendimento de exigências até a aprovação.",
+   "dados": [
+    {
+     "id": "rodadas",
+     "rotulo": "Rodadas de exigências esperadas",
+     "tipo": "int",
+     "padrao": 2,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "idas",
+     "rotulo": "Atendimentos presenciais no órgão",
+     "tipo": "int",
+     "padrao": 2,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "protocolo",
+     "nome": "Protocolo e acompanhamento do processo",
+     "entregavel": "Protocolo e andamento do processo",
+     "etapa": "emissao",
+     "driver": "rodadas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "SR": 2,
+      "ES": 2
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "exigencias",
+     "nome": "Atendimento de exigências (revisão de projeto)",
+     "entregavel": "Projeto revisado",
+     "etapa": "projeto",
+     "driver": "rodadas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 4,
+      "PJ": 4
+     },
+     "fatores": [
+      "complexidade"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "presencial",
+     "nome": "Atendimentos presenciais no órgão",
+     "entregavel": "Registros de atendimento",
+     "etapa": "campo",
+     "driver": "idas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "SR": 3
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    "Taxas do Corpo de Bombeiros, pagas pelo contratante.",
+    "Execução de adequações exigidas na vistoria."
+   ],
+   "premissas": [
+    "O contratante fornecerá procuração e documentos do imóvel necessários ao protocolo."
+   ],
+   "normas": [
+    "COSCIP-RJ (Decreto 42/2018)"
+   ]
+  },
+  {
+   "id": "inc.vistoria",
+   "disciplina": "Hidráulica e incêndio",
+   "tipo": "laudo",
+   "nome": "Vistoria e laudo de sistemas de incêndio",
+   "descricao": "Vistoria dos sistemas instalados e laudo de conformidade.",
+   "dados": [
+    {
+     "id": "area",
+     "rotulo": "Área construída",
+     "tipo": "float",
+     "padrao": 2000.0,
+     "unidade": "m²",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "pavimentos",
+     "rotulo": "Pavimentos",
+     "tipo": "int",
+     "padrao": 3,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "sistemas",
+     "rotulo": "Sistemas inspecionados",
+     "tipo": "int",
+     "padrao": 4,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mob",
+     "nome": "Análise do projeto aprovado e da documentação",
+     "entregavel": "Base documental",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 2,
+      "PL": 1
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "vistoria",
+     "nome": "Vistoria em campo",
+     "entregavel": "Registros de vistoria",
+     "etapa": "campo",
+     "driver": "area/500+pavimentos+sistemas",
+     "b": 0.9,
+     "fixo": {},
+     "unid": {
+      "SR": 0.5,
+      "TC": 0.75
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "conformidade",
+     "nome": "Análise de conformidade",
+     "entregavel": "Quadro de conformidade",
+     "etapa": "calculo",
+     "driver": "sistemas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 1.5,
+      "SR": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "laudo",
+     "nome": "Emissão do laudo",
+     "entregavel": "Laudo de sistemas de incêndio",
+     "etapa": "emissao",
+     "driver": "sistemas",
+     "b": 1.0,
+     "fixo": {
+      "RT": 2,
+      "SR": 2,
+      "ES": 2
+     },
+     "unid": {
+      "PL": 0.5
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    {
+     "texto": "Testes funcionais com carga de água, salvo item próprio.",
+     "exceto_se": [
+      "inc.teste_hidrantes"
+     ]
+    },
+    "Correção de não conformidades."
+   ],
+   "premissas": [
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante.",
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite."
+   ],
+   "normas": [
+    "COSCIP-RJ e Notas Técnicas do CBMERJ",
+    "ABNT NBR 13714",
+    "ABNT NBR 17240"
+   ]
+  },
+  {
+   "id": "inc.teste_hidrantes",
+   "disciplina": "Hidráulica e incêndio",
+   "tipo": "ensaio",
+   "nome": "Teste de vazão e pressão de hidrantes e bombas de incêndio",
+   "descricao": "Ensaios de vazão e pressão nos hidrantes e de desempenho das bombas, com relatório.",
+   "dados": [
+    {
+     "id": "hidrantes",
+     "rotulo": "Hidrantes testados",
+     "tipo": "int",
+     "padrao": 4,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "bombas",
+     "rotulo": "Bombas de incêndio",
+     "tipo": "int",
+     "padrao": 2,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "plano",
+     "nome": "Plano de ensaio",
+     "entregavel": "Plano de ensaio",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "PL": 2
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "hidrantes",
+     "nome": "Teste de vazão e pressão nos hidrantes",
+     "entregavel": "Planilha de ensaio",
+     "etapa": "ensaio",
+     "driver": "hidrantes",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 0.75,
+      "PL": 0.5
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "bombas",
+     "nome": "Teste das bombas (curva, partida automática)",
+     "entregavel": "Folhas de teste das bombas",
+     "etapa": "ensaio",
+     "driver": "bombas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 1.5,
+      "PL": 1
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "relatorio",
+     "nome": "Relatório de ensaio",
+     "entregavel": "Relatório de ensaio",
+     "etapa": "emissao",
+     "driver": "hidrantes+bombas",
+     "b": 1.0,
+     "fixo": {
+      "RT": 1,
+      "PL": 2
+     },
+     "unid": {
+      "PL": 0.2
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [
+    {
+     "id": "kit",
+     "nome": "Locação de kit de teste (tubo de Pitot, manômetros calibrados)",
+     "qtd": "1",
+     "valor_unit": 350.0,
+     "unid": "dia"
+    }
+   ],
+   "exclusoes": [
+    "Reparos nas bombas e na rede.",
+    "Água para os ensaios."
+   ],
+   "premissas": [
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante.",
+    "As condições de segurança de acesso, incluindo andaimes, plataformas e bloqueio de energia, são de responsabilidade do contratante."
+   ],
+   "normas": [
+    "ABNT NBR 13714",
+    "Notas Técnicas do CBMERJ"
+   ]
+  },
+  {
+   "id": "geral.acompanhamento_obra",
+   "disciplina": "Geral",
+   "tipo": "obra",
+   "nome": "Acompanhamento técnico / fiscalização de obra",
+   "descricao": "Visitas periódicas, relatórios de acompanhamento e conferência de as-built.",
+   "dados": [
+    {
+     "id": "meses",
+     "rotulo": "Duração da obra",
+     "tipo": "int",
+     "padrao": 3,
+     "unidade": "meses",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "visitas_mes",
+     "rotulo": "Visitas por mês",
+     "tipo": "int",
+     "padrao": 4,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "horas_visita",
+     "rotulo": "Horas por visita",
+     "tipo": "float",
+     "padrao": 4.0,
+     "unidade": "h",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "relatorio",
+     "rotulo": "Relatórios mensais",
+     "tipo": "bool",
+     "padrao": true,
+     "ajuda": ""
+    }
+   ],
+   "atividades": [
+    {
+     "id": "visitas",
+     "nome": "Visitas técnicas de acompanhamento",
+     "entregavel": "Registros de visita",
+     "etapa": "obra",
+     "driver": "meses*visitas_mes*horas_visita",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "SR": 0.6,
+      "TC": 0.4
+     },
+     "fatores": [
+      "acesso"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "relatorios",
+     "nome": "Relatórios de acompanhamento",
+     "entregavel": "Relatórios mensais",
+     "etapa": "obra",
+     "driver": "meses*relatorio",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 4,
+      "SR": 1
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "reunioes",
+     "nome": "Reuniões de coordenação",
+     "entregavel": "Atas de reunião",
+     "etapa": "obra",
+     "driver": "meses",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "RT": 1,
+      "SR": 2
+     },
+     "fatores": [],
+     "calibracao": 1.0
+    },
+    {
+     "id": "asbuilt",
+     "nome": "Conferência de as-built e data book",
+     "entregavel": "Parecer de conformidade do as-built",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "PL": 4,
+      "PJ": 4
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    {
+     "texto": "Execução da obra e fornecimento de materiais.",
+     "exceto_fornecimento": true
+    },
+    "A responsabilidade pela execução permanece com o executor."
+   ],
+   "premissas": [
+    "O executor fornecerá cronograma e programação semanal."
+   ],
+   "normas": []
+  },
+  {
+   "id": "geral.planejamento_obra",
+   "disciplina": "Geral",
+   "tipo": "obra",
+   "nome": "Planejamento e controle da obra (assessoria ao contratante)",
+   "descricao": "Planejamento físico-financeiro, conferência das medições e notas, relatórios de prazo e custo e controle de mudanças, do lado do contratante (base para o % sobre as medições e para a taxa de desempenho).",
+   "dados": [
+    {
+     "id": "meses",
+     "rotulo": "Duração da obra",
+     "tipo": "int",
+     "padrao": 4,
+     "unidade": "meses",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "medicoes_mes",
+     "rotulo": "Medições por mês",
+     "tipo": "int",
+     "padrao": 1,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "frentes",
+     "rotulo": "Frentes / contratos acompanhados",
+     "tipo": "int",
+     "padrao": 1,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "planejamento",
+     "nome": "Planejamento inicial: cronograma físico-financeiro, curva S e linha de base de custo e prazo",
+     "entregavel": "Cronograma físico-financeiro e linha de base",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 6,
+      "PL": 10
+     },
+     "unid": {},
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "medicoes",
+     "nome": "Conferência das medições e das notas fiscais da obra",
+     "entregavel": "Boletins de medição conferidos",
+     "etapa": "obra",
+     "driver": "meses*medicoes_mes*frentes",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 3,
+      "TC": 2
+     },
+     "fatores": [
+      "complexidade"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "controle",
+     "nome": "Relatórios de avanço, prazo, custo e retrabalho",
+     "entregavel": "Relatórios mensais de desempenho",
+     "etapa": "obra",
+     "driver": "meses*frentes",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 4,
+      "SR": 1
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "mudancas",
+     "nome": "Controle de mudanças, pleitos e aditivos",
+     "entregavel": "Registro de mudanças com parecer",
+     "etapa": "obra",
+     "driver": "meses*frentes",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "SR": 2
+     },
+     "fatores": [
+      "complexidade"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "encerramento",
+     "nome": "Encerramento: balanço final de custo e prazo e apuração da taxa de desempenho",
+     "entregavel": "Relatório final de desempenho",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 4,
+      "PL": 4
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    "Execução da obra, fornecimento de materiais e gestão do canteiro, que permanecem com o executor."
+   ],
+   "premissas": [
+    "O contratante encaminhará as medições e as notas fiscais da obra em até 5 dias do fechamento de cada medição.",
+    "A linha de base de custo e prazo é a aprovada pelo contratante no planejamento inicial."
+   ],
+   "normas": []
+  },
+  {
+   "id": "geral.gestao_obra",
+   "disciplina": "Geral",
+   "tipo": "obra",
+   "nome": "Gerenciamento e administração da execução",
+   "descricao": "Planejamento, supervisão em campo, suprimentos e controle físico-financeiro da execução (obra própria, subcontratada ou turnkey).",
+   "dados": [
+    {
+     "id": "meses",
+     "rotulo": "Duração da obra",
+     "tipo": "int",
+     "padrao": 3,
+     "unidade": "meses",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "dedicacao",
+     "rotulo": "Dedicação do engenheiro residente (0 a 1)",
+     "tipo": "float",
+     "padrao": 0.5,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mobilizacao",
+     "nome": "Mobilização, planejamento e canteiro",
+     "entregavel": "Plano de execução",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 4,
+      "PL": 4
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "gestao",
+     "nome": "Gestão e supervisão em campo",
+     "entregavel": "Diário de obra",
+     "etapa": "obra",
+     "driver": "meses*dedicacao*168",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "SR": 1
+     },
+     "fatores": [
+      "complexidade"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "controle",
+     "nome": "Planejamento, medições e controle físico-financeiro",
+     "entregavel": "Relatórios de medição",
+     "etapa": "obra",
+     "driver": "meses",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 8
+     },
+     "fatores": [
+      "complexidade"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "suprimentos",
+     "nome": "Coordenação de fornecedores e compras",
+     "entregavel": "Mapa de suprimentos",
+     "etapa": "obra",
+     "driver": "meses",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 6,
+      "ES": 6
+     },
+     "fatores": [
+      "complexidade"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "encerramento",
+     "nome": "Encerramento, as-built e data book",
+     "entregavel": "Data book",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 3,
+      "PL": 4,
+      "PJ": 6,
+      "ES": 2
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    "Taxas e licenças de obra.",
+    "Taxas, emolumentos e custos de protocolo junto a órgãos públicos, concessionárias e corpo de bombeiros."
+   ],
+   "premissas": [
+    "O contratante liberará a área de trabalho e os pontos de energia e água."
+   ],
+   "normas": []
+  },
+  {
+   "id": "geral.visita",
+   "disciplina": "Geral",
+   "tipo": "consultoria",
+   "nome": "Visita técnica avulsa / vistoria preliminar",
+   "descricao": "Visita técnica com relatório sucinto de constatações.",
+   "dados": [
+    {
+     "id": "visitas",
+     "rotulo": "Visitas",
+     "tipo": "int",
+     "padrao": 1,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "horas",
+     "rotulo": "Horas por visita",
+     "tipo": "float",
+     "padrao": 4.0,
+     "unidade": "h",
+     "ajuda": "",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "visita",
+     "nome": "Visita técnica",
+     "entregavel": "Registro da visita",
+     "etapa": "campo",
+     "driver": "visitas*horas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "SR": 1
+     },
+     "fatores": [
+      "acesso"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "relatorio",
+     "nome": "Relatório sucinto de constatações",
+     "entregavel": "Relatório de visita",
+     "etapa": "emissao",
+     "driver": "visitas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "SR": 1,
+      "ES": 0.5
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [],
+   "premissas": [
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante."
+   ],
+   "normas": []
+  },
+  {
+   "id": "geral.reunioes",
+   "disciplina": "Geral",
+   "tipo": "consultoria",
+   "nome": "Reuniões técnicas e apresentações",
+   "descricao": "Reuniões de alinhamento e apresentação de resultados.",
+   "dados": [
+    {
+     "id": "reunioes",
+     "rotulo": "Reuniões",
+     "tipo": "int",
+     "padrao": 2,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "horas",
+     "rotulo": "Duração",
+     "tipo": "float",
+     "padrao": 2.0,
+     "unidade": "h",
+     "ajuda": "",
+     "min": 0
+    }
+   ],
+   "atividades": [
+    {
+     "id": "reunioes",
+     "nome": "Reuniões técnicas e apresentações",
+     "entregavel": "Atas de reunião",
+     "etapa": "emissao",
+     "driver": "reunioes*horas",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "RT": 1,
+      "SR": 1
+     },
+     "fatores": [],
+     "calibracao": 1.0
+    },
+    {
+     "id": "preparacao",
+     "nome": "Preparação do material de apresentação",
+     "entregavel": "Apresentação",
+     "etapa": "emissao",
+     "driver": "reunioes",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PL": 2
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [],
+   "premissas": [],
+   "normas": []
+  },
+  {
+   "id": "geral.entrega_tecnica",
+   "disciplina": "Geral",
+   "tipo": "entrega",
+   "nome": "Entrega técnica: start-up, treinamento, manuais e data book",
+   "descricao": "Partida assistida, treinamento da equipe de operação e manutenção, manuais e data book do sistema entregue.",
+   "dados": [
+    {
+     "id": "equipamentos",
+     "rotulo": "Equipamentos / sistemas entregues",
+     "tipo": "int",
+     "padrao": 10,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "turmas",
+     "rotulo": "Turmas de treinamento",
+     "tipo": "int",
+     "padrao": 1,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "horas_turma",
+     "rotulo": "Horas por turma",
+     "tipo": "float",
+     "padrao": 4.0,
+     "unidade": "h",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "data_book",
+     "rotulo": "Inclui as-built e data book",
+     "tipo": "bool",
+     "padrao": true,
+     "ajuda": ""
+    }
+   ],
+   "atividades": [
+    {
+     "id": "startup",
+     "nome": "Start-up assistido e verificação de funcionamento",
+     "entregavel": "Relatório de start-up",
+     "etapa": "comissionamento",
+     "driver": "equipamentos",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "TC": 0.75,
+      "PL": 0.25
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "treinamento",
+     "nome": "Treinamento de operação e manutenção",
+     "entregavel": "Lista de presença e material de treinamento",
+     "etapa": "comissionamento",
+     "driver": "turmas*horas_turma",
+     "b": 1.0,
+     "fixo": {
+      "PL": 4
+     },
+     "unid": {
+      "SR": 1,
+      "TC": 1
+     },
+     "fatores": [
+      "acesso"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "manuais",
+     "nome": "Manuais de operação e manutenção",
+     "entregavel": "Manuais de O&M",
+     "etapa": "emissao",
+     "driver": "equipamentos",
+     "b": 1.0,
+     "fixo": {
+      "PL": 2
+     },
+     "unid": {
+      "PL": 0.3,
+      "ES": 0.3
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "databook",
+     "nome": "As-built e data book (certificados, ARTs, relatórios de teste)",
+     "entregavel": "Data book",
+     "etapa": "emissao",
+     "driver": "data_book*(10+equipamentos)",
+     "b": 1.0,
+     "fixo": {},
+     "unid": {
+      "PJ": 0.25,
+      "ES": 0.25
+     },
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [],
+   "exclusoes": [
+    "Treinamentos além das turmas previstas."
+   ],
+   "premissas": [
+    "A equipe de operação do contratante estará disponível nas datas de treinamento."
+   ],
+   "normas": []
+  }
+ ]
+}

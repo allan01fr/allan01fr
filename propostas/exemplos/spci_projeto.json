@@ -1,0 +1,393 @@
+{
+ "versao": 1,
+ "numero": "PC-KTK-EX03/2026",
+ "revisao": "00",
+ "data": "2026-10-19",
+ "validade_dias": 15,
+ "prazo_pagamento_dias": 15,
+ "cliente": {
+  "razao": "Cliente Exemplo Ltda.",
+  "contato": "Nome do contato / cargo / e-mail / telefone",
+  "signatario": "",
+  "endereco": "Endereço do objeto — Bairro — Rio de Janeiro/RJ",
+  "cidade": "Rio de Janeiro",
+  "uf": "RJ"
+ },
+ "objeto": "Projeto de segurança contra incêndio e pânico com aprovação no CBMERJ",
+ "contexto": {
+  "dist_km": 15.0,
+  "area_ref": 3200.0,
+  "complexidade": "media",
+  "documentacao": "parcial",
+  "acesso": "livre",
+  "urgencia": "normal",
+  "risco": "medio"
+ },
+ "parametros": {
+  "perfis": {
+   "RT": {
+    "custo_h": 160.0,
+    "taxa_venda_h": 350.0
+   },
+   "SR": {
+    "custo_h": 110.0,
+    "taxa_venda_h": 250.0
+   },
+   "PL": {
+    "custo_h": 75.0,
+    "taxa_venda_h": 180.0
+   },
+   "PJ": {
+    "custo_h": 55.0,
+    "taxa_venda_h": 130.0
+   },
+   "TC": {
+    "custo_h": 45.0,
+    "taxa_venda_h": 110.0
+   },
+   "ES": {
+    "custo_h": 22.0,
+    "taxa_venda_h": 60.0
+   }
+  },
+  "overhead": {
+   "metodo": "percentual",
+   "pct": 0.25,
+   "custo_fixo_mensal": 15000.0,
+   "horas_faturaveis_mes": 300.0
+  },
+  "impostos": {
+   "regime": "presumido",
+   "simples_aliquota": 0.155,
+   "presumido": {
+    "pis": 0.0065,
+    "cofins": 0.03,
+    "irpj": 0.048,
+    "csll": 0.0288
+   },
+   "iss": 0.05
+  },
+  "margem": 0.3,
+  "contingencia": {
+   "baixo": 0.05,
+   "medio": 0.1,
+   "alto": 0.15
+  },
+  "reembolsaveis_adm": 0.1,
+  "bdi_fornecimento": {
+   "material": 0.14,
+   "equipamento": 0.14,
+   "mo_execucao": 0.22,
+   "subcontrato": 0.15
+  },
+  "deslocamento": {
+   "raio_isento_km": 50.0,
+   "raio_pernoite_km": 200.0,
+   "rs_km": 1.6,
+   "diaria": 380.0,
+   "pessoas_campo": 2
+  },
+  "art": {
+   "modo": "faixas",
+   "valor": 300.0,
+   "faixas": [
+    {
+     "ate": 15000.0,
+     "valor": 108.39
+    },
+    {
+     "ate": null,
+     "valor": 285.59
+    }
+   ],
+   "fonte": "Confea, Tabela A 2026 (publicada pelo CREA-MT). Confira os valores vigentes no CREA-RJ."
+  },
+  "turnkey": {
+   "garantia_pct": 0.02,
+   "garantia_meses": 12
+  },
+  "cub": {
+   "uf": "RJ",
+   "padrao": "CSL-8N",
+   "mes": "",
+   "valor": 0.0,
+   "pct_honorarios": 0.04,
+   "fonte": "SINDUSCON-Rio"
+  },
+  "hierarquia_fontes": {
+   "RJ": [
+    "EMOP-RJ",
+    "SCO-RIO",
+    "SINAPI",
+    "SICRO"
+   ],
+   "padrao": [
+    "SINAPI",
+    "SICRO"
+   ]
+  },
+  "cesta": {
+   "criterio": "mediana",
+   "faixa_alerta": 0.25,
+   "minimo_fontes": 3
+  },
+  "cronograma": {
+   "horas_dia": 8.0,
+   "equipe": 2,
+   "equipe_etapa": {}
+  },
+  "pagamento": {
+   "sinal": 0.3
+  },
+  "fee_pct_padrao": 0.06,
+  "cobranca": {
+   "percentual": {
+    "forma": "medicoes",
+    "curva": "s",
+    "meses": 6
+   },
+   "pacote": {
+    "desconto": 0.1,
+    "excedente_pct": 0.0,
+    "meses": 6,
+    "validade_meses": 12,
+    "parcelas": 3,
+    "mix_padrao": {
+     "SR": 0.2,
+     "PL": 0.5,
+     "TC": 0.3
+    }
+   },
+   "desempenho": {
+    "economia_pct": 0.1,
+    "prazo_pct_semana": 0.02,
+    "retrabalho_meta": 0.02,
+    "retrabalho_bonus_pct": 0.05,
+    "teto_pct": 0.3
+   }
+  },
+  "notas": {
+   "impostos": "Lucro Presumido: PIS 0,65% + COFINS 3% + IRPJ 4,8% e CSLL 2,88% (sobre base presumida de 32%) + ISS. No Simples, informe a alíquota efetiva do seu anexo.",
+   "bdi_fornecimento": "BDI completo (tributos, administração, risco e lucro). Referência inicial: medianas do TCU, Acórdão 2.622/2013 — confira e ajuste.",
+   "art": "ART por faixa do valor do contrato (Tabela A do Confea). Confira os valores vigentes no CREA-RJ.",
+   "cub": "Informe ou importe o CUB/m² do mês (SINDUSCON). Faixa usual de honorários: 2% a 11% do CUB × área.",
+   "custos": "Custos e taxas por hora são valores iniciais de referência — ajuste aos seus custos reais (salário + encargos + benefícios ÷ horas produtivas)."
+  }
+ },
+ "opcoes": [
+  {
+   "id": "A",
+   "nome": "Projeto + aprovação",
+   "modalidade": "fases",
+   "fases": [
+    {
+     "id": "F1",
+     "nome": "Fase 1",
+     "cobranca": "fechado",
+     "obra": {
+      "base_modo": "informado",
+      "base_valor": 0.0,
+      "base_opcao": "",
+      "base_parte": "obra",
+      "meses": 6,
+      "curva": "s"
+     },
+     "percentual": {
+      "pct": 0.06,
+      "forma": "medicoes",
+      "parcela_fixa": 0.0
+     },
+     "pacote": {
+      "forma": "mensal",
+      "horas_mes": 0.0,
+      "meses": 6,
+      "acumula_saldo": false,
+      "horas": 0.0,
+      "validade_meses": 12,
+      "parcelas": 3,
+      "desconto": 0.1,
+      "excedente_pct": 0.0
+     },
+     "desempenho": {
+      "ativo": false,
+      "economia_pct": 0.1,
+      "prazo_pct_semana": 0.02,
+      "retrabalho_meta": 0.02,
+      "retrabalho_bonus_pct": 0.05,
+      "teto_pct": 0.3,
+      "cenario": {
+       "economia": 0.05,
+       "dias_antecipados": 15,
+       "retrabalho_ok": true
+      }
+     },
+     "pagamento": []
+    }
+   ],
+   "itens": [
+    {
+     "servico": "inc.spci",
+     "fase": "F1",
+     "dados": {
+      "area": 3200.0,
+      "pavimentos": 4,
+      "risco": "moderado",
+      "hidrantes": true,
+      "sprinklers": false,
+      "deteccao": true,
+      "fase": "executivo",
+      "nivel": "2d"
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "inc.aprovacao",
+     "fase": "F1",
+     "dados": {
+      "rodadas": 2,
+      "idas": 2
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    }
+   ],
+   "fornecimentos": [],
+   "prazo_execucao_dias": 0,
+   "prazo_fornecimento_dias": 0,
+   "turnkey_dispensas": []
+  },
+  {
+   "id": "B",
+   "nome": "Projeto + aprovação + vistoria e testes",
+   "modalidade": "fases",
+   "fases": [
+    {
+     "id": "F1",
+     "nome": "Fase 1",
+     "cobranca": "fechado",
+     "obra": {
+      "base_modo": "informado",
+      "base_valor": 0.0,
+      "base_opcao": "",
+      "base_parte": "obra",
+      "meses": 6,
+      "curva": "s"
+     },
+     "percentual": {
+      "pct": 0.06,
+      "forma": "medicoes",
+      "parcela_fixa": 0.0
+     },
+     "pacote": {
+      "forma": "mensal",
+      "horas_mes": 0.0,
+      "meses": 6,
+      "acumula_saldo": false,
+      "horas": 0.0,
+      "validade_meses": 12,
+      "parcelas": 3,
+      "desconto": 0.1,
+      "excedente_pct": 0.0
+     },
+     "desempenho": {
+      "ativo": false,
+      "economia_pct": 0.1,
+      "prazo_pct_semana": 0.02,
+      "retrabalho_meta": 0.02,
+      "retrabalho_bonus_pct": 0.05,
+      "teto_pct": 0.3,
+      "cenario": {
+       "economia": 0.05,
+       "dias_antecipados": 15,
+       "retrabalho_ok": true
+      }
+     },
+     "pagamento": []
+    }
+   ],
+   "itens": [
+    {
+     "servico": "inc.spci",
+     "fase": "F1",
+     "dados": {
+      "area": 3200.0,
+      "pavimentos": 4,
+      "risco": "moderado",
+      "hidrantes": true,
+      "sprinklers": false,
+      "deteccao": true,
+      "fase": "executivo",
+      "nivel": "2d"
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "inc.aprovacao",
+     "fase": "F1",
+     "dados": {
+      "rodadas": 2,
+      "idas": 2
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "inc.vistoria",
+     "fase": "F1",
+     "dados": {
+      "area": 3200.0,
+      "pavimentos": 4,
+      "sistemas": 4
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "inc.teste_hidrantes",
+     "fase": "F1",
+     "dados": {
+      "hidrantes": 4,
+      "bombas": 2
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    }
+   ],
+   "fornecimentos": [],
+   "prazo_execucao_dias": 0,
+   "prazo_fornecimento_dias": 0,
+   "turnkey_dispensas": []
+  }
+ ],
+ "viabilidade": {
+  "ativo": false,
+  "titulo": "Estudo de viabilidade técnico-econômica",
+  "base": {
+   "modo": "tr",
+   "tr": 75.0,
+   "kw_tr_real": 1.3,
+   "kw_tr_projeto": 1.0,
+   "horas_ano": 3000.0,
+   "fator_carga": 0.6,
+   "kwh_ano": 0.0,
+   "tarifa": 0.85,
+   "manutencao_ano": 48000.0,
+   "paliativos": 0.0
+  },
+  "financeiro": {
+   "tma": 0.12,
+   "horizonte": 15,
+   "reajuste_energia": 0.05,
+   "reajuste_manutencao": 0.04
+  },
+  "alternativas": []
+ }
+}

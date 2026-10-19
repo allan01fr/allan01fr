@@ -1,0 +1,1110 @@
+{
+ "versao": 1,
+ "numero": "PC-KTK-EX04/2026",
+ "revisao": "00",
+ "data": "2026-10-19",
+ "validade_dias": 15,
+ "prazo_pagamento_dias": 15,
+ "cliente": {
+  "razao": "Cliente Exemplo Ltda.",
+  "contato": "Nome do contato / cargo / e-mail / telefone",
+  "signatario": "",
+  "endereco": "Endereço do objeto — Bairro — Rio de Janeiro/RJ",
+  "cidade": "Rio de Janeiro",
+  "uf": "RJ"
+ },
+ "objeto": "Retrofit do sistema de climatização: VRF + renovação de ar (DOAS)",
+ "contexto": {
+  "dist_km": 30.0,
+  "area_ref": 1500.0,
+  "complexidade": "media",
+  "documentacao": "parcial",
+  "acesso": "operacao",
+  "urgencia": "normal",
+  "risco": "medio"
+ },
+ "parametros": {
+  "perfis": {
+   "RT": {
+    "custo_h": 160.0,
+    "taxa_venda_h": 350.0
+   },
+   "SR": {
+    "custo_h": 110.0,
+    "taxa_venda_h": 250.0
+   },
+   "PL": {
+    "custo_h": 75.0,
+    "taxa_venda_h": 180.0
+   },
+   "PJ": {
+    "custo_h": 55.0,
+    "taxa_venda_h": 130.0
+   },
+   "TC": {
+    "custo_h": 45.0,
+    "taxa_venda_h": 110.0
+   },
+   "ES": {
+    "custo_h": 22.0,
+    "taxa_venda_h": 60.0
+   }
+  },
+  "overhead": {
+   "metodo": "percentual",
+   "pct": 0.25,
+   "custo_fixo_mensal": 15000.0,
+   "horas_faturaveis_mes": 300.0
+  },
+  "impostos": {
+   "regime": "presumido",
+   "simples_aliquota": 0.155,
+   "presumido": {
+    "pis": 0.0065,
+    "cofins": 0.03,
+    "irpj": 0.048,
+    "csll": 0.0288
+   },
+   "iss": 0.05
+  },
+  "margem": 0.3,
+  "contingencia": {
+   "baixo": 0.05,
+   "medio": 0.1,
+   "alto": 0.15
+  },
+  "reembolsaveis_adm": 0.1,
+  "bdi_fornecimento": {
+   "material": 0.14,
+   "equipamento": 0.14,
+   "mo_execucao": 0.22,
+   "subcontrato": 0.15
+  },
+  "deslocamento": {
+   "raio_isento_km": 50.0,
+   "raio_pernoite_km": 200.0,
+   "rs_km": 1.6,
+   "diaria": 380.0,
+   "pessoas_campo": 2
+  },
+  "art": {
+   "modo": "faixas",
+   "valor": 300.0,
+   "faixas": [
+    {
+     "ate": 15000.0,
+     "valor": 108.39
+    },
+    {
+     "ate": null,
+     "valor": 285.59
+    }
+   ],
+   "fonte": "Confea, Tabela A 2026 (publicada pelo CREA-MT). Confira os valores vigentes no CREA-RJ."
+  },
+  "turnkey": {
+   "garantia_pct": 0.02,
+   "garantia_meses": 12
+  },
+  "cub": {
+   "uf": "RJ",
+   "padrao": "CSL-8N",
+   "mes": "",
+   "valor": 0.0,
+   "pct_honorarios": 0.04,
+   "fonte": "SINDUSCON-Rio"
+  },
+  "hierarquia_fontes": {
+   "RJ": [
+    "EMOP-RJ",
+    "SCO-RIO",
+    "SINAPI",
+    "SICRO"
+   ],
+   "padrao": [
+    "SINAPI",
+    "SICRO"
+   ]
+  },
+  "cesta": {
+   "criterio": "mediana",
+   "faixa_alerta": 0.25,
+   "minimo_fontes": 3
+  },
+  "cronograma": {
+   "horas_dia": 8.0,
+   "equipe": 2,
+   "equipe_etapa": {}
+  },
+  "pagamento": {
+   "sinal": 0.3
+  },
+  "fee_pct_padrao": 0.06,
+  "cobranca": {
+   "percentual": {
+    "forma": "medicoes",
+    "curva": "s",
+    "meses": 6
+   },
+   "pacote": {
+    "desconto": 0.1,
+    "excedente_pct": 0.0,
+    "meses": 6,
+    "validade_meses": 12,
+    "parcelas": 3,
+    "mix_padrao": {
+     "SR": 0.2,
+     "PL": 0.5,
+     "TC": 0.3
+    }
+   },
+   "desempenho": {
+    "economia_pct": 0.1,
+    "prazo_pct_semana": 0.02,
+    "retrabalho_meta": 0.02,
+    "retrabalho_bonus_pct": 0.05,
+    "teto_pct": 0.3
+   }
+  },
+  "notas": {
+   "impostos": "Lucro Presumido: PIS 0,65% + COFINS 3% + IRPJ 4,8% e CSLL 2,88% (sobre base presumida de 32%) + ISS. No Simples, informe a alíquota efetiva do seu anexo.",
+   "bdi_fornecimento": "BDI completo (tributos, administração, risco e lucro). Referência inicial: medianas do TCU, Acórdão 2.622/2013 — confira e ajuste.",
+   "art": "ART por faixa do valor do contrato (Tabela A do Confea). Confira os valores vigentes no CREA-RJ.",
+   "cub": "Informe ou importe o CUB/m² do mês (SINDUSCON). Faixa usual de honorários: 2% a 11% do CUB × área.",
+   "custos": "Custos e taxas por hora são valores iniciais de referência — ajuste aos seus custos reais (salário + encargos + benefícios ÷ horas produtivas)."
+  }
+ },
+ "opcoes": [
+  {
+   "id": "A",
+   "nome": "Opção A — Assessoria de obra por % das medições",
+   "modalidade": "fases",
+   "fases": [
+    {
+     "id": "F1",
+     "nome": "Laudo técnico de diagnóstico",
+     "cobranca": "fechado",
+     "obra": {
+      "base_modo": "informado",
+      "base_valor": 0.0,
+      "base_opcao": "",
+      "base_parte": "obra",
+      "meses": 6,
+      "curva": "s"
+     },
+     "percentual": {
+      "pct": 0.06,
+      "forma": "medicoes",
+      "parcela_fixa": 0.0
+     },
+     "pacote": {
+      "forma": "mensal",
+      "horas_mes": 0.0,
+      "meses": 6,
+      "acumula_saldo": false,
+      "horas": 0.0,
+      "validade_meses": 12,
+      "parcelas": 3,
+      "desconto": 0.1,
+      "excedente_pct": 0.0
+     },
+     "desempenho": {
+      "ativo": false,
+      "economia_pct": 0.1,
+      "prazo_pct_semana": 0.02,
+      "retrabalho_meta": 0.02,
+      "retrabalho_bonus_pct": 0.05,
+      "teto_pct": 0.3,
+      "cenario": {
+       "economia": 0.05,
+       "dias_antecipados": 15,
+       "retrabalho_ok": true
+      }
+     },
+     "pagamento": []
+    },
+    {
+     "id": "F2",
+     "nome": "Estudo de viabilidade técnico-econômica",
+     "cobranca": "fechado",
+     "obra": {
+      "base_modo": "informado",
+      "base_valor": 0.0,
+      "base_opcao": "",
+      "base_parte": "obra",
+      "meses": 6,
+      "curva": "s"
+     },
+     "percentual": {
+      "pct": 0.06,
+      "forma": "medicoes",
+      "parcela_fixa": 0.0
+     },
+     "pacote": {
+      "forma": "mensal",
+      "horas_mes": 0.0,
+      "meses": 6,
+      "acumula_saldo": false,
+      "horas": 0.0,
+      "validade_meses": 12,
+      "parcelas": 3,
+      "desconto": 0.1,
+      "excedente_pct": 0.0
+     },
+     "desempenho": {
+      "ativo": false,
+      "economia_pct": 0.1,
+      "prazo_pct_semana": 0.02,
+      "retrabalho_meta": 0.02,
+      "retrabalho_bonus_pct": 0.05,
+      "teto_pct": 0.3,
+      "cenario": {
+       "economia": 0.05,
+       "dias_antecipados": 15,
+       "retrabalho_ok": true
+      }
+     },
+     "pagamento": []
+    },
+    {
+     "id": "F3",
+     "nome": "Projeto executivo VRF + DOAS",
+     "cobranca": "fechado",
+     "obra": {
+      "base_modo": "informado",
+      "base_valor": 0.0,
+      "base_opcao": "",
+      "base_parte": "obra",
+      "meses": 6,
+      "curva": "s"
+     },
+     "percentual": {
+      "pct": 0.06,
+      "forma": "medicoes",
+      "parcela_fixa": 0.0
+     },
+     "pacote": {
+      "forma": "mensal",
+      "horas_mes": 0.0,
+      "meses": 6,
+      "acumula_saldo": false,
+      "horas": 0.0,
+      "validade_meses": 12,
+      "parcelas": 3,
+      "desconto": 0.1,
+      "excedente_pct": 0.0
+     },
+     "desempenho": {
+      "ativo": false,
+      "economia_pct": 0.1,
+      "prazo_pct_semana": 0.02,
+      "retrabalho_meta": 0.02,
+      "retrabalho_bonus_pct": 0.05,
+      "teto_pct": 0.3,
+      "cenario": {
+       "economia": 0.05,
+       "dias_antecipados": 15,
+       "retrabalho_ok": true
+      }
+     },
+     "pagamento": []
+    },
+    {
+     "id": "F4",
+     "nome": "Assessoria de obra",
+     "cobranca": "percentual",
+     "obra": {
+      "base_modo": "opcao",
+      "base_valor": 0.0,
+      "base_opcao": "E",
+      "base_parte": "obra",
+      "meses": 4,
+      "curva": "s"
+     },
+     "percentual": {
+      "pct": 0.04,
+      "forma": "medicoes",
+      "parcela_fixa": 0.0
+     },
+     "pacote": {
+      "forma": "mensal",
+      "horas_mes": 0.0,
+      "meses": 6,
+      "acumula_saldo": false,
+      "horas": 0.0,
+      "validade_meses": 12,
+      "parcelas": 3,
+      "desconto": 0.1,
+      "excedente_pct": 0.0
+     },
+     "desempenho": {
+      "ativo": true,
+      "economia_pct": 0.1,
+      "prazo_pct_semana": 0.02,
+      "retrabalho_meta": 0.02,
+      "retrabalho_bonus_pct": 0.05,
+      "teto_pct": 0.3,
+      "cenario": {
+       "economia": 0.05,
+       "dias_antecipados": 14,
+       "retrabalho_ok": true
+      }
+     },
+     "pagamento": []
+    }
+   ],
+   "itens": [
+    {
+     "servico": "hvac.asbuilt",
+     "fase": "F1",
+     "dados": {
+      "area": 1500.0,
+      "pavimentos": 3,
+      "sistemas": 8,
+      "nivel": "2d"
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "hvac.desempenho",
+     "fase": "F1",
+     "dados": {
+      "sistemas": 8,
+      "tr": 75.0,
+      "metodo": "campanha",
+      "dias_registro": 7
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "hvac.tab",
+     "fase": "F1",
+     "dados": {
+      "terminais": 60,
+      "utas": 6,
+      "caixas_vav": 0,
+      "amostragem": "amostral",
+      "ajuste": "diagnostico"
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "hvac.emergencial",
+     "fase": "F1",
+     "dados": {
+      "sistemas": 8
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "hvac.viabilidade",
+     "fase": "F2",
+     "dados": {
+      "alternativas": 4,
+      "nivel_fin": "completo",
+      "cotacoes": 3
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "geral.reunioes",
+     "fase": "F2",
+     "dados": {
+      "reunioes": 2,
+      "horas": 2.0
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "hvac.projeto",
+     "fase": "F3",
+     "dados": {
+      "area": 1500.0,
+      "tr": 75.0,
+      "pavimentos": 3,
+      "sistema": "vrf",
+      "ventilacao_tipo": "doas",
+      "caixas_vav": 0,
+      "fase": "executivo",
+      "nivel": "3d"
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "geral.acompanhamento_obra",
+     "fase": "F4",
+     "dados": {
+      "meses": 4,
+      "visitas_mes": 4,
+      "horas_visita": 4.0,
+      "relatorio": true
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "geral.planejamento_obra",
+     "fase": "F4",
+     "dados": {
+      "meses": 4,
+      "medicoes_mes": 1,
+      "frentes": 1
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    }
+   ],
+   "fornecimentos": [],
+   "prazo_execucao_dias": 0,
+   "prazo_fornecimento_dias": 0,
+   "turnkey_dispensas": []
+  },
+  {
+   "id": "B",
+   "nome": "Opção B — Fiscalização e planejamento por pacote de horas",
+   "modalidade": "fases",
+   "fases": [
+    {
+     "id": "F1",
+     "nome": "Laudo técnico de diagnóstico",
+     "cobranca": "fechado",
+     "obra": {
+      "base_modo": "informado",
+      "base_valor": 0.0,
+      "base_opcao": "",
+      "base_parte": "obra",
+      "meses": 6,
+      "curva": "s"
+     },
+     "percentual": {
+      "pct": 0.06,
+      "forma": "medicoes",
+      "parcela_fixa": 0.0
+     },
+     "pacote": {
+      "forma": "mensal",
+      "horas_mes": 0.0,
+      "meses": 6,
+      "acumula_saldo": false,
+      "horas": 0.0,
+      "validade_meses": 12,
+      "parcelas": 3,
+      "desconto": 0.1,
+      "excedente_pct": 0.0
+     },
+     "desempenho": {
+      "ativo": false,
+      "economia_pct": 0.1,
+      "prazo_pct_semana": 0.02,
+      "retrabalho_meta": 0.02,
+      "retrabalho_bonus_pct": 0.05,
+      "teto_pct": 0.3,
+      "cenario": {
+       "economia": 0.05,
+       "dias_antecipados": 15,
+       "retrabalho_ok": true
+      }
+     },
+     "pagamento": []
+    },
+    {
+     "id": "F2",
+     "nome": "Estudo de viabilidade técnico-econômica",
+     "cobranca": "fechado",
+     "obra": {
+      "base_modo": "informado",
+      "base_valor": 0.0,
+      "base_opcao": "",
+      "base_parte": "obra",
+      "meses": 6,
+      "curva": "s"
+     },
+     "percentual": {
+      "pct": 0.06,
+      "forma": "medicoes",
+      "parcela_fixa": 0.0
+     },
+     "pacote": {
+      "forma": "mensal",
+      "horas_mes": 0.0,
+      "meses": 6,
+      "acumula_saldo": false,
+      "horas": 0.0,
+      "validade_meses": 12,
+      "parcelas": 3,
+      "desconto": 0.1,
+      "excedente_pct": 0.0
+     },
+     "desempenho": {
+      "ativo": false,
+      "economia_pct": 0.1,
+      "prazo_pct_semana": 0.02,
+      "retrabalho_meta": 0.02,
+      "retrabalho_bonus_pct": 0.05,
+      "teto_pct": 0.3,
+      "cenario": {
+       "economia": 0.05,
+       "dias_antecipados": 15,
+       "retrabalho_ok": true
+      }
+     },
+     "pagamento": []
+    },
+    {
+     "id": "F3",
+     "nome": "Projeto executivo VRF + DOAS",
+     "cobranca": "fechado",
+     "obra": {
+      "base_modo": "informado",
+      "base_valor": 0.0,
+      "base_opcao": "",
+      "base_parte": "obra",
+      "meses": 6,
+      "curva": "s"
+     },
+     "percentual": {
+      "pct": 0.06,
+      "forma": "medicoes",
+      "parcela_fixa": 0.0
+     },
+     "pacote": {
+      "forma": "mensal",
+      "horas_mes": 0.0,
+      "meses": 6,
+      "acumula_saldo": false,
+      "horas": 0.0,
+      "validade_meses": 12,
+      "parcelas": 3,
+      "desconto": 0.1,
+      "excedente_pct": 0.0
+     },
+     "desempenho": {
+      "ativo": false,
+      "economia_pct": 0.1,
+      "prazo_pct_semana": 0.02,
+      "retrabalho_meta": 0.02,
+      "retrabalho_bonus_pct": 0.05,
+      "teto_pct": 0.3,
+      "cenario": {
+       "economia": 0.05,
+       "dias_antecipados": 15,
+       "retrabalho_ok": true
+      }
+     },
+     "pagamento": []
+    },
+    {
+     "id": "F4",
+     "nome": "Fiscalização e planejamento da obra",
+     "cobranca": "pacote",
+     "obra": {
+      "base_modo": "opcao",
+      "base_valor": 0.0,
+      "base_opcao": "E",
+      "base_parte": "obra",
+      "meses": 4,
+      "curva": "s"
+     },
+     "percentual": {
+      "pct": 0.04,
+      "forma": "medicoes",
+      "parcela_fixa": 0.0
+     },
+     "pacote": {
+      "forma": "mensal",
+      "horas_mes": 40.0,
+      "meses": 4,
+      "acumula_saldo": false,
+      "horas": 0.0,
+      "validade_meses": 12,
+      "parcelas": 3,
+      "desconto": 0.1,
+      "excedente_pct": 0.0
+     },
+     "desempenho": {
+      "ativo": false,
+      "economia_pct": 0.1,
+      "prazo_pct_semana": 0.02,
+      "retrabalho_meta": 0.02,
+      "retrabalho_bonus_pct": 0.05,
+      "teto_pct": 0.3,
+      "cenario": {
+       "economia": 0.05,
+       "dias_antecipados": 14,
+       "retrabalho_ok": true
+      }
+     },
+     "pagamento": []
+    }
+   ],
+   "itens": [
+    {
+     "servico": "hvac.asbuilt",
+     "fase": "F1",
+     "dados": {
+      "area": 1500.0,
+      "pavimentos": 3,
+      "sistemas": 8,
+      "nivel": "2d"
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "hvac.desempenho",
+     "fase": "F1",
+     "dados": {
+      "sistemas": 8,
+      "tr": 75.0,
+      "metodo": "campanha",
+      "dias_registro": 7
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "hvac.tab",
+     "fase": "F1",
+     "dados": {
+      "terminais": 60,
+      "utas": 6,
+      "caixas_vav": 0,
+      "amostragem": "amostral",
+      "ajuste": "diagnostico"
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "hvac.emergencial",
+     "fase": "F1",
+     "dados": {
+      "sistemas": 8
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "hvac.viabilidade",
+     "fase": "F2",
+     "dados": {
+      "alternativas": 4,
+      "nivel_fin": "completo",
+      "cotacoes": 3
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "geral.reunioes",
+     "fase": "F2",
+     "dados": {
+      "reunioes": 2,
+      "horas": 2.0
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "hvac.projeto",
+     "fase": "F3",
+     "dados": {
+      "area": 1500.0,
+      "tr": 75.0,
+      "pavimentos": 3,
+      "sistema": "vrf",
+      "ventilacao_tipo": "doas",
+      "caixas_vav": 0,
+      "fase": "executivo",
+      "nivel": "3d"
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "geral.acompanhamento_obra",
+     "fase": "F4",
+     "dados": {
+      "meses": 4,
+      "visitas_mes": 4,
+      "horas_visita": 4.0,
+      "relatorio": true
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "geral.planejamento_obra",
+     "fase": "F4",
+     "dados": {
+      "meses": 4,
+      "medicoes_mes": 1,
+      "frentes": 1
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    }
+   ],
+   "fornecimentos": [],
+   "prazo_execucao_dias": 0,
+   "prazo_fornecimento_dias": 0,
+   "turnkey_dispensas": []
+  },
+  {
+   "id": "E",
+   "nome": "Estimativa interna do valor global da obra",
+   "modalidade": "estimativa",
+   "fases": [
+    {
+     "id": "F1",
+     "nome": "Fase 1",
+     "cobranca": "fechado",
+     "obra": {
+      "base_modo": "informado",
+      "base_valor": 0.0,
+      "base_opcao": "",
+      "base_parte": "obra",
+      "meses": 6,
+      "curva": "s"
+     },
+     "percentual": {
+      "pct": 0.06,
+      "forma": "medicoes",
+      "parcela_fixa": 0.0
+     },
+     "pacote": {
+      "forma": "mensal",
+      "horas_mes": 0.0,
+      "meses": 6,
+      "acumula_saldo": false,
+      "horas": 0.0,
+      "validade_meses": 12,
+      "parcelas": 3,
+      "desconto": 0.1,
+      "excedente_pct": 0.0
+     },
+     "desempenho": {
+      "ativo": false,
+      "economia_pct": 0.1,
+      "prazo_pct_semana": 0.02,
+      "retrabalho_meta": 0.02,
+      "retrabalho_bonus_pct": 0.05,
+      "teto_pct": 0.3,
+      "cenario": {
+       "economia": 0.05,
+       "dias_antecipados": 15,
+       "retrabalho_ok": true
+      }
+     },
+     "pagamento": []
+    }
+   ],
+   "itens": [
+    {
+     "servico": "hvac.comissionamento",
+     "fase": "F1",
+     "dados": {
+      "equipamentos": 48,
+      "caixas_vav": 0,
+      "nivel_cx": "funcional"
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "hvac.tab",
+     "fase": "F1",
+     "dados": {
+      "terminais": 90,
+      "utas": 1,
+      "caixas_vav": 0,
+      "amostragem": "completo",
+      "ajuste": "ajuste"
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    },
+    {
+     "servico": "geral.entrega_tecnica",
+     "fase": "F1",
+     "dados": {
+      "equipamentos": 48,
+      "turmas": 2,
+      "horas_turma": 4.0,
+      "data_book": true
+     },
+     "ajustes": {},
+     "fator_manual": 1.0,
+     "descricao": ""
+    }
+   ],
+   "fornecimentos": [
+    {
+     "uid": "d75cc643",
+     "descricao": "Unidades condensadoras VRF 20 HP (módulos)",
+     "categoria": "equipamento",
+     "unid": "un",
+     "qtd": 5.0,
+     "custo_unit": 52500.0,
+     "fonte": "Cesta de preços (mediana de 3 referências)",
+     "codigo": "",
+     "data_base": "2026-09",
+     "referencias": [
+      {
+       "fonte": "Cotação fabricante A",
+       "codigo": "",
+       "data_base": "2026-09",
+       "valor": 51000.0
+      },
+      {
+       "fonte": "Cotação fabricante B",
+       "codigo": "",
+       "data_base": "2026-09",
+       "valor": 52500.0
+      },
+      {
+       "fonte": "Cotação distribuidor C",
+       "codigo": "",
+       "data_base": "2026-09",
+       "valor": 53800.0
+      },
+      {
+       "fonte": "Cotação distribuidor D",
+       "codigo": "",
+       "data_base": "2026-08",
+       "valor": 68000.0
+      }
+     ],
+     "fase": "F1"
+    },
+    {
+     "uid": "f6ade924",
+     "descricao": "Unidades evaporadoras VRF (cassete e dutada)",
+     "categoria": "equipamento",
+     "unid": "un",
+     "qtd": 42.0,
+     "custo_unit": 2900.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": [],
+     "fase": "F1"
+    },
+    {
+     "uid": "28ce30a8",
+     "descricao": "Unidade de ar exterior dedicado (DOAS) com recuperação de energia, 5.000 m³/h",
+     "categoria": "equipamento",
+     "unid": "un",
+     "qtd": 1.0,
+     "custo_unit": 120000.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": [],
+     "fase": "F1"
+    },
+    {
+     "uid": "4dc1690c",
+     "descricao": "Controle central VRF e integração com a automação predial",
+     "categoria": "equipamento",
+     "unid": "vb",
+     "qtd": 1.0,
+     "custo_unit": 28000.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": [],
+     "fase": "F1"
+    },
+    {
+     "uid": "0516505a",
+     "descricao": "Tubulação de cobre, isolamento, derivações (refnets) e suportes",
+     "categoria": "material",
+     "unid": "vb",
+     "qtd": 1.0,
+     "custo_unit": 95000.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": [],
+     "fase": "F1"
+    },
+    {
+     "uid": "adb23f9a",
+     "descricao": "Dutos, difusores e grelhas da rede de ar exterior",
+     "categoria": "material",
+     "unid": "vb",
+     "qtd": 1.0,
+     "custo_unit": 55000.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": [],
+     "fase": "F1"
+    },
+    {
+     "uid": "1a091c4e",
+     "descricao": "Materiais elétricos de força e comando do sistema",
+     "categoria": "material",
+     "unid": "vb",
+     "qtd": 1.0,
+     "custo_unit": 30000.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": [],
+     "fase": "F1"
+    },
+    {
+     "uid": "60317e41",
+     "descricao": "Instalação mecânica e frigorígena do VRF (subempreiteira)",
+     "categoria": "subcontrato",
+     "unid": "vb",
+     "qtd": 1.0,
+     "custo_unit": 120000.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": [],
+     "fase": "F1"
+    },
+    {
+     "uid": "9dfd6865",
+     "descricao": "Montagem da rede de dutos do DOAS (subempreiteira)",
+     "categoria": "subcontrato",
+     "unid": "vb",
+     "qtd": 1.0,
+     "custo_unit": 40000.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": [],
+     "fase": "F1"
+    },
+    {
+     "uid": "08cbf2d2",
+     "descricao": "Desmontagem do sistema existente com recolhimento do fluido refrigerante",
+     "categoria": "subcontrato",
+     "unid": "vb",
+     "qtd": 1.0,
+     "custo_unit": 25000.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": [],
+     "fase": "F1"
+    },
+    {
+     "uid": "cc11c25f",
+     "descricao": "Içamento e transporte vertical das condensadoras",
+     "categoria": "subcontrato",
+     "unid": "vb",
+     "qtd": 1.0,
+     "custo_unit": 12000.0,
+     "fonte": "Valor ilustrativo — substituir por cotação",
+     "codigo": "",
+     "data_base": "",
+     "referencias": [],
+     "fase": "F1"
+    }
+   ],
+   "prazo_execucao_dias": 80,
+   "prazo_fornecimento_dias": 60,
+   "turnkey_dispensas": [
+    "projeto",
+    "gestao"
+   ]
+  }
+ ],
+ "viabilidade": {
+  "ativo": true,
+  "titulo": "Estudo de viabilidade técnico-econômica do retrofit",
+  "base": {
+   "modo": "tr",
+   "tr": 75.0,
+   "kw_tr_real": 1.45,
+   "kw_tr_projeto": 1.0,
+   "horas_ano": 3750.0,
+   "fator_carga": 0.65,
+   "kwh_ano": 0.0,
+   "tarifa": 0.85,
+   "manutencao_ano": 60000.0,
+   "paliativos": 25000.0
+  },
+  "financeiro": {
+   "tma": 0.12,
+   "horizonte": 15,
+   "reajuste_energia": 0.06,
+   "reajuste_manutencao": 0.045
+  },
+  "alternativas": [
+   {
+    "nome": "Rebalanceamento e correções pontuais",
+    "descricao": "TAB, limpeza de serpentinas, correção de vazamentos e ajuste de setpoints",
+    "capex": 48000.0,
+    "capex_opcao": "",
+    "capex_extra": 0.0,
+    "reducao_pct": 0.08,
+    "geracao_kwh": 0.0,
+    "manutencao_ano": null
+   },
+   {
+    "nome": "Troca das condensadoras e automação",
+    "descricao": "Mantém evaporadoras e redes; substitui as unidades externas e instala controle central",
+    "capex": 520000.0,
+    "capex_opcao": "",
+    "capex_extra": 0.0,
+    "reducao_pct": 0.22,
+    "geracao_kwh": 0.0,
+    "manutencao_ano": 50000.0
+   },
+   {
+    "nome": "Retrofit VRF + DOAS (estimativa E)",
+    "descricao": "Valor global estimado da obra; equipamentos novos em garantia",
+    "capex": 0.0,
+    "capex_opcao": "E",
+    "capex_extra": 0.0,
+    "reducao_pct": 0.35,
+    "geracao_kwh": 0.0,
+    "manutencao_ano": 30000.0
+   },
+   {
+    "nome": "Retrofit + fotovoltaico 60 kWp",
+    "descricao": "Estimativa E + usina FV de 60 kWp (≈ 1.400 kWh/kWp·ano no RJ)",
+    "capex": 0.0,
+    "capex_opcao": "E",
+    "capex_extra": 240000.0,
+    "reducao_pct": 0.35,
+    "geracao_kwh": 84000.0,
+    "manutencao_ano": 32000.0
+   }
+  ]
+ }
+}
