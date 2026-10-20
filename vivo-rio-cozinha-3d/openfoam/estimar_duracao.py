@@ -11,8 +11,10 @@
       O critério prático adotado é patamar dos resíduos + janela de média (as grandezas pontuais oscilam; vale a média dos últimos passos).
       O patamar é medido na malha média; para malhas maiores adota-se N ∝ células^0,25 (hipótese de engenharia, não medida) com fator 0,7 a 1,5.
 Uso: python3 estimar_duracao.py <pasta_medicoes> [--md saida.md] [--usuario bench_maquina.json | --bw-medido GB/s]"""
-import argparse, json, math, os
+import argparse, json, math, os, sys
 import numpy as np
+for _f in (sys.stdout, sys.stderr):      # console do Windows (cp1252) não tem ≈ nem −
+    if hasattr(_f, 'reconfigure'): _f.reconfigure(encoding='utf-8')
 
 EXPOENTE_ITER = 0.25      # N_iter ∝ células^0,25 acima da malha média (hipótese de engenharia)
 FATOR_ITER = (0.7, 1.5)   # faixa sobre o N_iter central
@@ -21,7 +23,7 @@ JANELA_MEDIA = 1000       # iterações de média depois do patamar
 NOME = {"grossa": "grossa", "media": "média", "producao": "produção"}
 
 def carregar(p, nome):
-    f = os.path.join(p, nome); return json.load(open(f)) if os.path.exists(f) else None
+    f = os.path.join(p, nome); return json.load(open(f, encoding='utf-8')) if os.path.exists(f) else None
 
 def num(x, n=1):
     """pt-BR: vírgula decimal, ponto de milhar."""
@@ -72,7 +74,7 @@ def main():
     mesh = custo["producao"]["malha_s"]; t_mesh_prod = mesh["blockMesh"] + mesh["snappyHexMesh"] + mesh["topoSet_createPatch"]
     bwa = banda["4"]
     if a.usuario and os.path.exists(a.usuario):
-        u = json.load(open(a.usuario)); su = {e["np"]: e["s_por_iter_mediana"] for e in u["execucoes"] if e.get("s_por_iter_mediana")}
+        u = json.load(open(a.usuario, encoding='utf-8')); su = {e["np"]: e["s_por_iter_mediana"] for e in u["execucoes"] if e.get("s_por_iter_mediana")}
         k_ref = min(su, key=lambda x: abs(x - a.np_usuario)); fator = su[k_ref] / s4["media"]
         usr = lambda N: (0.9 * s_aqui(N) * fator, s_aqui(N) * fator, 1.15 * s_aqui(N) * fator)
         base_txt = f"calibrado com `bench_maquina.py` ({u.get('cpu', 'sua CPU')}, {num(su[k_ref], 2)} s/iteração na malha média com {k_ref} processos: fator {num(fator, 2)} sobre a nuvem)"

@@ -69,6 +69,15 @@ python3 figura_convergencia.py medicoes ../saida/estimativa_cfd_residuos.png
 
 `env.sh` usa o OpenFOAM que já estiver no PATH (ou procura um bashrc ESI conhecido); em último caso cai no ambiente mínimo do pacote Ubuntu. **Os scripts foram validados no OpenFOAM ESI v1912.** Em versões novas o `buoyantSimpleFoam` foi substituído por `buoyantFoam` e algumas chaves dos dicionários mudaram: `bench_maquina.py` confere os executáveis antes de começar e, se faltarem, indica o caminho da etapa 1.
 
+## Windows, Garuda e Omarchy
+
+| Parte | Windows | Garuda / Omarchy (Arch) |
+|---|---|---|
+| `bench_banda.py`, `estimar_duracao.py`, `figura_convergencia.py` (Python + numpy) | roda nativo (PowerShell, `py bench_banda.py 12`) | roda nativo |
+| Solver, malha, `bench_maquina.py`, `animacao.py` | só dentro do WSL2 (Ubuntu) ou de um contêiner | nativo, se o OpenFOAM ESI estiver instalado (AUR ou contêiner Docker/Podman) |
+
+O solver e o `snappyHexMesh` não rodam em Windows nativo. Em qualquer dos três, o caminho mais portátil é um contêiner do OpenFOAM ESI (Docker Desktop no Windows com WSL2, Podman ou Docker no Arch) com esta pasta montada; `env.sh` usa o que estiver no PATH dentro dele. **Não testei contêiner nem Arch**: os scripts só foram rodados no OpenFOAM ESI v1912 (Ubuntu). Versões novas trocam `buoyantSimpleFoam` por `buoyantFoam`, e `bench_maquina.py` avisa se o executável não existir. Em qualquer caso, a banda de memória (etapa 1 da calibração) já reduz a incerteza e não depende do OpenFOAM.
+
 ## Animação
 
 Um comando, retomável (≈ 35 min com 4 núcleos na malha média: malha 1 min, estacionário 20 min, fumaça 13 min, quadros 2 min):

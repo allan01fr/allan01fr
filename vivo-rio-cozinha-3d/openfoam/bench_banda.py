@@ -2,6 +2,8 @@
 """Largura de banda de memória (tipo STREAM triad, a = b + s*c) com 1..N processos; o CFD em malha grande é limitado por isso.
 Uso: python3 bench_banda.py [max_processos]   (precisa de numpy; ~20 s)"""
 import multiprocessing as mp, sys, time
+for _f in (sys.stdout, sys.stderr):
+    if hasattr(_f, 'reconfigure'): _f.reconfigure(encoding='utf-8')
 import numpy as np
 
 def trabalho(args):

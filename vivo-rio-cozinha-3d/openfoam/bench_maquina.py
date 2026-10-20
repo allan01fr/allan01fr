@@ -6,6 +6,8 @@ Uso: python3 bench_maquina.py [--np 1,2,4,6] [--iter 30]    -> grava bench_maqui
 import argparse, json, multiprocessing as mp, os, platform, subprocess, sys
 AQUI = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, AQUI)
 import bench_banda
+for _f in (sys.stdout, sys.stderr):
+    if hasattr(_f, 'reconfigure'): _f.reconfigure(encoding='utf-8')
 
 def cpu():
     try: return next(l.split(":", 1)[1].strip() for l in open("/proc/cpuinfo") if l.startswith("model name"))
