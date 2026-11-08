@@ -80,9 +80,9 @@ with st.sidebar:
     arq = st.file_uploader("📂 Abrir projeto (.json)", type=["json"], key=f"abrir{V}")
     if arq is not None:
         try:
-            substituir_projeto(documento.carregar_json(arq.getvalue().decode("utf-8")))
+            substituir_projeto(documento.carregar_json(arq.getvalue()))
             st.rerun()
-        except Exception as e:  # noqa: BLE001
+        except documento.ErroProjeto as e:
             st.error(f"Arquivo inválido: {e}")
     if st.button("Carregar exemplo (escritório)", width="stretch"):
         substituir_projeto(documento.projeto_padrao())
