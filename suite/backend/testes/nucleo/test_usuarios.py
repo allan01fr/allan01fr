@@ -172,3 +172,47 @@ def test_nao_admin_nao_administra_usuarios(cliente_http, sessao):
 
 def test_sem_login_da_401(cliente_http):
     assert cliente_http.get("/api/nucleo/usuarios").status_code == 401
+
+
+def test_auditoria_de_alteracao_inclui_o_nome(cliente_http, sessao):
+    emp, _ = _admin_logado(cliente_http, sessao)
+    alvo = novo_usuario(sessao, emp, {Perfil.CAMPO})
+    sessao.commit()
+    antigo = alvo.nome
+    cliente_http.patch(f"/api/nucleo/usuarios/{alvo.id}", json={"nome": "Nome Novo"})
+    acao = sessao.scalar(select(Auditoria).where(Auditoria.acao == "usuario.alterar"))
+    assert acao.dados["antes"]["nome"] == antigo
+    assert acao.dados["depois"]["nome"] == "Nome Novo"
+
+
+def test_empresa_nao_pode_ficar_sem_admin_ativo(sessao):
+    import pytest
+
+    from app.nucleo.erros import RegraNegocio
+    from app.nucleo.usuarios import garantir_admin_ativo
+
+    emp = nova_empresa(sessao)
+    admin = novo_usuario(sessao, emp, {Perfil.ADMIN})
+    garantir_admin_ativo(sessao, emp.id)  # há um admin ativo: passa
+    admin.ativo = False
+    sessao.flush()
+    with pytest.raises(RegraNegocio, match="pelo menos um administrador ativo"):
+        garantir_admin_ativo(sessao, emp.id)
+    admin.ativo = True
+    admin.perfis = [p for p in admin.perfis if p.perfil != "admin"]
+    sessao.flush()
+    with pytest.raises(RegraNegocio):
+        garantir_admin_ativo(sessao, emp.id)
+
+
+def test_admin_de_outra_empresa_nao_conta(sessao):
+    import pytest
+
+    from app.nucleo.erros import RegraNegocio
+    from app.nucleo.usuarios import garantir_admin_ativo
+
+    a = nova_empresa(sessao, "A")
+    b = nova_empresa(sessao, "B")
+    novo_usuario(sessao, b, {Perfil.ADMIN})
+    with pytest.raises(RegraNegocio):
+        garantir_admin_ativo(sessao, a.id)

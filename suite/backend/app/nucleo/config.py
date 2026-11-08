@@ -9,6 +9,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Configuracao(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="SUITE_", env_file="../.env", extra="ignore")
 
+    # "dev" liga a documentação interativa (/docs, /redoc, /openapi.json); o padrão é produção.
+    ambiente: str = "producao"
     banco_url: str
     segredo_sessao: str = Field(min_length=32)
     sessao_horas: int = 12

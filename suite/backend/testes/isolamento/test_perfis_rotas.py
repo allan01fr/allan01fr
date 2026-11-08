@@ -1,11 +1,64 @@
 from uuid import uuid4
 
 import pytest
+from fastapi.testclient import TestClient
 
 from app.main import criar_app
 from app.nucleo.perfis import PERMISSOES, Perfil
 from testes.fabricas import entrar, nova_empresa, novo_usuario
 from testes.rotas_da_api import ROTAS_PUBLICAS, rotas_da_api
+
+# Cada tarefa que cria rota acrescenta aqui (método, caminho, permissão). Rota nova sem
+# entrada aqui, ou rota que sumiu, quebra o teste de propósito.
+ROTAS_ESPERADAS = {
+    ("GET", "/api/saude", "publica"),
+    ("POST", "/api/nucleo/sessao", "publica"),
+    ("DELETE", "/api/nucleo/sessao", "publica"),
+    ("GET", "/api/nucleo/eu", "login"),
+    ("GET", "/api/nucleo/usuarios", "nucleo.usuarios"),
+    ("POST", "/api/nucleo/usuarios", "nucleo.usuarios"),
+    ("PATCH", "/api/nucleo/usuarios/{usuario_id}", "nucleo.usuarios"),
+}
+
+
+def test_conjunto_de_rotas_e_permissoes_e_o_esperado():
+    encontradas = {(r.metodo, r.caminho, r.acesso) for r in rotas_da_api(criar_app())}
+    assert encontradas == ROTAS_ESPERADAS
+
+
+def test_descoberta_recusa_tipo_de_rota_desconhecido():
+    from fastapi import FastAPI
+    from starlette.routing import Mount
+
+    app = FastAPI()
+    app.router.routes.append(Mount("/estatico", app=FastAPI()))
+    with pytest.raises(TypeError, match="não reconhecido"):
+        rotas_da_api(app)
+
+
+def test_descoberta_confere_com_o_openapi():
+    from fastapi import FastAPI
+
+    app = FastAPI()
+    app.get("/a")(lambda: None)
+    rotas_da_api(app)  # passa
+    app.get("/escondida", include_in_schema=False)(lambda: None)
+    rotas_da_api(app)  # fora do esquema não conta na comparação
+
+
+def test_documentacao_so_existe_em_desenvolvimento(monkeypatch):
+    from app.nucleo.config import obter_configuracao
+
+    cfg = obter_configuracao()
+    monkeypatch.setattr(cfg, "ambiente", "producao")
+    prod = TestClient(criar_app(), raise_server_exceptions=False)
+    for caminho in ("/docs", "/redoc", "/openapi.json"):
+        assert prod.get(caminho).status_code == 404, caminho
+    monkeypatch.setattr(cfg, "ambiente", "dev")
+    assert TestClient(criar_app()).get("/openapi.json").status_code == 200
+    # a descoberta continua funcionando com a documentação desligada
+    monkeypatch.setattr(cfg, "ambiente", "producao")
+    assert rotas_da_api(criar_app())
 
 
 def test_toda_rota_declara_acesso():
@@ -47,7 +100,9 @@ def test_cada_perfil_ve_so_o_que_pode(cliente_http, sessao, perfil):
         else:
             assert resp.status_code == 403 and resp.json()["codigo"] == "proibido", r
         verificadas += 1
-    assert verificadas >= 3
+    com_permissao = {(r.metodo, r.caminho, r.acesso) for r in rotas_da_api(cliente_http.app)}
+    assert verificadas == len([e for e in ROTAS_ESPERADAS if e[2] in PERMISSOES])
+    assert com_permissao == ROTAS_ESPERADAS
 
 
 def test_descoberta_enxerga_permissao_declarada_no_include_e_em_roteador_aninhado():

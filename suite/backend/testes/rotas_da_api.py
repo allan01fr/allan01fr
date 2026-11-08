@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from fastapi import FastAPI
 from fastapi.dependencies.models import Dependant
 from fastapi.routing import APIRoute
+from starlette.routing import Route
 
 from app.nucleo.sessao import contexto_atual
 
@@ -15,12 +16,17 @@ ROTAS_PUBLICAS = {
 }
 
 
+# Rotas de documentação que o FastAPI cria sozinho (só existem em desenvolvimento).
+ROTAS_DE_DOCUMENTACAO = {"/openapi.json", "/docs", "/docs/oauth2-redirect", "/redoc"}
+
+
 @dataclass
 class Rota:
     metodo: str
     caminho: str
     acesso: str  # "publica", "login" ou o nome da permissão
     parametros: list[str]
+    no_esquema: bool = True  # include_in_schema
 
 
 def _acesso(dependente: Dependant) -> str:
@@ -61,12 +67,31 @@ def _percorrer(rotas, inclusao=None):
             yield rota, caminho, list(inclusao.dependencies) if inclusao else []
         elif hasattr(rota, "original_router"):  # roteador incluído
             yield from _percorrer(rota.original_router.routes, rota.include_context)
+        elif isinstance(rota, Route) and rota.path in ROTAS_DE_DOCUMENTACAO:
+            continue
+        else:
+            # Mount, WebSocketRoute, Route comum...: não sabemos que permissão exigem.
+            raise TypeError(f"Tipo de rota não reconhecido na descoberta: {rota!r}")
 
 
 def rotas_da_api(app: FastAPI) -> list[Rota]:
+    """Todas as rotas da API com a permissão de cada uma.
+
+    Confere que o conjunto (método, caminho) bate com o OpenAPI público: se a descoberta
+    perder uma rota (ou inventar uma), o teste quebra aqui.
+    """
     rotas = []
     for rota, caminho, extras in _percorrer(app.routes):
         for metodo in sorted(rota.methods):
             parametros = [p.name for p in rota.dependant.path_params]
-            rotas.append(Rota(metodo, caminho, _acesso_da_rota(rota, extras), parametros))
+            acesso = _acesso_da_rota(rota, extras)
+            rotas.append(Rota(metodo, caminho, acesso, parametros, rota.include_in_schema))
+    # app.openapi() funciona mesmo com a documentação desligada (openapi_url=None).
+    publicas = {(r.metodo, r.caminho) for r in rotas if r.no_esquema}
+    no_openapi = {
+        (metodo.upper(), caminho)
+        for caminho, operacoes in app.openapi()["paths"].items()
+        for metodo in operacoes
+    }
+    assert publicas == no_openapi, publicas ^ no_openapi
     return rotas

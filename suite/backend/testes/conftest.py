@@ -3,6 +3,7 @@ import os
 os.environ["SUITE_BANCO_URL"] = os.environ.get(
     "SUITE_BANCO_TESTE_URL", "postgresql+psycopg://suite:suite@localhost:5432/suite_teste"
 )
+os.environ["SUITE_AMBIENTE"] = "dev"
 os.environ["SUITE_SEGREDO_SESSAO"] = "x" * 40
 os.environ["SUITE_COOKIE_SEGURO"] = "false"
 os.environ["SUITE_S3_ENDPOINT"] = "https://s3.us-east-1.amazonaws.com"
