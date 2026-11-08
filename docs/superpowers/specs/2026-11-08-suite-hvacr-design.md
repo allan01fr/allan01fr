@@ -222,6 +222,15 @@ Cada trilha entrega uma fatia vertical utilizável (banco → API → tela), nã
   resfriamento → relatório circunstanciado do período.
 - Painel do que vence e do que está atrasado; áreas críticas (saúde) com nível de risco e
   pressão por ambiente; emissão para vários RTs da mesma empresa.
+- Medições de campo e TAB pela NBR 17168:2024 (tradução da AMCA 203): OS de TAB, aceitação ou
+  prova de desempenho com visita prévia (condição de operação, sentido de rotação, NR-35, NR-33,
+  risco de explosão, acesso); travessia de Pitot por plano com verificação automática do critério
+  de aceitação do perfil; vazão com massa específica pela TBS, UR e pressão barométrica (ou
+  altitude); soma de ramais; pressão estática do ventilador com efeitos de sistema; potência pela
+  corrente de fase e perdas de transmissão; rotação; incerteza estimada; leituras de balômetro e
+  anemômetro registradas como indicativas e corrigidas pelo fator K obtido com Pitot. O relatório
+  diferencia medição normativa de medição indicativa. Os critérios numéricos ficam no catálogo
+  de parâmetros (regra 9). Itens de HH na T1: furação e travessia por plano, ventilador ensaiado.
 - Pronto quando: um técnico fecha uma OS de PMOC em modo avião e ela chega completa ao
   sincronizar; o relatório de PMOC sai em PDF.
 
@@ -317,7 +326,7 @@ T0 Fundação ──► T1 Comercial ──► T3 Financeiro
 | Provedor de nuvem e domínio | No fim da T0, antes do primeiro deploy | KAPTEK |
 | Provedor de NFS-e | Na especificação da T3 | KAPTEK / contador |
 | Nome do produto | Antes da fase de produto | KAPTEK |
-| Adquirir as edições vigentes: NBR 17037, NBR 16401-1/2/3:2024, NBR 13971:2014, NBR 14679:2012, NBR 10152:2017, NBR 10151:2019 (verificar antes os arquivos `Normas.rar` e `envio ao sindratar.rar` do Drive) | Antes das especificações de T2, T4 e T7 | KAPTEK |
+| Adquirir as edições vigentes: NBR 17037, NBR 17168:2024, NBR 16401-1/2/3:2024, NBR 13971:2014, NBR 14679:2012, NBR 10152:2017, NBR 10151:2019 (verificar antes os arquivos `Normas.rar` e `envio ao sindratar.rar` do Drive) | Antes das especificações de T2, T4 e T7 | KAPTEK |
 | Convenção de layers DXF da KAPTEK para ambientes, dutos, difusores e equipamentos | Na especificação da T7 | Engenharia |
 | Obter a tabela do método da área (ABRAVA/DNPC): custo básico por tipo de instalação, fator por nível do RT e curva de percentual | Antes da implementação do método da área na T1 | KAPTEK |
 
