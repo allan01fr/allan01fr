@@ -45,6 +45,7 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
+        sa.CheckConstraint("email = lower(email)", name=op.f("ck_usuario_email_minusculo")),
         sa.ForeignKeyConstraint(
             ["empresa_id"], ["empresa.id"], name=op.f("fk_usuario_empresa_id_empresa")
         ),

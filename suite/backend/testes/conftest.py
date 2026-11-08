@@ -61,7 +61,17 @@ def sessao(motor):
 @pytest.fixture
 def cliente_http(sessao):
     app = criar_app()
-    app.dependency_overrides[obter_sessao] = lambda: sessao
+
+    def sessao_de_teste():
+        # Mesmo contrato de obter_sessao; o rollback desfaz só o savepoint do teste.
+        try:
+            yield sessao
+            sessao.commit()
+        except Exception:
+            sessao.rollback()
+            raise
+
+    app.dependency_overrides[obter_sessao] = sessao_de_teste
     return TestClient(app, raise_server_exceptions=False)
 
 

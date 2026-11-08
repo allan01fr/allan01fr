@@ -4,7 +4,9 @@ import uuid
 from collections.abc import Iterator
 from datetime import datetime
 from functools import lru_cache
+from typing import Annotated
 
+from fastapi import Depends
 from sqlalchemy import DateTime, ForeignKey, MetaData, create_engine, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
@@ -52,3 +54,8 @@ def obter_sessao() -> Iterator[Session]:
         except Exception:
             sessao.rollback()
             raise
+
+
+# scope="function": o commit termina ANTES de a resposta ser enviada; assim uma falha no commit
+# vira o erro único em JSON, e o cliente nunca vê 200 sem o dado gravado.
+SessaoDoBanco = Annotated[Session, Depends(obter_sessao, scope="function")]

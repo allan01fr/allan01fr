@@ -22,6 +22,7 @@ class Empresa(Base):
 
 class Usuario(ComEmpresa, Base):
     __tablename__ = "usuario"
+    __table_args__ = (CheckConstraint("email = lower(email)", name="email_minusculo"),)
 
     nome: Mapped[str] = mapped_column(String(200))
     email: Mapped[str] = mapped_column(String(254), unique=True)  # sempre minúsculo
