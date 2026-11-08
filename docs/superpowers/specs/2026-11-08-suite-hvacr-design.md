@@ -137,7 +137,7 @@ Estas regras permitem que as trilhas avancem em paralelo sem conflito.
 | Dono | Tabelas principais | Campos-chave |
 |---|---|---|
 | nucleo | `empresa`, `usuario`, `perfil_usuario`, `tarefa`, `arquivo`, `auditoria` | — |
-| cadastro (T0) | `cliente`, `contato`, `obra`, `ativo` | `cliente.cnpj_cpf`, `obra.endereco`, `obra.uf`, `ativo.fabricante/modelo/serie/fluido/carga_kg` |
+| cadastro (T0) | `cliente`, `contato`, `obra`, `ambiente`, `ativo`, `responsavel_tecnico` | `cliente.cnpj_cpf` (dígito verificador validado), `cliente.representante_legal`, `obra.endereco`, `obra.uf`, `ambiente(obra, area_m2, uso, nivel_risco)`, `ativo(ambiente, fabricante/modelo/serie/fluido/carga_kg)`, `arquivado_em` em cliente e obra |
 | comercial (T1) | `proposta`, `proposta_revisao`, `item_execucao`, `produtividade`, `funcao`, `contrato` | `produtividade(item, funcao, hh_por_unidade, fonte)` |
 | campo (T2) | `ordem_servico`, `modelo_checklist`, `checklist_execucao`, `apontamento_hh`, `foto`, `assinatura`, `movimento_refrigerante` | `apontamento_hh(os, usuario, funcao, inicio, fim)`; `movimento_refrigerante(ativo, os, tipo: recarga/recolhimento/vazamento, fluido, kg, data)` |
 | financeiro (T3) | `medicao`, `titulo_receber`, `exportacao` | `titulo_receber(contrato, vencimento, valor, situacao)` |
@@ -160,7 +160,12 @@ Cada trilha entrega uma fatia vertical utilizável (banco → API → tela), nã
 
 **T0 Fundação** (sozinha, antes das outras)
 - Núcleo da seção 3, login, perfis, empresa, fila de tarefas, arquivos, formato de erro.
-- Cadastro: clientes, obras e ativos, com telas.
+- Cadastro: clientes, obras e ativos, com telas. Hierarquia cliente → obra (empreendimento) →
+  ambiente climatizado → ativo; cliente PF ou PJ com representante legal; CPF/CNPJ com dígito
+  verificador validado; arquivar sem apagar histórico; importação em lote de ambientes e ativos
+  colando do Excel (tudo ou nada, com relatório de erros por linha).
+- Configuração da empresa: dados cadastrais, comarca do foro, logomarca e vários responsáveis
+  técnicos (nome, registro CREA/CFT, assinatura), usados em todo documento gerado.
 - Infraestrutura: docker-compose local, CI, imagem para deploy.
 - Pronto quando: duas empresas isoladas provadas por teste; um usuário de cada perfil entra e
   vê só o que pode; uma tarefa de exemplo roda no worker; CI verde.
@@ -175,6 +180,16 @@ Cada trilha entrega uma fatia vertical utilizável (banco → API → tela), nã
   eficiência); prazo calculado ao contrário quando a equipe é fixa; cronograma por frentes.
 - **Preço de obra**: HH × custo-hora com encargos + materiais + BDI, no mesmo motor de preço.
 - Contrato gerado da proposta aceita.
+- Segundo método de preço de projeto: honorário pelo método da área (ABRAVA/DNPC) — tipo de
+  instalação (expansão direta, água gelada, VRF), área, custo básico unitário, fator do nível
+  do RT e curva de percentual sobre a área; parâmetros privados por empresa (regra 9),
+  comparável lado a lado com o preço por HH.
+- Status: rascunho → enviada → aprovada | recusada; aprovada → entregue (com desfazer);
+  revisões guardadas; validade com alerta de proposta vencendo ou vencida.
+- Documentos PDF com a identidade da empresa e do RT: proposta, contrato e recibo (do projeto
+  ou por parcela paga), com texto de cada seção editável e "restaurar padrão".
+- Painel comercial: projetos por estágio, conversão geral e por faixa de valor, valor aguardando
+  resposta, total aprovado, ticket médio, propostas vencendo, entregas atrasadas.
 - Pronto quando: os exemplos atuais de `propostas/exemplos` dão o mesmo preço pela API; uma
   obra de referência gera HH, equipe, prazo e preço conferidos à mão.
 
@@ -186,6 +201,14 @@ Cada trilha entrega uma fatia vertical utilizável (banco → API → tela), nã
   dado que o LEED v5 exige no inventário de refrigerantes e na recertificação O+M.
 - Uso sem sinal: grava no aparelho e sincroniza; o servidor decide o estado da OS, e os campos
   do checklist seguem "último que gravou vence" com registro do conflito.
+- Ciclo do PMOC completo, na ordem: PMOC em PDF no modelo do Anexo I da Portaria MS 3.523/1998
+  → cronograma de 12 meses → OS do mês abertas automaticamente → execução com checklist por
+  equipamento, medidas conferidas, fotos com legenda e histórico por equipamento → revisão e
+  conclusão pelo RT → não conformidade (RNC) com acompanhamento e verificação de eficácia →
+  laudo de qualidade do ar e plano de amostragem pela NBR 17037 → controle de torre de
+  resfriamento → relatório circunstanciado do período.
+- Painel do que vence e do que está atrasado; áreas críticas (saúde) com nível de risco e
+  pressão por ambiente; emissão para vários RTs da mesma empresa.
 - Pronto quando: um técnico fecha uma OS de PMOC em modo avião e ela chega completa ao
   sincronizar; o relatório de PMOC sai em PDF.
 
@@ -193,6 +216,9 @@ Cada trilha entrega uma fatia vertical utilizável (banco → API → tela), nã
 - Medição a partir do contrato (por fase, por % executado ou por HH apontado).
 - Contas a receber: títulos, vencimentos, baixa manual, situação.
 - Exportação CSV para o provedor de NFS-e e para o contador.
+- Parcelas geradas automaticamente ou uma a uma, com recibo por parcela paga (documento da T1).
+- Painel financeiro: a receber, recebido no mês e no ano, atrasado, próximos vencimentos,
+  clientes com maior faturamento, faturamento mensal; exportação CSV/Excel para o contador.
 - Pronto quando: contrato → medição → título → baixa funciona de ponta a ponta.
 
 **T4 Energia / LEED** (base: pesquisa em `docs/pesquisa/leed/`)
@@ -278,6 +304,7 @@ T0 Fundação ──► T1 Comercial ──► T3 Financeiro
 | Nome do produto | Antes da fase de produto | KAPTEK |
 | Adquirir as edições vigentes: NBR 17037, NBR 16401-1/2/3:2024, NBR 13971:2014, NBR 14679:2012, NBR 10152:2017, NBR 10151:2019 (verificar antes os arquivos `Normas.rar` e `envio ao sindratar.rar` do Drive) | Antes das especificações de T2, T4 e T7 | KAPTEK |
 | Convenção de layers DXF da KAPTEK para ambientes, dutos, difusores e equipamentos | Na especificação da T7 | Engenharia |
+| Obter a tabela do método da área (ABRAVA/DNPC): custo básico por tipo de instalação, fator por nível do RT e curva de percentual | Antes da implementação do método da área na T1 | KAPTEK |
 
 ## 10. Riscos
 
