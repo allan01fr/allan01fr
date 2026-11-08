@@ -20,3 +20,9 @@ def novo_usuario(
 ) -> Usuario:
     email = email or f"usuario-{uuid.uuid4().hex[:12]}@teste.com"
     return criar_usuario(sessao, empresa.id, "Usuário de Teste", email, SENHA_TESTE, perfis)
+
+
+def entrar(cliente_http, email: str, senha: str = SENHA_TESTE) -> None:
+    """Faz o login pela API e confere que deu certo; o cookie fica no cliente."""
+    resposta = cliente_http.post("/api/nucleo/sessao", json={"email": email, "senha": senha})
+    assert resposta.status_code == 200, resposta.text
