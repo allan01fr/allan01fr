@@ -3,7 +3,9 @@
 from uuid import UUID
 
 from fastapi import Query
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
+
+from app.nucleo.perfis import Perfil
 
 LIMITE_MAXIMO_LISTA = 200
 
@@ -52,3 +54,33 @@ class EuSaida(BaseModel):
     empresa: EmpresaResumo
     perfis: list[str]
     permissoes: list[str]
+
+
+class UsuarioEntrada(EsquemaEntrada):
+    nome: str = Field(min_length=1, max_length=200)
+    email: EmailStr = Field(max_length=254)
+    senha: str = Field(max_length=200)
+    perfis: set[Perfil]
+
+
+class UsuarioAlteracao(EsquemaEntrada):
+    """Só os campos enviados mudam; `null` não é aceito em nenhum deles."""
+
+    nome: str | None = Field(default=None, min_length=1, max_length=200)
+    ativo: bool | None = None
+    perfis: set[Perfil] | None = Field(default=None, min_length=1)
+
+    @model_validator(mode="after")
+    def _sem_nulo_explicito(self):
+        for campo in self.model_fields_set:
+            if getattr(self, campo) is None:
+                raise ValueError("Valor não pode ser nulo.")
+        return self
+
+
+class UsuarioSaida(BaseModel):
+    id: UUID
+    nome: str
+    email: str
+    ativo: bool
+    perfis: list[str]

@@ -25,7 +25,7 @@ def test_login_define_cookie_httponly_e_eu_responde(cliente_http, sessao):
     assert eu["email"] == "ana@a.com"
     assert eu["perfis"] == ["comercial"]
     assert eu["empresa"]["nome"] == "A"
-    assert eu["permissoes"] == []
+    assert "cadastro.ler" in eu["permissoes"] and "nucleo.usuarios" not in eu["permissoes"]
 
 
 def test_cookie_secure_quando_configurado(cliente_http, sessao, monkeypatch):

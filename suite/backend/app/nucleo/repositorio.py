@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.nucleo.banco import ComEmpresa
 from app.nucleo.erros import NaoEncontrado
 from app.nucleo.esquemas import LIMITE_MAXIMO_LISTA
+from app.nucleo.modelos import Usuario
 
 
 class RepositorioBase[M: ComEmpresa]:
@@ -54,3 +55,7 @@ class RepositorioBase[M: ComEmpresa]:
         self.sessao.add(obj)
         self.sessao.flush()
         return obj
+
+
+class UsuarioRepositorio(RepositorioBase[Usuario]):
+    modelo = Usuario
