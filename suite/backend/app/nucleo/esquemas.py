@@ -3,6 +3,8 @@
 from fastapi import Query
 from pydantic import BaseModel, ConfigDict
 
+LIMITE_MAXIMO_LISTA = 200
+
 
 class EsquemaEntrada(BaseModel):
     """Base de toda entrada: recusa campos extras e apara espaços."""
@@ -20,7 +22,7 @@ class ParametrosLista:
 
     def __init__(
         self,
-        limite: int = Query(50, ge=1, le=200),
+        limite: int = Query(50, ge=1, le=LIMITE_MAXIMO_LISTA),
         deslocamento: int = Query(0, ge=0),
         busca: str | None = None,
         incluir_arquivados: bool = False,
