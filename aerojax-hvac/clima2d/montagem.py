@@ -2,16 +2,18 @@
 
 import jax.numpy as jnp
 
+import math
+
 from . import psicrometria as psi
-from .sala2d import Sala, Abertura, FonteCalor, Obstaculo, Insuflamento, montar_geometria
+from .malha import dimensoes_da_malha
+from .documento import MAX_PASSOS
+from .sala2d import dt_estavel, velocidade_face_insuflamento, Sala, Abertura, FonteCalor, Obstaculo, Insuflamento, montar_geometria
 
 def montar_modelo(projeto, malha_cm=None):
     """Converte o projeto em (Sala, Geometria, Insuflamento). Lança ValueError se inválido."""
     p = projeto
     s = p["sala"]
-    h = (malha_cm or p["simulacao"]["malha_cm"]) / 100.0
-    nx = max(8, int(round(s["largura"] / h)))
-    ny = max(8, int(round(s["altura"] / h)))
+    nx, ny = dimensoes_da_malha(s["largura"], s["altura"], malha_cm or p["simulacao"]["malha_cm"])
     sup = dict(p["superficies"])
     sup["fluxo_teto"] = float(sup.get("fluxo_teto", 0.0)) + float(p.get("iluminacao_w_m2", 0.0))
     sala = Sala(
@@ -37,6 +39,34 @@ def montar_modelo(projeto, malha_cm=None):
     return sala, geo, ins
 
 
+def plano_de_tempo(sala, geo, projeto):
+    """Passo e blocos de tempo da simulação (fonte única para a execução e para a validação).
+
+    Lança ValueError se o passo não for finito/positivo ou se o total de passos passar de
+    MAX_PASSOS (tempo ilimitado).
+    """
+    s, i = projeto["simulacao"], projeto["insuflamento"]
+    v_face = velocidade_face_insuflamento(sala, geo, float(i["vazao_m3h"]))
+    ang = math.radians(abs(float(i["angulo_graus"])))
+    dt = dt_estavel(sala, velocidade_max=1.5 * v_face / max(math.cos(ang), 0.2) + 0.5)
+    passos_bloco = 50
+    try:
+        if not (math.isfinite(dt) and dt > 0):
+            raise ValueError
+        n_bloco = max(passos_bloco, int(round(60.0 / dt / passos_bloco)) * passos_bloco)
+        t_bloco = n_bloco * dt
+        n_blocos = max(1, int(math.ceil(s["tempo_s"] / t_bloco)))
+        n_media = min(n_blocos, max(1, int(round(s["tempo_media_s"] / t_bloco))))
+        total = n_blocos * n_bloco
+    except (ArithmeticError, ValueError):
+        raise ValueError("passos de tempo fora de faixa (passo de tempo não finito).") from None
+    if total > MAX_PASSOS:
+        raise ValueError(f"A simulação precisaria de {total:,} passos de tempo "
+                         f"(máximo {MAX_PASSOS:,}); reduza a vazão, a viscosidade, o tempo "
+                         "simulado ou use malha maior.".replace(",", "."))
+    return dt, passos_bloco, n_bloco, t_bloco, n_blocos, n_media, total, v_face
+
+
 def validar(projeto):
     """Lista de problemas que impedem ou comprometem a simulação."""
     erros = []
@@ -56,7 +86,8 @@ def validar(projeto):
         erros.append("Ângulo do jato deve estar entre -75° e 75°.")
     if not erros:
         try:
-            montar_modelo(projeto)
+            sala, geo, _ = montar_modelo(projeto)
+            plano_de_tempo(sala, geo, projeto)
         except ValueError as e:
             erros.append(str(e))
     return erros

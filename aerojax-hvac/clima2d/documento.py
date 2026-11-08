@@ -5,6 +5,7 @@ import json
 import math
 
 from .criterios import CRITERIOS_PADRAO
+from .malha import dimensoes_da_malha
 
 FORMATO_PROJETO = "clima2d-projeto"
 VERSAO_ESQUEMA = 1
@@ -14,12 +15,24 @@ SECOES_LISTA = ("aberturas", "fontes", "obstaculos")
 PAREDES = ("esquerda", "direita", "teto", "piso")
 TIPOS_ABERTURA = ("insuflamento", "retorno")
 POSITIVOS_SIMULACAO = ("malha_cm", "tempo_s", "tempo_media_s", "nu_efetiva")
-# Limite de células da malha (nx * ny, já com o mínimo de 8 por eixo que a montagem aplica).
-# O maior caso do repositório é a malha mais fina oferecida pelo app (2,5 cm) na sala de
-# exemplo (5 x 2,8 m): 200 x 112 = 22.400 células; o padrão (10 cm) usa 50 x 28 = 1.400 e
-# o exemplo 03 fino 100 x 56 = 5.600. 250.000 dá mais de 10 vezes essa folga (p. ex. uma
-# sala de 20 x 10 m a 4 cm) e ainda cabe na memória de um notebook.
-MAX_CELULAS = 250_000
+# Limites derivados das faixas da interface (app/app.py); cada teto fica no máximo do app.
+# Malha: o maior caso que o app permite é largura 50 m (L165) x pé-direito 15 m (L166) com a
+# malha mais fina, 2,5 cm (L298): 2.000 x 600 = 1.200.000 células (nx * ny, já com o mínimo
+# de 8 por eixo da montagem).
+MAX_CELULAS = 1_200_000
+# Tempo simulado: máximo de 240 min (app/app.py L301) = 14.400 s.
+MAX_TEMPO_S = 240 * 60.0
+# Tempo de média: máximo de 120 min (app/app.py L303) = 7.200 s (e nunca maior que tempo_s).
+MAX_TEMPO_MEDIA_S = 120 * 60.0
+# Vazão de insuflamento: máximo de 50.000 m3/h (app/app.py L266).
+MAX_VAZAO_M3H = 50_000.0
+# Total de passos de tempo explícitos. Caso extremo dentro das faixas do app (malha 5 cm,
+# 240 min, 50.000 m3/h na sala de exemplo) dá ~4,4e7 passos; o teto é ~2x isso. Bloqueia
+# combinações (viscosidade enorme, profundidade ínfima) que deixariam o passo quase nulo.
+MAX_PASSOS = 100_000_000
+LIMITES_SUPERIORES = (("simulacao", "tempo_s", MAX_TEMPO_S),
+                      ("simulacao", "tempo_media_s", MAX_TEMPO_MEDIA_S),
+                      ("insuflamento", "vazao_m3h", MAX_VAZAO_M3H))
 # Campos obrigatórios de cada item de lista (todos numéricos, exceto os de texto abaixo).
 OBRIGATORIOS_ABERTURA = ("inicio", "fim")
 OBRIGATORIOS_FONTE = ("x0", "x1", "y0", "y1", "sensivel_w", "latente_w")
@@ -159,17 +172,23 @@ def _validar_itens(p):
 
 def _validar_tamanho_da_malha(p):
     """Recusa salas/malhas cujo número de células é absurdo (ou não finito)."""
-    h = p["simulacao"]["malha_cm"] / 100.0
-    celulas = 1.0
-    for eixo in ("largura", "altura"):
-        try:
-            n = max(8.0, round(float(p["sala"][eixo]) / h))
-        except (OverflowError, ValueError, ZeroDivisionError):  # razão infinita ou h nulo
-            n = math.inf
-        celulas *= n
-    if not math.isfinite(celulas) or celulas > MAX_CELULAS:
-        raise ErroProjeto("A malha da simulação tem células demais (máximo 250.000); "
-                          "aumente simulacao.malha_cm ou reduza as dimensões da sala.")
+    try:
+        nx, ny = dimensoes_da_malha(p["sala"]["largura"], p["sala"]["altura"],
+                                    p["simulacao"]["malha_cm"])
+    except (ArithmeticError, ValueError):  # razão infinita/não finita ou malha nula
+        nx = ny = math.inf
+    if nx * ny > MAX_CELULAS:
+        raise ErroProjeto(f"A malha da simulação tem células demais (máximo {MAX_CELULAS:,}); "
+                          "aumente simulacao.malha_cm ou reduza as dimensões da sala."
+                          .replace(",", "."))
+
+
+def _validar_limites_superiores(p):
+    for secao, chave, teto in LIMITES_SUPERIORES:
+        if p[secao][chave] > teto:
+            raise ErroProjeto(f"{secao}.{chave} deve ser no máximo {teto:g}.")
+    if p["simulacao"]["tempo_media_s"] > p["simulacao"]["tempo_s"]:
+        raise ErroProjeto("simulacao.tempo_media_s não pode ser maior que simulacao.tempo_s.")
 
 
 def validar_documento(documento):
@@ -192,6 +211,7 @@ def validar_documento(documento):
     for chave in POSITIVOS_SIMULACAO:
         if p["simulacao"][chave] <= 0:
             raise ErroProjeto(f"simulacao.{chave} deve ser maior que zero.")
+    _validar_limites_superiores(p)
     for campo in ("nome", "responsavel"):
         _exigir_texto(p[campo], campo)
     _validar_itens(p)

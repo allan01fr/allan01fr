@@ -135,3 +135,55 @@ def test_main_com_pai_do_relatorio_sendo_arquivo_retorna_2(tmp_path, capsys, mon
     assert main([str(arq), str(pai / "r.html")]) == 2
     err = capsys.readouterr().err
     assert f"Não foi possível gravar o relatório em {pai / 'r.html'}." in err and "Traceback" not in err
+
+
+# --- limites de tempo/vazão e de passos: recusa antes do motor (T6 tarefa 6, 2ª rodada) ---
+
+def _motor_proibido(*args, **kwargs):
+    raise AssertionError("o motor de simulação não deveria rodar para entrada hostil")
+
+
+HOSTIS = [
+    ("simulacao", {"tempo_s": 1e12}, "simulacao.tempo_s"),
+    ("simulacao", {"tempo_media_s": 1e300}, "simulacao.tempo_media_s"),
+    ("insuflamento", {"vazao_m3h": 1e300}, "insuflamento.vazao_m3h"),
+    ("simulacao", {"tempo_s": 600.0, "tempo_media_s": 1200.0}, "simulacao.tempo_media_s"),
+    ("simulacao", {"nu_efetiva": 1e300}, "passos"),
+    ("sala", {"profundidade": 1e-12}, "passos"),
+]
+
+
+@pytest.mark.parametrize("secao, campos, trecho", HOSTIS)
+def test_valores_hostis_sao_recusados_antes_do_motor(secao, campos, trecho, tmp_path, monkeypatch):
+    monkeypatch.setattr(estudo, "simular_projeto", _motor_proibido)
+    destino = tmp_path / "r.html"
+    with pytest.raises(documento.ErroProjeto, match=trecho):
+        estudo.rodar_estudo(_projeto_com(**{secao: campos}), destino)
+    assert not destino.exists()
+
+
+@pytest.mark.parametrize("secao, campos, trecho", HOSTIS[:4])
+def test_valores_hostis_sao_recusados_na_validacao(secao, campos, trecho):
+    with pytest.raises(documento.ErroProjeto, match=trecho):
+        documento.validar_documento(_projeto_com(**{secao: campos}))
+
+
+def test_limites_aceitam_o_maximo_do_app():
+    documento.validar_documento(_projeto_com(
+        simulacao={"tempo_s": 240 * 60.0, "tempo_media_s": 120 * 60.0},
+        insuflamento={"vazao_m3h": 50000.0}))
+
+
+def test_malha_do_maior_caso_do_app_e_aceita():
+    # app/app.py: largura até 50 m, pé-direito até 15 m, malha mais fina 2,5 cm = 2000 x 600
+    documento.validar_documento(_projeto_com(sala={"largura": 50.0, "altura": 15.0},
+                                             simulacao={"malha_cm": 2.5}))
+
+
+def test_dimensoes_da_malha_unica_e_segura():
+    from clima2d.montagem import dimensoes_da_malha
+    assert dimensoes_da_malha(5.0, 2.8, 10.0) == (50, 28)
+    assert dimensoes_da_malha(0.1, 0.1, 10.0) == (8, 8)
+    for ruim in ((1e308, 2.8, 1e-9), (5.0, 2.8, 0.0), (float("nan"), 2.8, 10.0)):
+        with pytest.raises(ValueError):
+            dimensoes_da_malha(*ruim)

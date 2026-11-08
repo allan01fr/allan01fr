@@ -84,7 +84,7 @@ Windows (PowerShell):
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-python -m pytest testes -q          # deve terminar com "86 passed"
+python -m pytest testes -q          # deve terminar com "99 passed"
 ```
 
 Linux/macOS: igual, mas ative o ambiente com `source .venv/bin/activate`.
@@ -294,7 +294,7 @@ Nos dois casos, o calor sensível retirado (902 W) fecha com a carga (898 W).
 
 ## Verificação
 
-`python -m pytest testes -q` roda 23 testes:
+`python -m pytest testes -q` roda 99 testes, entre eles:
 - pressão de saturação contra a tabela da ASHRAE (−10 a 40 °C);
 - consistência entre UR, ponto de orvalho e bulbo úmido;
 - ADP e BF da serpentina (ida e volta);

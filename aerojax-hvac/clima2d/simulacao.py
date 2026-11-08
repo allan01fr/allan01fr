@@ -1,6 +1,5 @@
 """Simulação do projeto em blocos de tempo e estudo de independência de malha."""
 
-import math
 import time
 
 import numpy as np
@@ -8,9 +7,9 @@ import jax
 
 from . import psicrometria as psi
 from .cargas import cargas_totais
-from .montagem import montar_modelo
-from .sala2d import (estado_inicial, simular, indicadores, dt_estavel,
-                     velocidade_face_insuflamento, Medias)
+from .montagem import montar_modelo, plano_de_tempo
+from .sala2d import (estado_inicial, simular, indicadores,
+                     Medias)
 
 def simular_projeto(projeto, progresso=None, malha_cm=None):
     """Roda a simulação em blocos de ~60 s (para mostrar progresso).
@@ -21,15 +20,7 @@ def simular_projeto(projeto, progresso=None, malha_cm=None):
     p = projeto
     sala, geo, ins = montar_modelo(p, malha_cm)
     c = p["condicao"]
-    v_face = velocidade_face_insuflamento(sala, geo, float(p["insuflamento"]["vazao_m3h"]))
-    ang = math.radians(abs(float(p["insuflamento"]["angulo_graus"])))
-    dt = dt_estavel(sala, velocidade_max=1.5 * v_face / max(math.cos(ang), 0.2) + 0.5)
-
-    passos_bloco = 50
-    n_bloco = max(passos_bloco, int(round(60.0 / dt / passos_bloco)) * passos_bloco)
-    t_bloco = n_bloco * dt
-    n_blocos = max(1, int(math.ceil(p["simulacao"]["tempo_s"] / t_bloco)))
-    n_media = min(n_blocos, max(1, int(round(p["simulacao"]["tempo_media_s"] / t_bloco))))
+    dt, passos_bloco, n_bloco, t_bloco, n_blocos, n_media, _, v_face = plano_de_tempo(sala, geo, p)
 
     rodar = jax.jit(lambda e: simular(sala, geo, ins, e, t_bloco, dt, t_bloco, passos_por_bloco=passos_bloco))
     estado = estado_inicial(sala, c["T_alvo"], float(psi.umidade_absoluta(c["T_alvo"], c["UR_alvo"])))
