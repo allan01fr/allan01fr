@@ -76,11 +76,11 @@ suite/
 │   │       ├── selecao/     # T5: seleção DX, difusores, catálogo
 │   │       ├── cfd/         # T6: Clima2D como tarefa
 │   │       └── bim/         # T7: leitura e verificação de IFC/DXF, lista de materiais
-├── plugin-bonsai/           # T7: complemento do Blender/Bonsai (GPL), cliente fino da API
 │   ├── migracoes/
 │   └── testes/
 ├── frontend/
-└── infra/                   # docker-compose, Dockerfiles, CI
+├── plugin-bonsai/           # T7: complemento do Blender/Bonsai (GPL), cliente fino da API
+└── infra/                   # docker-compose e Dockerfiles (o CI fica em .github/workflows/suite.yml)
 ```
 
 Cada módulo tem sempre os mesmos arquivos, na mesma ordem de fluxo:
@@ -136,8 +136,8 @@ Estas regras permitem que as trilhas avancem em paralelo sem conflito.
 
 | Dono | Tabelas principais | Campos-chave |
 |---|---|---|
-| nucleo | `empresa`, `usuario`, `perfil_usuario`, `tarefa`, `arquivo`, `auditoria` | — |
-| cadastro (T0) | `cliente`, `contato`, `obra`, `ambiente`, `ativo`, `responsavel_tecnico` | `cliente.cnpj_cpf` (dígito verificador validado), `cliente.representante_legal`, `obra.endereco`, `obra.uf`, `ambiente(obra, area_m2, uso, nivel_risco)`, `ativo(ambiente, fabricante/modelo/serie/fluido/carga_kg)`, `arquivado_em` em cliente e obra |
+| nucleo | `empresa`, `usuario`, `perfil_usuario`, `responsavel_tecnico`, `tarefa`, `arquivo`, `auditoria` | `empresa(razao_social, cnpj_cpf, endereco, contatos, comarca_foro, logomarca)`; `responsavel_tecnico(empresa, nome, registro CREA/CFT, assinatura, arquivado_em)`; `usuario.email` único no sistema |
+| cadastro (T0) | `cliente`, `contato`, `obra`, `ambiente`, `ativo` | `cliente.cnpj_cpf` (dígito verificador validado), `cliente.representante_legal`, `obra.endereco`, `obra.uf`, `ambiente(obra, area_m2, uso, nivel_risco)`, `ativo(ambiente, fabricante/modelo/serie/fluido/carga_kg)`, `arquivado_em` em cliente e obra |
 | comercial (T1) | `proposta`, `proposta_revisao`, `item_execucao`, `produtividade`, `funcao`, `contrato` | `produtividade(item, funcao, hh_por_unidade, fonte)` |
 | campo (T2) | `ordem_servico`, `modelo_checklist`, `checklist_execucao`, `apontamento_hh`, `foto`, `assinatura`, `movimento_refrigerante` | `apontamento_hh(os, usuario, funcao, inicio, fim)`; `movimento_refrigerante(ativo, os, tipo: recarga/recolhimento/vazamento, fluido, kg, data)` |
 | financeiro (T3) | `medicao`, `titulo_receber`, `exportacao` | `titulo_receber(contrato, vencimento, valor, situacao)` |
