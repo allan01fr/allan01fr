@@ -84,10 +84,12 @@ Windows (PowerShell):
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-python -m pytest testes -q          # deve terminar com "23 passed"
+python -m pytest testes -q          # deve terminar com "74 passed"
 ```
 
 Linux/macOS: igual, mas ative o ambiente com `source .venv/bin/activate`.
+
+Rodar sem a interface: `python -m clima2d exemplos/projetos/escritorio_rapido.json relatorio.html`
 
 Para usar o pacote `clima2d` de qualquer pasta, instale-o em modo editável (opcional; o app e os
 exemplos funcionam sem isso):

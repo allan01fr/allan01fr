@@ -1,6 +1,8 @@
 """Relatório técnico em HTML autocontido."""
 
 import datetime as _dt
+import os
+from pathlib import Path
 
 from .cargas import cargas_totais
 from .criterios import conformidade
@@ -82,3 +84,17 @@ os fluxos de calor informados.</li>
 ABNT NBR 16401-1 nem simulação 3D validada quando exigida.</li></ul></div>
 <p style="font-size:12px;color:#777">Gerado por Clima2D (pacote clima2d).</p>
 </body></html>"""
+
+
+def gravar_relatorio(projeto, resultado, destino, tabela_malha=None):
+    """Grava o relatório em UTF-8, de forma atômica, e devolve o caminho."""
+    destino = Path(destino)
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    html = relatorio_html(projeto, resultado, tabela_malha)
+    temporario = destino.with_name(f".{destino.name}.{os.getpid()}.tmp")
+    try:
+        temporario.write_text(html, encoding="utf-8")
+        os.replace(temporario, destino)
+    finally:
+        temporario.unlink(missing_ok=True)
+    return destino
