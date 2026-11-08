@@ -33,6 +33,8 @@ def test_valores_de_referencia():
     assert cfm_para_m3_h(1000) == pytest.approx(1699.01079552, rel=1e-10)
     assert pol_para_m(1) == 0.0254 and lb_para_kg(1) == 0.45359237
     assert psi_para_pa(1) == pytest.approx(6894.757, rel=1e-6)
+    assert pe_para_m(1) == 0.3048
+    assert pol_h2o_para_pa(1) == pytest.approx(249.0889)
     assert f_para_c(95) == pytest.approx(35.0) and c_para_f(-40) == pytest.approx(-40.0)
 
 
@@ -56,6 +58,9 @@ def test_ida_e_volta(ida, volta):
 
 def test_constantes_so_existem_em_unidades():
     padrao = re.compile(r"0\.29307|3516\.85|1\.69901|0\.0254|0\.3048|0\.45359|6894\.75|249\.08")
+    visitados = 0
     for arq in RAIZ_APP.rglob("*.py"):
         if arq.name != "unidades.py":
+            visitados += 1
             assert not padrao.search(arq.read_text(encoding="utf-8")), arq
+    assert visitados >= 1
