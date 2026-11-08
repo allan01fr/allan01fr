@@ -23,6 +23,9 @@ def main(argv=None):
     except ErroProjeto as e:
         print(f"Projeto inválido: {e}", file=sys.stderr)
         return 2
+    except OSError:
+        print(f"Não foi possível gravar o relatório em {args.relatorio}.", file=sys.stderr)
+        return 2
     atendidos = sum(1 for c in res["conformidade"] if c["atende"])
     print(f"Relatório gravado em {res['relatorio']}")
     print(f"{atendidos} de {len(res['conformidade'])} critérios atendidos")

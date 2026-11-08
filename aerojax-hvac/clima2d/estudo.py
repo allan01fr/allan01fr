@@ -20,9 +20,14 @@ def rodar_estudo(documento, destino_relatorio, progresso=None):
     """Roda o estudo e grava o relatório. Recusa projetos inválidos antes de simular."""
     if isinstance(documento, dict):
         projeto = validar_documento(documento)
-    else:
+    elif isinstance(documento, (str, bytes, bytearray)):
         projeto = carregar_json(documento)
-    erros = validar(projeto)
+    else:
+        raise ErroProjeto("O projeto deve ser um objeto JSON.")
+    try:
+        erros = validar(projeto)
+    except (ArithmeticError, ValueError) as e:
+        raise ErroProjeto("O projeto não pode ser simulado: dimensões ou malha fora de faixa.") from e
     if erros:
         raise ErroProjeto("O projeto não pode ser simulado: " + " ".join(erros))
 

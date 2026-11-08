@@ -84,7 +84,7 @@ Windows (PowerShell):
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-python -m pytest testes -q          # deve terminar com "74 passed"
+python -m pytest testes -q          # deve terminar com "86 passed"
 ```
 
 Linux/macOS: igual, mas ative o ambiente com `source .venv/bin/activate`.

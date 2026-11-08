@@ -14,6 +14,12 @@ SECOES_LISTA = ("aberturas", "fontes", "obstaculos")
 PAREDES = ("esquerda", "direita", "teto", "piso")
 TIPOS_ABERTURA = ("insuflamento", "retorno")
 POSITIVOS_SIMULACAO = ("malha_cm", "tempo_s", "tempo_media_s", "nu_efetiva")
+# Limite de células da malha (nx * ny, já com o mínimo de 8 por eixo que a montagem aplica).
+# O maior caso do repositório é a malha mais fina oferecida pelo app (2,5 cm) na sala de
+# exemplo (5 x 2,8 m): 200 x 112 = 22.400 células; o padrão (10 cm) usa 50 x 28 = 1.400 e
+# o exemplo 03 fino 100 x 56 = 5.600. 250.000 dá mais de 10 vezes essa folga (p. ex. uma
+# sala de 20 x 10 m a 4 cm) e ainda cabe na memória de um notebook.
+MAX_CELULAS = 250_000
 # Campos obrigatórios de cada item de lista (todos numéricos, exceto os de texto abaixo).
 OBRIGATORIOS_ABERTURA = ("inicio", "fim")
 OBRIGATORIOS_FONTE = ("x0", "x1", "y0", "y1", "sensivel_w", "latente_w")
@@ -151,6 +157,21 @@ def _validar_itens(p):
             _exigir_campos_numericos(item, obrigatorios, caminho)
 
 
+def _validar_tamanho_da_malha(p):
+    """Recusa salas/malhas cujo número de células é absurdo (ou não finito)."""
+    h = p["simulacao"]["malha_cm"] / 100.0
+    celulas = 1.0
+    for eixo in ("largura", "altura"):
+        try:
+            n = max(8.0, round(float(p["sala"][eixo]) / h))
+        except (OverflowError, ValueError, ZeroDivisionError):  # razão infinita ou h nulo
+            n = math.inf
+        celulas *= n
+    if not math.isfinite(celulas) or celulas > MAX_CELULAS:
+        raise ErroProjeto("A malha da simulação tem células demais (máximo 250.000); "
+                          "aumente simulacao.malha_cm ou reduza as dimensões da sala.")
+
+
 def validar_documento(documento):
     """Valida, completa e devolve uma cópia do projeto. Só lança ErroProjeto."""
     if not isinstance(documento, dict):
@@ -174,6 +195,7 @@ def validar_documento(documento):
     for campo in ("nome", "responsavel"):
         _exigir_texto(p[campo], campo)
     _validar_itens(p)
+    _validar_tamanho_da_malha(p)
     return p
 
 
