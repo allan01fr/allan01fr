@@ -18,6 +18,8 @@ ROTAS_ESPERADAS = {
     ("GET", "/api/nucleo/usuarios", "nucleo.usuarios"),
     ("POST", "/api/nucleo/usuarios", "nucleo.usuarios"),
     ("PATCH", "/api/nucleo/usuarios/{usuario_id}", "nucleo.usuarios"),
+    ("POST", "/api/nucleo/arquivos", "nucleo.arquivos"),
+    ("GET", "/api/nucleo/arquivos/{arquivo_id}/url", "nucleo.arquivos"),
 }
 
 

@@ -18,11 +18,14 @@ import pytest  # noqa: E402
 from alembic import command  # noqa: E402
 from alembic.config import Config  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
+from moto import mock_aws  # noqa: E402
 from sqlalchemy import create_engine, text  # noqa: E402
 from sqlalchemy.orm import Session, sessionmaker  # noqa: E402
 
 from app.main import criar_app  # noqa: E402
+from app.nucleo.arquivos import obter_armazenamento  # noqa: E402
 from app.nucleo.banco import Base, obter_sessao  # noqa: E402
+from app.nucleo.config import obter_configuracao  # noqa: E402
 from app.registro import importar_modelos  # noqa: E402
 
 RAIZ_BACKEND = Path(__file__).resolve().parent.parent
@@ -60,7 +63,18 @@ def sessao(motor):
 
 
 @pytest.fixture
-def cliente_http(sessao):
+def armazenamento():
+    """S3 simulado (moto): API e worker dos testes usam o mesmo balde."""
+    with mock_aws():
+        obter_armazenamento.cache_clear()
+        instancia = obter_armazenamento()
+        instancia.interno.create_bucket(Bucket=obter_configuracao().s3_balde)
+        yield instancia
+    obter_armazenamento.cache_clear()
+
+
+@pytest.fixture
+def cliente_http(sessao, armazenamento):
     app = criar_app()
 
     def sessao_de_teste():

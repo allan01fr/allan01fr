@@ -1,5 +1,6 @@
 """Esquemas comuns: entrada estrita, página de resultados e parâmetros de lista."""
 
+from datetime import datetime
 from uuid import UUID
 
 from fastapi import Query
@@ -84,3 +85,16 @@ class UsuarioSaida(BaseModel):
     email: str
     ativo: bool
     perfis: list[str]
+
+
+class ArquivoSaida(BaseModel):
+    id: UUID
+    nome: str
+    tipo_conteudo: str
+    tamanho_bytes: int
+    criado_em: datetime
+
+
+class UrlAssinadaSaida(BaseModel):
+    url: str
+    expira_em: datetime

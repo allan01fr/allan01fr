@@ -3,19 +3,28 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Response, UploadFile
 from sqlalchemy import select
 
+from app.nucleo.arquivos import (
+    Armazenamento,
+    guardar_arquivo,
+    obter_armazenamento,
+    url_de_download,
+)
 from app.nucleo.auditoria import registrar_auditoria
 from app.nucleo.banco import SessaoDoBanco
+from app.nucleo.config import obter_configuracao
 from app.nucleo.contexto import Contexto
 from app.nucleo.erros import NaoAutenticado
 from app.nucleo.esquemas import (
+    ArquivoSaida,
     EmpresaResumo,
     EuSaida,
     LoginEntrada,
     Pagina,
     ParametrosLista,
+    UrlAssinadaSaida,
     UsuarioAlteracao,
     UsuarioEntrada,
     UsuarioSaida,
@@ -90,3 +99,38 @@ def alterar(
     usuario_id: UUID, alteracao: UsuarioAlteracao, sessao: SessaoDoBanco, contexto: AdminDeUsuarios
 ):
     return alterar_usuario(sessao, contexto, usuario_id, alteracao)
+
+
+ComArquivos = Annotated[Contexto, Depends(exigir("nucleo.arquivos"))]
+ArmazenamentoAtual = Annotated[Armazenamento, Depends(obter_armazenamento)]
+
+
+@roteador.post("/arquivos", response_model=ArquivoSaida, status_code=201)
+def enviar_arquivo(
+    arquivo: UploadFile,
+    sessao: SessaoDoBanco,
+    contexto: ComArquivos,
+    armazenamento: ArmazenamentoAtual,
+):
+    # Lê no máximo o limite + 1 byte: assim um arquivo enorme não vai inteiro para a memória.
+    limite = obter_configuracao().arquivo_max_bytes
+    conteudo = arquivo.file.read(limite + 1)
+    return guardar_arquivo(
+        sessao,
+        armazenamento,
+        contexto.empresa_id,
+        contexto.usuario_id,
+        arquivo.filename or "",
+        arquivo.content_type or "",
+        conteudo,
+    )
+
+
+@roteador.get("/arquivos/{arquivo_id}/url", response_model=UrlAssinadaSaida)
+def url_do_arquivo(
+    arquivo_id: UUID,
+    sessao: SessaoDoBanco,
+    contexto: ComArquivos,
+    armazenamento: ArmazenamentoAtual,
+):
+    return url_de_download(sessao, armazenamento, contexto.empresa_id, arquivo_id)
