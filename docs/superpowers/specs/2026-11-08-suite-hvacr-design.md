@@ -180,16 +180,29 @@ Cada trilha entrega uma fatia vertical utilizável (banco → API → tela), nã
   eficiência); prazo calculado ao contrário quando a equipe é fixa; cronograma por frentes.
 - **Preço de obra**: HH × custo-hora com encargos + materiais + BDI, no mesmo motor de preço.
 - Contrato gerado da proposta aceita.
-- Segundo método de preço de projeto: honorário pelo método da área (ABRAVA/DNPC) — tipo de
-  instalação (expansão direta, água gelada, VRF), área, custo básico unitário, fator do nível
-  do RT e curva de percentual sobre a área; parâmetros privados por empresa (regra 9),
-  comparável lado a lado com o preço por HH.
-- Status: rascunho → enviada → aprovada | recusada; aprovada → entregue (com desfazer);
-  revisões guardadas; validade com alerta de proposta vencendo ou vencida.
+- Segundo método de preço de projeto: honorário pela "Metodologia para Avaliação dos Honorários
+  de Projetos de HVAC" (ABRAVA/DNPC, Rev. 01/2014). Entradas: tipo de instalação (expansão
+  direta, VRF, água gelada); escopo (só planilha quantitativa/orçamento, instalação nova em
+  edifício existente, instalação nova em edifício novo, retrofit com aproveitamento); ambientes
+  climatizados por tipo da lista ABRAVA, com área e repetições; ambientes ventilados (insuflação
+  e/ou exaustão, cozinha, estacionamento). Cálculo: área corrigida → custo base da instalação
+  (custo por TR regional e fator de margem de seleção) → honorário = custo base × percentual
+  por faixa de custo × fatores do método. Parâmetros privados por empresa (regra 9).
+- Ajustes da empresa, fora do método ABRAVA e marcados como tal: fator por nível do RT
+  (padrão da empresa, sobrescrevível por projeto), adicional %, desconto, custos extras
+  (deslocamento, hospedagem), adicional por planilha quantitativa e orçamento, valor final
+  ajustado à mão (mostrando a diferença para o calculado) e um referencial de licitação.
+  Comparável lado a lado com o preço por HH.
+- Status: rascunho → enviada (ao gerar a proposta) → aprovada (ao gerar o contrato) |
+  recusada (manual); aprovada → entregue (manual, com desfazer); revisões e propostas geradas
+  guardadas com data; validade padrão de 15 dias, editável, com alerta de vencendo ou vencida.
+- Observações internas por projeto, que não saem em nenhum documento.
 - Documentos PDF com a identidade da empresa e do RT: proposta, contrato e recibo (do projeto
   ou por parcela paga), com texto de cada seção editável e "restaurar padrão".
 - Painel comercial: projetos por estágio, conversão geral e por faixa de valor, valor aguardando
-  resposta, total aprovado, ticket médio, propostas vencendo, entregas atrasadas.
+  resposta, total aprovado, ticket médio, propostas vencendo, entregas atrasadas, e R$/m²
+  médio por tipo de instalação nos contratos aprovados (referência para orçamento rápido).
+- Modelos de documento por seção, com campos-variáveis, reordenação, seções e cláusulas novas.
 - Pronto quando: os exemplos atuais de `propostas/exemplos` dão o mesmo preço pela API; uma
   obra de referência gera HH, equipe, prazo e preço conferidos à mão.
 
@@ -216,7 +229,9 @@ Cada trilha entrega uma fatia vertical utilizável (banco → API → tela), nã
 - Medição a partir do contrato (por fase, por % executado ou por HH apontado).
 - Contas a receber: títulos, vencimentos, baixa manual, situação.
 - Exportação CSV para o provedor de NFS-e e para o contador.
-- Parcelas geradas automaticamente ou uma a uma, com recibo por parcela paga (documento da T1).
+- Parcelas geradas automaticamente (quantidade, data da 1ª, intervalo em dias; valores iguais,
+  depois editáveis, ex.: 50/25/25) ou uma a uma; pendente/paga com desfazer; recibo por parcela
+  paga (documento da T1).
 - Painel financeiro: a receber, recebido no mês e no ano, atrasado, próximos vencimentos,
   clientes com maior faturamento, faturamento mensal; exportação CSV/Excel para o contador.
 - Pronto quando: contrato → medição → título → baixa funciona de ponta a ponta.
