@@ -10,15 +10,15 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest
 
-from clima2d import projeto as pj
+from clima2d import documento, relatorio, simulacao
 from referencia import RAIZ, PROJETO_EXEMPLO, PASTA_REFERENCIAS, normalizar_relatorio
 
 
 @pytest.fixture(scope="module")
 def caso():
-    projeto = pj.carregar_json(PROJETO_EXEMPLO.read_text(encoding="utf-8"))
-    r = pj.simular_projeto(projeto)
-    return projeto, r, pj.relatorio_html(projeto, r)   # mesma chamada do app (aba 5), sem estudo de malha
+    projeto = documento.carregar_json(PROJETO_EXEMPLO.read_text(encoding="utf-8"))
+    r = simulacao.simular_projeto(projeto)
+    return projeto, r, relatorio.relatorio_html(projeto, r)   # mesma chamada do app (aba 5), sem estudo de malha
 
 
 def test_relatorio_igual_a_referencia(caso):

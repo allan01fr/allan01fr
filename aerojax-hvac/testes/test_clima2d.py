@@ -125,7 +125,7 @@ def test_gradiente_confere_com_diferencas_finitas(caso_pequeno):
 
 
 # ------------------------------------------------------------- projeto / interface
-from clima2d import projeto as pj
+from clima2d import cargas, documento, montagem
 from clima2d import importar_dxf as idxf
 
 PASTA_DXF = os.path.join(os.path.dirname(__file__), "..", "exemplos", "dxf")
@@ -146,25 +146,25 @@ def test_importar_planta_dxf_em_milimetros():
     assert dados["sala"]["profundidade"] == pytest.approx(4.0)
     pessoas = [f for f in dados["fontes"] if "pessoa" in f["nome"]]
     assert sum(f["sensivel_w"] for f in pessoas) == pytest.approx(140.0)   # 2 pessoas
-    projeto = pj.completar(dict(pj.projeto_padrao(), **dados))
-    assert pj.validar(projeto) == []
+    projeto = documento.completar(dict(documento.projeto_padrao(), **dados))
+    assert montagem.validar(projeto) == []
 
 
 def test_projeto_json_ida_e_volta():
-    p = pj.projeto_padrao()
-    assert pj.carregar_json(pj.salvar_json(p)) == p
+    p = documento.projeto_padrao()
+    assert documento.carregar_json(documento.salvar_json(p)) == p
 
 
 def test_cargas_totais_e_dimensionamento():
-    p = pj.projeto_padrao()
-    cg = pj.cargas_totais(p)
+    p = documento.projeto_padrao()
+    cg = cargas.cargas_totais(p)
     assert cg["sensivel"] == pytest.approx(150 + 100 + 40 * 2.8 * 4 + 10 * 5 * 4)
     assert cg["latente"] == pytest.approx(110)
-    d = pj.dimensionar_insuflamento(p)
+    d = cargas.dimensionar_insuflamento(p)
     assert d["temperatura"] == pytest.approx(19.6, abs=0.1)
 
 
 def test_validacao_aponta_erros():
-    p = pj.projeto_padrao()
+    p = documento.projeto_padrao()
     p["aberturas"] = [a for a in p["aberturas"] if a["tipo"] == "insuflamento"]
-    assert any("retorno" in e for e in pj.validar(p))
+    assert any("retorno" in e for e in montagem.validar(p))

@@ -54,7 +54,13 @@ aerojax-hvac/
 │   ├── psicrometria.py   # propriedades do ar úmido (ASHRAE), mistura, serpentina, ADP/BF
 │   ├── conforto.py       # PMV/PPD (ISO 7730 / NBR 16401-2) e risco de corrente de ar (DR)
 │   ├── sala2d.py         # CFD 2D de sala: velocidade + temperatura + umidade, diferenciável
-│   ├── projeto.py        # projeto (JSON), cargas, simulação, conformidade, relatório
+│   ├── documento.py      # projeto (dicionário/JSON): padrão, completar, salvar e carregar
+│   ├── cargas.py         # cargas térmicas do ambiente e dimensionamento do insuflamento
+│   ├── montagem.py       # monta o modelo 2D a partir do projeto e valida os dados
+│   ├── simulacao.py      # simulação em blocos e estudo de independência de malha
+│   ├── criterios.py      # critérios de conforto e verificação de conformidade
+│   ├── figuras.py        # figuras da geometria e dos resultados
+│   ├── relatorio.py      # relatório técnico em HTML
 │   └── importar_dxf.py   # importação de planta/corte DXF por layers
 ├── exemplos/
 │   ├── 01_aerojax_cilindro.py         # usar o AeroJAX original sem a interface gráfica

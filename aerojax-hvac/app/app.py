@@ -19,14 +19,13 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from clima2d import projeto as pj
-from clima2d import importar_dxf as idxf
+from clima2d import cargas, criterios, documento, figuras, importar_dxf as idxf, montagem, relatorio, simulacao
 
 st.set_page_config(page_title="Clima2D", page_icon="❄️", layout="wide")
 
 # ----------------------------------------------------------------------------- estado
 if "projeto" not in st.session_state:
-    st.session_state.projeto = pj.projeto_padrao()
+    st.session_state.projeto = documento.projeto_padrao()
     st.session_state.versao = 0
     st.session_state.resultado = None
     st.session_state.malha = None
@@ -35,14 +34,14 @@ V = st.session_state.versao   # entra na chave dos widgets: muda quando o projet
 
 
 def substituir_projeto(novo):
-    st.session_state.projeto = pj.completar(novo)
+    st.session_state.projeto = documento.completar(novo)
     st.session_state.versao += 1
     st.session_state.resultado = None
     st.session_state.malha = None
 
 
 def hash_projeto(p):
-    return hashlib.md5(pj.salvar_json(p).encode()).hexdigest()
+    return hashlib.md5(documento.salvar_json(p).encode()).hexdigest()
 
 
 def tabela(lista, colunas):
@@ -75,18 +74,18 @@ with st.sidebar:
     P["responsavel"] = st.text_input("Responsável técnico", P.get("responsavel", ""), key=f"resp{V}")
     st.divider()
     st.subheader("Arquivo do projeto")
-    st.download_button("💾 Salvar projeto (.json)", pj.salvar_json(P),
+    st.download_button("💾 Salvar projeto (.json)", documento.salvar_json(P),
                        file_name=f"{P['nome'] or 'projeto'}.json", mime="application/json",
                        width="stretch")
     arq = st.file_uploader("📂 Abrir projeto (.json)", type=["json"], key=f"abrir{V}")
     if arq is not None:
         try:
-            substituir_projeto(pj.carregar_json(arq.getvalue().decode("utf-8")))
+            substituir_projeto(documento.carregar_json(arq.getvalue().decode("utf-8")))
             st.rerun()
         except Exception as e:  # noqa: BLE001
             st.error(f"Arquivo inválido: {e}")
     if st.button("Carregar exemplo (escritório)", width="stretch"):
-        substituir_projeto(pj.projeto_padrao())
+        substituir_projeto(documento.projeto_padrao())
         st.rerun()
     st.divider()
     st.caption("Fluxo de trabalho: 1 Geometria → 2 Cargas → 3 Ar-condicionado → 4 Simular → 5 Resultados")
@@ -192,7 +191,7 @@ Unidades lidas do DXF (mm, cm ou m). Arquivos de exemplo: `exemplos/dxf/`.
         P["obstaculos"] = de_tabela(df, ["x0", "x1", "y0", "y1"])
     with col_dir:
         try:
-            mostrar(pj.figura_geometria(P))
+            mostrar(figuras.figura_geometria(P))
         except Exception as e:  # noqa: BLE001
             st.error(f"Erro ao desenhar: {e}")
 
@@ -204,10 +203,10 @@ with abas[1]:
     with st.expander("➕ Adicionar pessoas rapidamente"):
         c1, c2, c3, c4 = st.columns(4)
         n = c1.number_input("Quantidade", 1, 500, 2)
-        atv = c2.selectbox("Atividade", list(pj.ATIVIDADES))
+        atv = c2.selectbox("Atividade", list(cargas.ATIVIDADES))
         xp = c3.number_input("Posição x do centro [m]", 0.0, 50.0, 3.0, 0.1)
         alt = c4.number_input("Altura [m]", 0.8, 2.0, 1.2, 0.05)
-        s_, l_, met = pj.ATIVIDADES[atv]
+        s_, l_, met = cargas.ATIVIDADES[atv]
         st.caption(f"{atv}: {s_:.0f} W sensível + {l_:.0f} W latente por pessoa, {met} met")
         if st.button("Adicionar"):
             P["fontes"].append({"nome": f"{n} pessoa(s)", "x0": round(xp - 0.2, 2), "x1": round(xp + 0.2, 2),
@@ -238,7 +237,7 @@ with abas[1]:
     sup["fluxo_piso"] = c[3].number_input("Piso [W/m²]", -200.0, 500.0, float(sup["fluxo_piso"]), 1.0, key=f"fp{V}")
     P["iluminacao_w_m2"] = c[4].number_input("Iluminação [W/m² de piso]", 0.0, 100.0, float(P["iluminacao_w_m2"]), 0.5, key=f"il{V}")
 
-    cg = pj.cargas_totais(P)
+    cg = cargas.cargas_totais(P)
     st.subheader("Resumo")
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Sensível", f"{cg['sensivel']:.0f} W")
@@ -272,7 +271,7 @@ with abas[2]:
     i["ur_saida"] = c4.number_input("UR do ar insuflado [%]", 30.0, 100.0, float(i["ur_saida"]) * 100, 1.0, key=f"ui{V}",
                                     help="Ar saindo de serpentina úmida: tipicamente 85-95 %") / 100
 
-    d = pj.dimensionar_insuflamento(P)
+    d = cargas.dimensionar_insuflamento(P)
     st.subheader("Dimensionamento pelo balanço de energia e umidade")
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Temperatura de insuflamento necessária", f"{d['temperatura']:.1f} °C")
@@ -315,7 +314,7 @@ with abas[3]:
     malha_extra = st.checkbox("Fazer também o estudo de malha (roda 10 cm e 5 cm e compara; ~3x mais tempo)",
                               help="Recomendado para relatórios: mostra se o resultado depende da malha.")
 
-    erros = pj.validar(P)
+    erros = montagem.validar(P)
     for e in erros:
         st.error(e)
     nx = int(round(P["sala"]["largura"] / s["malha_cm"] * 100))
@@ -328,11 +327,11 @@ with abas[3]:
         try:
             cb = lambda f, msg: barra.progress(min(f, 1.0), msg)
             if malha_extra:
-                res, tab = pj.estudo_malha(P, (10.0, 5.0), cb)
+                res, tab = simulacao.estudo_malha(P, (10.0, 5.0), cb)
                 st.session_state.resultado = res[-1]
                 st.session_state.malha = tab
             else:
-                st.session_state.resultado = pj.simular_projeto(P, cb)
+                st.session_state.resultado = simulacao.simular_projeto(P, cb)
                 st.session_state.malha = None
             st.session_state.hash_sim = hash_projeto(P)
             barra.progress(1.0, "Concluído. Veja a aba 5.")
@@ -366,7 +365,7 @@ with abas[4]:
                     "(aba 3, temperatura desejada → Usar estes valores) e/ou outro ângulo de aletas.")
 
         st.subheader("Conformidade")
-        conf = pj.conformidade(r, P["criterios"])
+        conf = criterios.conformidade(r, P["criterios"])
         st.dataframe(pd.DataFrame([{**x, "atende": "✅" if x["atende"] else "❌"} for x in conf]),
                      hide_index=True, width="stretch")
 
@@ -384,14 +383,14 @@ with abas[4]:
             st.write("**Estudo de malha**")
             st.dataframe(pd.DataFrame(st.session_state.malha), hide_index=True)
 
-        fig = pj.figura_resultados(P, r)
+        fig = figuras.figura_resultados(P, r)
         buf = io.BytesIO()
         fig.savefig(buf, format="png", dpi=110, bbox_inches="tight")
         mostrar(fig)
 
         st.subheader("Exportar")
         c1, c2, c3 = st.columns(3)
-        c1.download_button("📄 Relatório técnico (HTML)", pj.relatorio_html(P, r, st.session_state.malha),
+        c1.download_button("📄 Relatório técnico (HTML)", relatorio.relatorio_html(P, r, st.session_state.malha),
                            file_name=f"relatorio_{P['nome']}.html", mime="text/html", width="stretch")
         c2.download_button("🖼️ Figura (PNG)", buf.getvalue(), file_name=f"resultados_{P['nome']}.png",
                            mime="image/png", width="stretch")
