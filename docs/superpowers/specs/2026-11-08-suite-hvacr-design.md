@@ -129,7 +129,7 @@ Estas regras permitem que as trilhas avancem em paralelo sem conflito.
 | nucleo | `empresa`, `usuario`, `perfil_usuario`, `tarefa`, `arquivo`, `auditoria` | — |
 | cadastro (T0) | `cliente`, `contato`, `obra`, `ativo` | `cliente.cnpj_cpf`, `obra.endereco`, `obra.uf`, `ativo.fabricante/modelo/serie/fluido/carga_kg` |
 | comercial (T1) | `proposta`, `proposta_revisao`, `item_execucao`, `produtividade`, `funcao`, `contrato` | `produtividade(item, funcao, hh_por_unidade, fonte)` |
-| campo (T2) | `ordem_servico`, `modelo_checklist`, `checklist_execucao`, `apontamento_hh`, `foto`, `assinatura` | `apontamento_hh(os, usuario, funcao, inicio, fim)` |
+| campo (T2) | `ordem_servico`, `modelo_checklist`, `checklist_execucao`, `apontamento_hh`, `foto`, `assinatura`, `movimento_refrigerante` | `apontamento_hh(os, usuario, funcao, inicio, fim)`; `movimento_refrigerante(ativo, os, tipo: recarga/recolhimento/vazamento, fluido, kg, data)` |
 | financeiro (T3) | `medicao`, `titulo_receber`, `exportacao` | `titulo_receber(contrato, vencimento, valor, situacao)` |
 | energia (T4) | `estudo_energia`, `zona`, `resultado_energia`, `estudo_retrofit`, `calculo_leed` | resultados em JSONB com a rastreabilidade da regra 7 |
 | selecao (T5) | `fabricante`, `familia`, `modelo_equipamento`, `ponto_desempenho`, `selecao` | esquema único que substitui `equipment_model`, `miraco_*` e `rooftop_*` |
@@ -171,6 +171,8 @@ Cada trilha entrega uma fatia vertical utilizável (banco → API → tela), nã
 - OS dos tipos projeto, obra, PMOC e corretiva, ligadas a obra e ativos.
 - Modelos de checklist de PMOC (Lei 13.589/2018, ABNT NBR 13971) com periodicidade por ativo.
 - No celular: lista de OS do dia, checklist, fotos, assinatura do cliente, apontamento de HH.
+- Registro de recarga, recolhimento e vazamento de refrigerante por ativo (kg e fluido): é o
+  dado que o LEED v5 exige no inventário de refrigerantes e na recertificação O+M.
 - Uso sem sinal: grava no aparelho e sincroniza; o servidor decide o estado da OS, e os campos
   do checklist seguem "último que gravou vence" com registro do conflito.
 - Pronto quando: um técnico fecha uma OS de PMOC em modo avião e ela chega completa ao
@@ -182,14 +184,23 @@ Cada trilha entrega uma fatia vertical utilizável (banco → API → tela), nã
 - Exportação CSV para o provedor de NFS-e e para o contador.
 - Pronto quando: contrato → medição → título → baixa funciona de ponta a ponta.
 
-**T4 Energia / LEED**
-- Carga térmica por zona e consumo anual de energia como tarefa assíncrona.
-- CAPEX/OPEX de retrofit e overhaul, reaproveitando `orcamento/viabilidade` (VPL, TIR, payback).
-- Cálculos LEED ligados a HVAC-R, começando pelos que não dependem de simulação completa:
-  impacto de refrigerante e vazão de ar externo (ASHRAE 62.1).
-- O motor de energia anual será escolhido com base nas pesquisas sobre LEED (seção 9).
-- Pronto quando: um estudo de retrofit de referência produz consumo antes/depois, OPEX,
-  CAPEX, VPL, TIR e payback rastreáveis.
+**T4 Energia / LEED** (base: pesquisa em `docs/pesquisa/leed/`)
+- Primeira entrega, em ordem, os cálculos que não dependem da simulação anual:
+  1. Inventário de refrigerantes: carga, GWP e tCO2e por ativo; alternativas para GWP > 700;
+     GWP médio ponderado (LEED v5 EAp5 e EAc7), a partir dos ativos (T0) e movimentos (T2).
+  2. Ventilação pela ASHRAE 62.1-2022 (VRP) e pela NBR 16401-3, lado a lado (EQp e EQc1).
+  3. Carga de pico de resfriamento e aquecimento com ventilação, por zona (EAc2).
+  4. CAPEX/OPEX de retrofit e overhaul, reaproveitando `orcamento/viabilidade` (VPL, TIR, payback),
+     com consumo antes/depois pelo método de faixas de temperatura do python-hvac.
+- Segunda entrega: simulação anual 8760 com EnergyPlus/OpenStudio (seção 9) como tarefa
+  assíncrona, modelo de referência do Apêndice G via openstudio-standards, consumo por uso final.
+- Terceira entrega: analisador de energia (linha de base com contas e medições, M&V pelo IPMVP)
+  para LEED O+M e retrofit; exportação para o Arc.
+- Pronto (primeira entrega) quando: um caso de referência produz inventário de refrigerantes,
+  ventilação pelas duas normas, carga de pico e estudo de retrofit com VPL, TIR e payback,
+  todos rastreáveis à norma (regra 7) e conferidos à mão.
+- Todo número de LEED usado em cálculo é conferido no documento oficial antes da entrega: a
+  pesquisa não teve acesso direto aos PDFs do USGBC.
 
 **T5 Seleção**
 - Extrair o motor de seleção do `main.py` do hvac-duct-dx, com testes que fixam o resultado atual.
@@ -209,7 +220,7 @@ T0 Fundação ──► T1 Comercial ──► T3 Financeiro
            ├──► T2 Campo/PMOC
            ├──► T5 Seleção
            ├──► T6 CFD
-           └──► T4 Energia/LEED (começa ao fechar a escolha do motor, seção 9)
+           └──► T4 Energia/LEED (1ª entrega já; simulação 8760 ao fechar o motor, seção 9)
 ```
 
 - T5 e T6 podem começar já, durante a T0, porque mexem nos motores (pacotes fora de `suite/`).
@@ -231,8 +242,8 @@ T0 Fundação ──► T1 Comercial ──► T3 Financeiro
 
 | Decisão | Quando se decide | Quem |
 |---|---|---|
-| Motor de energia anual: python-hvac (RTS) ou EnergyPlus/OpenStudio | Ao concluir as pesquisas de LEED, antes da especificação da T4 | Engenharia, com recomendação da pesquisa |
-| Quais créditos LEED entram na T4 e em que ordem | Mesma ocasião | Engenharia |
+| Motor de energia anual. **Recomendação da pesquisa: integrar EnergyPlus/OpenStudio** (testado pela ASHRAE 140, aceito no Apêndice G e na prática do INI-C, API Python, modelo de referência pronto). O python-hvac fica para carga de pico e estimativas rápidas. O nome EnergyPlus e a marca LEED não entram no nome do produto | Na revisão desta especificação | Engenharia |
+| Liberar usgbc.org e ashrae.org na rede, ou conferir os números de LEED manualmente nos PDFs oficiais | Antes da especificação da T4 | KAPTEK |
 | Provedor de nuvem e domínio | No fim da T0, antes do primeiro deploy | KAPTEK |
 | Provedor de NFS-e | Na especificação da T3 | KAPTEK / contador |
 | Nome do produto | Antes da fase de produto | KAPTEK |
