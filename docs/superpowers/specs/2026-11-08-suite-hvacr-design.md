@@ -2,7 +2,7 @@
 
 Data: 2026-11-08 · Status: **em revisão** · Arquitetura aprovada: monólito modular (opção 1)
 
-Esta especificação fixa o que todas as trilhas compartilham. Cada trilha (T1–T6) terá a
+Esta especificação fixa o que todas as trilhas compartilham. Cada trilha (T1–T7) terá a
 sua própria especificação curta e o seu plano, escritos a partir daqui.
 
 ## 1. Objetivo e premissas
@@ -18,6 +18,7 @@ CFD), orça (HH, equipe, prazo, preço), executa (OS, PMOC) e cobra (medições,
 | Usuários (6 meses) | Engenharia, comercial, financeiro e técnicos de campo | Usuário: opção C |
 | Prioridade | Todos os módulos, em paralelo, depois da fundação | Usuário |
 | Arquitetura | Monólito modular: um back-end, um banco, um front-end, módulos isolados | Usuário: aprovou opção 1 |
+| CAD/BIM | IFC no núcleo (IfcOpenShell) + plugin Bonsai; entrada DXF para os projetos atuais em AutoCAD | Usuário |
 
 Consequências de "interno agora, produto depois":
 - Dados separados por empresa (`empresa_id`) desde a primeira tabela.
@@ -73,7 +74,9 @@ suite/
 │   │       ├── financeiro/  # T3: medições, contas a receber, exportações
 │   │       ├── energia/     # T4: carga, energia anual, CAPEX/OPEX, LEED
 │   │       ├── selecao/     # T5: seleção DX, difusores, catálogo
-│   │       └── cfd/         # T6: Clima2D como tarefa
+│   │       ├── cfd/         # T6: Clima2D como tarefa
+│   │       └── bim/         # T7: leitura e verificação de IFC/DXF, lista de materiais
+├── plugin-bonsai/           # T7: complemento do Blender/Bonsai (GPL), cliente fino da API
 │   ├── migracoes/
 │   └── testes/
 ├── frontend/
@@ -121,6 +124,13 @@ Estas regras permitem que as trilhas avancem em paralelo sem conflito.
    - `aerojax-hvac/hvac` → renomeado para `clima2d` (conflito com o pacote `hvac` do python-hvac);
    - `hvac-duct-dx` → motor de seleção extraído para pacote, sem PySide6 (itens 1–4 da auditoria);
    - `python-hvac` → dependência via git, com testes de caracterização do que a suíte usar.
+9. **Parâmetros de normas são dados privados, com edição.** Valores tirados de normas ABNT
+   (tabelas de vazão, filtros, ruído, periodicidades) não entram no repositório público: ficam
+   num catálogo de parâmetros carregado por empresa, e cada conjunto guarda norma, edição e
+   seção/tabela de origem. O código cita só número de seção e tabela. Um cálculo feito com
+   edição superada (ex.: NBR 16401-3:2008, NBR 13971:1997, NBR 10152:1987) traz esse aviso
+   no resultado e no relatório. A RE ANVISA 09/2003 está revogada; a referência de qualidade
+   do ar interior é a NBR 17037.
 
 ## 5. Modelo de dados canônico (dono → tabelas)
 
@@ -134,6 +144,7 @@ Estas regras permitem que as trilhas avancem em paralelo sem conflito.
 | energia (T4) | `estudo_energia`, `zona`, `resultado_energia`, `estudo_retrofit`, `calculo_leed` | resultados em JSONB com a rastreabilidade da regra 7 |
 | selecao (T5) | `fabricante`, `familia`, `modelo_equipamento`, `ponto_desempenho`, `selecao` | esquema único que substitui `equipment_model`, `miraco_*` e `rooftop_*` |
 | cfd (T6) | `estudo_cfd` | projeto Clima2D (JSON validado) + id da tarefa |
+| bim (T7) | `modelo_bim`, `verificacao_bim`, `quantitativo_bim` | `modelo_bim(obra, formato: IFC/DXF, arquivo, versão)`; `verificacao_bim(modelo, regra, norma/edição, elemento, situação)`; `quantitativo_bim(modelo, item_execucao, quantidade, unidade)` |
 
 Fluxo principal entre módulos:
 
@@ -213,6 +224,23 @@ Cada trilha entrega uma fatia vertical utilizável (banco → API → tela), nã
 - Simulação como tarefa; relatório de conforto (ISO 7730 / NBR 16401-2) como arquivo.
 - Pronto quando: um projeto de exemplo roda pelo worker e o relatório sai igual ao do app atual.
 
+**T7 BIM/CAD** (decisão: IFC no núcleo + plugin Bonsai; a equipe desenha hoje em AutoCAD)
+- Back-end com IfcOpenShell (LGPL): importa um modelo IFC de qualquer origem (Revit, ArchiCAD,
+  Bonsai) e extrai ambientes (`IfcSpace`), dutos, difusores, tubulações e equipamentos.
+- Importação de DXF por layers (reaproveita o `importar_dxf` do Clima2D) para os projetos
+  atuais feitos em AutoCAD, com uma convenção de layers da KAPTEK documentada.
+- Verificação pelas regras das trilhas T4/T5 (vazão de ar exterior, velocidade em duto,
+  coifas pela NBR 14518, pressões e trocas de ar pela NBR 7256, ruído), com a edição da norma
+  em cada resultado (regra 9).
+- Lista de materiais (m² de duto, m de linha frigorífica, difusores, equipamentos) que vira
+  `item_execucao` na T1 (HH, equipe, prazo e preço).
+- Plugin Bonsai: complemento do Blender em Python, GPL, só cliente da API (login, envio do
+  IFC, painel com as não conformidades marcadas nos elementos, lançamento de difusores e
+  dutos com os parâmetros da suíte). Nenhum valor de norma fica no plugin.
+- Pronto quando: um IFC de referência e um DXF de referência geram a mesma lista de
+  ambientes e materiais, com as não conformidades esperadas; o plugin mostra essas não
+  conformidades no Bonsai.
+
 ## 7. Ordem e paralelismo
 
 ```
@@ -220,7 +248,8 @@ T0 Fundação ──► T1 Comercial ──► T3 Financeiro
            ├──► T2 Campo/PMOC
            ├──► T5 Seleção
            ├──► T6 CFD
-           └──► T4 Energia/LEED (1ª entrega já; simulação 8760 ao fechar o motor, seção 9)
+           ├──► T4 Energia/LEED (1ª entrega já; simulação 8760 ao fechar o motor, seção 9)
+           └──► T7 BIM/CAD (leitura IFC/DXF já; verificação ao ficarem prontas as regras de T4/T5)
 ```
 
 - T5 e T6 podem começar já, durante a T0, porque mexem nos motores (pacotes fora de `suite/`).
@@ -247,6 +276,8 @@ T0 Fundação ──► T1 Comercial ──► T3 Financeiro
 | Provedor de nuvem e domínio | No fim da T0, antes do primeiro deploy | KAPTEK |
 | Provedor de NFS-e | Na especificação da T3 | KAPTEK / contador |
 | Nome do produto | Antes da fase de produto | KAPTEK |
+| Adquirir as edições vigentes: NBR 17037, NBR 16401-1/2/3:2024, NBR 13971:2014, NBR 14679:2012, NBR 10152:2017, NBR 10151:2019 (verificar antes os arquivos `Normas.rar` e `envio ao sindratar.rar` do Drive) | Antes das especificações de T2, T4 e T7 | KAPTEK |
+| Convenção de layers DXF da KAPTEK para ambientes, dutos, difusores e equipamentos | Na especificação da T7 | Engenharia |
 
 ## 10. Riscos
 
@@ -258,3 +289,6 @@ T0 Fundação ──► T1 Comercial ──► T3 Financeiro
 | Uso sem sinal gera conflitos de dados no campo | Servidor decide o estado da OS; conflitos registrados e visíveis |
 | Cálculos para LEED/laudo sem validação suficiente | Norma citada, casos de referência e revisão por engenheiro responsável |
 | Escopo de "módulo próprio de gestão" crescer até virar ERP | Fora de escopo explícito (seção 1); integrar em vez de construir |
+| Normas no Drive estão em edições superadas (16401-3:2008, 13971:1997, 10152:1987...) e a NBR 17037 não está disponível | Aviso de edição em cada resultado (regra 9); adquirir as edições vigentes; casos de teste refeitos ao trocar a edição |
+| Equipe desenha em AutoCAD, sem experiência em Blender/Bonsai; ferramentas MEP do Bonsai menos maduras que as do Revit | Entrada por DXF com layers para o fluxo atual; Bonsai adotado aos poucos, começando pela verificação |
+| Plugin do Blender precisa ser GPL | Plugin só como cliente da API; regras, parâmetros e servidor seguem fechados |
