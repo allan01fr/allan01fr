@@ -53,6 +53,7 @@ def test_email_com_maiusculas_e_espacos_entra(cliente_http, sessao):
 def test_email_inexistente_e_senha_errada_tem_a_mesma_resposta(cliente_http, sessao):
     emp = nova_empresa(sessao)
     novo_usuario(sessao, emp, {Perfil.ADMIN}, email="ana@a.com")
+    sessao.commit()  # o 401 faz rollback; o usuário precisa sobreviver
     for corpo in (
         {"email": "ana@a.com", "senha": "errada-123456"},
         {"email": "ninguem@a.com", "senha": SENHA_TESTE},
@@ -108,17 +109,39 @@ def test_cookie_assinado_com_outro_salt_e_recusado(cliente_http, sessao):
     assert cliente_http.get("/api/nucleo/eu").status_code == 401
 
 
-def test_sessao_expirada(cliente_http, sessao, monkeypatch):
+def test_sessao_expirada_no_servidor(cliente_http, sessao, monkeypatch):
+    """Cookie com assinatura válida, mas mais antigo que a validade, é recusado pelo servidor."""
+    from itsdangerous import URLSafeTimedSerializer
+
     emp = nova_empresa(sessao)
-    novo_usuario(sessao, emp, {Perfil.ADMIN}, email="ana@a.com")
-    agora = (
-        time.time()
-    )  # "itsdangerous.timed.time" é o próprio módulo time: guardar antes de trocar
+    usuario = novo_usuario(sessao, emp, {Perfil.ADMIN})
+    agora = time.time()  # "itsdangerous.timed.time" é o próprio módulo time: guardar antes
     with monkeypatch.context() as m:
         m.setattr("itsdangerous.timed.time.time", lambda: agora - 13 * 3600)
-        entrar(cliente_http, "ana@a.com")
+        antigo = URLSafeTimedSerializer("x" * 40, salt="sessao").dumps({"u": str(usuario.id)})
+    cliente_http.cookies.set("suite_sessao", antigo)
     r = cliente_http.get("/api/nucleo/eu")
     assert r.status_code == 401 and r.json()["codigo"] == "nao_autenticado"
+
+
+def test_cookie_valido_recente_com_a_mesma_assinatura_entra(cliente_http, sessao):
+    from itsdangerous import URLSafeTimedSerializer
+
+    emp = nova_empresa(sessao)
+    usuario = novo_usuario(sessao, emp, {Perfil.ADMIN})
+    novo = URLSafeTimedSerializer("x" * 40, salt="sessao").dumps({"u": str(usuario.id)})
+    cliente_http.cookies.set("suite_sessao", novo)
+    assert cliente_http.get("/api/nucleo/eu").status_code == 200
+
+
+def test_payload_assinado_mas_malformado_da_401(cliente_http):
+    from itsdangerous import URLSafeTimedSerializer
+
+    for payload in ({"u": 123}, [1, 2], "texto", {"u": "nao-e-uuid"}, {}):
+        valor = URLSafeTimedSerializer("x" * 40, salt="sessao").dumps(payload)
+        cliente_http.cookies.set("suite_sessao", valor)
+        r = cliente_http.get("/api/nucleo/eu")
+        assert r.status_code == 401 and r.json()["codigo"] == "nao_autenticado", payload
 
 
 def test_logout_apaga_cookie(cliente_http, sessao):
@@ -146,11 +169,22 @@ def test_login_grava_auditoria(cliente_http, sessao):
     assert a.usuario_id == usuario.id and a.empresa_id == emp.id
 
 
-def test_login_falho_nao_grava_auditoria(cliente_http, sessao):
+def test_login_falho_nao_grava_auditoria(cliente_http, sessao, monkeypatch):
+    from app.nucleo import rotas
+
+    chamadas = []
+    monkeypatch.setattr(rotas, "registrar_auditoria", lambda *a, **k: chamadas.append(a))
     emp = nova_empresa(sessao)
     novo_usuario(sessao, emp, {Perfil.ADMIN}, email="ana@a.com")
-    cliente_http.post("/api/nucleo/sessao", json={"email": "ana@a.com", "senha": "errada-123456"})
-    assert sessao.scalars(select(Auditoria)).all() == []
+    sessao.commit()  # o 401 faz rollback; o usuário precisa sobreviver
+    for corpo in (
+        {"email": "ana@a.com", "senha": "errada-123456"},
+        {"email": "ninguem@a.com", "senha": SENHA_TESTE},
+    ):
+        assert cliente_http.post("/api/nucleo/sessao", json=corpo).status_code == 401
+    assert chamadas == []
+    entrar(cliente_http, "ana@a.com")  # o espião enxerga o login bem-sucedido
+    assert len(chamadas) == 1
 
 
 def test_login_recusa_campos_extras_e_email_vazio(cliente_http):

@@ -49,7 +49,7 @@ def _usuario_do_cookie(request: Request) -> UUID:
     max_age = obter_configuracao().sessao_horas * 3600
     try:
         return UUID(_serializador().loads(valor, max_age=max_age)["u"])
-    except (BadSignature, KeyError, TypeError, ValueError) as erro:
+    except (AttributeError, BadSignature, KeyError, TypeError, ValueError) as erro:
         raise NaoAutenticado() from erro
 
 
