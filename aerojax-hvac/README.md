@@ -21,7 +21,7 @@ O que vale a pena aprender no AeroJAX é **a forma de trabalhar**:
 - o estado é um PyTree, avançado no tempo com `jax.lax.scan`;
 - a simulação inteira é diferenciável com `jax.grad`, então dá para otimizar o projeto pelo gradiente.
 
-Esta pasta aplica essa mesma arquitetura a ambientes climatizados, no pacote `hvac/`.
+Esta pasta aplica essa mesma arquitetura a ambientes climatizados, no pacote `clima2d/`.
 
 > **Uso profissional:** um modelo 2D serve para estudo, comparação de alternativas e
 > pré-projeto. Não substitui o cálculo pela ABNT NBR 16401 nem uma CFD 3D validada
@@ -50,7 +50,7 @@ slides em Excalidraw, editáveis, com versão em PDF.
 
 ```
 aerojax-hvac/
-├── hvac/
+├── clima2d/
 │   ├── psicrometria.py   # propriedades do ar úmido (ASHRAE), mistura, serpentina, ADP/BF
 │   ├── conforto.py       # PMV/PPD (ISO 7730 / NBR 16401-2) e risco de corrente de ar (DR)
 │   ├── sala2d.py         # CFD 2D de sala: velocidade + temperatura + umidade, diferenciável
@@ -65,7 +65,8 @@ aerojax-hvac/
 ├── manual/MANUAL.md      # manual simplificado da interface
 ├── apresentacao/         # slides (Excalidraw + PDF) sobre as ferramentas usadas
 ├── iniciar.bat / .sh     # abre a interface (instala tudo na primeira vez)
-├── testes/test_hvac.py   # verificação contra ASHRAE, ISO 7730 e balanço de energia
+├── pyproject.toml        # empacotamento: `pip install -e .` instala o pacote clima2d
+├── testes/test_clima2d.py   # verificação contra ASHRAE, ISO 7730 e balanço de energia
 └── resultados/           # figuras geradas pelos exemplos
 ```
 
@@ -81,6 +82,13 @@ python -m pytest testes -q          # deve terminar com "23 passed"
 ```
 
 Linux/macOS: igual, mas ative o ambiente com `source .venv/bin/activate`.
+
+Para usar o pacote `clima2d` de qualquer pasta, instale-o em modo editável (opcional; o app e os
+exemplos funcionam sem isso):
+
+```bash
+pip install -e .
+```
 
 Para o exemplo 01 (AeroJAX original), clone o AeroJAX, instale as dependências dele
 e indique onde ele está:
@@ -108,14 +116,14 @@ O JAX é NumPy com três superpoderes. Entenda cada um antes de abrir o AeroJAX:
 |---|---|---|
 | `jax.jit` | compila a função para rodar rápido | `jax.jit(lambda e: simular(...))` |
 | `jax.grad` | derivada exata de qualquer função escrita em JAX | sensibilidades no exemplo 02, otimização no 04 |
-| `jax.lax.scan` | laço no tempo que o JAX consegue compilar e derivar | `simular()` em `hvac/sala2d.py` |
+| `jax.lax.scan` | laço no tempo que o JAX consegue compilar e derivar | `simular()` em `clima2d/sala2d.py` |
 
 Regras que mais causam erro:
 - arrays são imutáveis: use `x = x.at[i].set(v)` em vez de `x[i] = v`;
 - dentro de função com `jit` não use `if` sobre valores de arrays, use `jnp.where`.
 
 - Leitura: tutorial oficial "JAX 101" (jax.readthedocs.io).
-- Exercício: em `hvac/psicrometria.py`, calcule `jax.grad(psi.umidade_relativa)(24.0, 0.010)`.
+- Exercício: em `clima2d/psicrometria.py`, calcule `jax.grad(psi.umidade_relativa)(24.0, 0.010)`.
   Interprete: quanto a UR cai por °C de aquecimento sensível?
 
 ### Módulo 1 — Conhecendo o AeroJAX (1 semana)
@@ -149,7 +157,7 @@ Esse é o hábito mais importante em CFD: **nunca confie num número que você n
 
 ### Módulo 2 — CFD aplicada a ambientes (2 semanas)
 
-Leia `hvac/sala2d.py` de cima para baixo. Ele tem cerca de 500 linhas e cada bloco é comentado.
+Leia `clima2d/sala2d.py` de cima para baixo. Ele tem cerca de 500 linhas e cada bloco é comentado.
 
 | Conceito | Onde está | Para entender |
 |---|---|---|

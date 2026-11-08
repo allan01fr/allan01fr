@@ -19,8 +19,8 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from hvac import projeto as pj
-from hvac import importar_dxf as idxf
+from clima2d import projeto as pj
+from clima2d import importar_dxf as idxf
 
 st.set_page_config(page_title="Clima2D", page_icon="❄️", layout="wide")
 

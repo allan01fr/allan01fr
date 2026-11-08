@@ -453,5 +453,5 @@ concentradas (splits) tende a ser subestimado.</li>
 os fluxos de calor informados.</li>
 <li>Estudo de caráter comparativo e de pré-projeto. Não substitui o cálculo de cargas conforme
 ABNT NBR 16401-1 nem simulação 3D validada quando exigida.</li></ul></div>
-<p style="font-size:12px;color:#777">Gerado por AeroJAX-HVAC (hvac/projeto.py).</p>
+<p style="font-size:12px;color:#777">Gerado por Clima2D (pacote clima2d).</p>
 </body></html>"""

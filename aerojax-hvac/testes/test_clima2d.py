@@ -15,9 +15,9 @@ import jax
 import jax.numpy as jnp
 import pytest
 
-from hvac import psicrometria as psi
-from hvac import conforto
-from hvac.sala2d import (Sala, Abertura, FonteCalor, Insuflamento, montar_geometria,
+from clima2d import psicrometria as psi
+from clima2d import conforto
+from clima2d.sala2d import (Sala, Abertura, FonteCalor, Insuflamento, montar_geometria,
                          estado_inicial, simular, indicadores, passo)
 
 
@@ -125,8 +125,8 @@ def test_gradiente_confere_com_diferencas_finitas(caso_pequeno):
 
 
 # ------------------------------------------------------------- projeto / interface
-from hvac import projeto as pj
-from hvac import importar_dxf as idxf
+from clima2d import projeto as pj
+from clima2d import importar_dxf as idxf
 
 PASTA_DXF = os.path.join(os.path.dirname(__file__), "..", "exemplos", "dxf")
 

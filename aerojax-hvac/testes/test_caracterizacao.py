@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest
 
-from hvac import projeto as pj
+from clima2d import projeto as pj
 from referencia import RAIZ, PROJETO_EXEMPLO, PASTA_REFERENCIAS, normalizar_relatorio
 
 

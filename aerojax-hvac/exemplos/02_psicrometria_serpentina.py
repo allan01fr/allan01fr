@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import jax
 jax.config.update("jax_enable_x64", True)
 
-from hvac import psicrometria as psi
+from clima2d import psicrometria as psi
 
 W_PARA_TR = 1.0 / 3516.85
 W_PARA_BTUH = 3.41214
