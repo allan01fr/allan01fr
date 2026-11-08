@@ -73,7 +73,7 @@ class Slide:
             altura_linha = {TITULO: 1.25, CORPO: 1.35, CODIGO: 1.2}[ff]
             th = (txt.count("\n") + 1) * fs * altura_linha
             ty = y + 26 if valign == "top" else y + (h - th) / 2
-            t = self.texto(x + 30, ty, txt, fs=fs, ff=ff, cor=tcor or "#1e1e1e")
+            self.texto(x + 30, ty, txt, fs=fs, ff=ff, cor=tcor or "#1e1e1e")
             self.els[-1]["groupIds"] = [grupo]
         return i
 

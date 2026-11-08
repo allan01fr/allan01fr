@@ -20,7 +20,7 @@ import jax.numpy as jnp
 from . import psicrometria as psi
 from .sala2d import (Sala, Abertura, FonteCalor, Obstaculo, Insuflamento, montar_geometria,
                      estado_inicial, simular, indicadores, dt_estavel,
-                     velocidade_face_insuflamento, Medias, RHO, CP)
+                     velocidade_face_insuflamento, Medias)
 
 # Ganho de calor por pessoa [W] - valores típicos (ASHRAE Fundamentals, cap. 18, tab. 1;
 # mesma base da ABNT NBR 16401-1). Confira a tabela da norma para o seu caso.
