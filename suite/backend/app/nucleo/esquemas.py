@@ -1,7 +1,9 @@
 """Esquemas comuns: entrada estrita, página de resultados e parâmetros de lista."""
 
+from uuid import UUID
+
 from fastapi import Query
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 LIMITE_MAXIMO_LISTA = 200
 
@@ -31,3 +33,22 @@ class ParametrosLista:
         self.deslocamento = deslocamento
         self.busca = busca
         self.incluir_arquivados = incluir_arquivados
+
+
+class LoginEntrada(EsquemaEntrada):
+    email: str = Field(max_length=254)
+    senha: str = Field(max_length=200)
+
+
+class EmpresaResumo(BaseModel):
+    id: UUID
+    nome: str
+
+
+class EuSaida(BaseModel):
+    id: UUID
+    nome: str
+    email: str
+    empresa: EmpresaResumo
+    perfis: list[str]
+    permissoes: list[str]
