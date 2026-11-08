@@ -31,6 +31,11 @@ INVALIDOS = [
      "aberturas[1].parede deve ser um destes valores: esquerda, direita, teto, piso."),
     ({"aberturas": [{"parede": "teto", "tipo": "ar", "inicio": 0, "fim": 1}]},
      "aberturas[1].tipo deve ser um destes valores: insuflamento, retorno."),
+    ({"aberturas": [{"tipo": "retorno", "inicio": 0, "fim": 1}]},
+     "aberturas[1].parede é obrigatório."),
+    ({"aberturas": [{"parede": "teto", "inicio": 0, "fim": 1}]},
+     "aberturas[1].tipo é obrigatório."),
+    ({"sala": {"largura": 10 ** 400}}, "sala.largura deve ser um número."),
     ({"aberturas": [{"parede": "teto", "tipo": "retorno", "inicio": 0}]},
      "aberturas[1].fim é obrigatório."),
     ({"fontes": [{"x0": 0, "x1": 1, "y0": 0, "y1": 1, "sensivel_w": 1}]},
@@ -60,6 +65,9 @@ def test_documento_invalido_e_recusado(doc, trecho):
     ('{"iluminacao_w_m2": NaN}', "Números não finitos"),
     ('{"iluminacao_w_m2": -Infinity}', "Números não finitos"),
     ('{"nome": "a", "nome": "b"}', 'Chave repetida no projeto: "nome".'),
+    ("[" * 200000, "O arquivo não é um JSON válido."),
+    ('{"sala": {"largura": ' + "9" * 5000 + "}}", "O arquivo não é um JSON válido."),
+    ('{"sala": {"largura": 1' + "0" * 400 + "}}", "sala.largura deve ser um número."),
 ])
 def test_texto_invalido_e_recusado(texto, trecho):
     with pytest.raises(documento.ErroProjeto) as e:

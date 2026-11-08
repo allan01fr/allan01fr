@@ -86,7 +86,13 @@ def _exigir_lista(valor, caminho):
 
 def _exigir_numero(valor, caminho):
     # bool é int em Python, mas "true" não é uma medida.
-    if isinstance(valor, bool) or not isinstance(valor, (int, float)) or not math.isfinite(valor):
+    if isinstance(valor, bool) or not isinstance(valor, (int, float)):
+        raise ErroProjeto(f"{caminho} deve ser um número.")
+    try:
+        finito = math.isfinite(valor)
+    except OverflowError:  # inteiro gigante demais para virar float
+        finito = False
+    if not finito:
         raise ErroProjeto(f"{caminho} deve ser um número.")
 
 
@@ -195,4 +201,8 @@ def carregar_json(texto):
         raise ErroProjeto("O arquivo não está codificado em UTF-8.") from None
     except json.JSONDecodeError as e:
         raise ErroProjeto(f"O arquivo não é um JSON válido (linha {e.lineno}, coluna {e.colno}).") from None
+    except ErroProjeto:
+        raise
+    except (RecursionError, ValueError):  # aninhamento absurdo, número com milhares de dígitos
+        raise ErroProjeto("O arquivo não é um JSON válido.") from None
     return validar_documento(doc)
