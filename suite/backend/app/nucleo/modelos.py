@@ -1,10 +1,18 @@
-"""Modelos do núcleo: empresa, usuário, perfis e auditoria."""
+"""Modelos do núcleo: empresa, usuário, perfis, auditoria e arquivos."""
 
 import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, UniqueConstraint, func
+from sqlalchemy import (
+    BigInteger,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    String,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -54,3 +62,15 @@ class Auditoria(ComEmpresa, Base):
     entidade: Mapped[str] = mapped_column(String(100))
     entidade_id: Mapped[uuid.UUID | None] = mapped_column()
     dados: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+
+
+class Arquivo(ComEmpresa, Base):
+    """Metadados de um arquivo; o conteúdo fica no S3, na chave `empresa_id/id`."""
+
+    __tablename__ = "arquivo"
+
+    nome: Mapped[str] = mapped_column(String(255))
+    tipo_conteudo: Mapped[str] = mapped_column(String(100))
+    tamanho_bytes: Mapped[int] = mapped_column(BigInteger)
+    chave: Mapped[str] = mapped_column(String(100), unique=True)
+    criado_por: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("usuario.id"))

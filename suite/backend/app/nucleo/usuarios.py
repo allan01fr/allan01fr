@@ -2,6 +2,7 @@
 
 from uuid import UUID
 
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.nucleo.auditoria import registrar_auditoria
@@ -9,11 +10,12 @@ from app.nucleo.contexto import Contexto
 from app.nucleo.empresa import criar_usuario
 from app.nucleo.erros import RegraNegocio
 from app.nucleo.esquemas import Pagina, UsuarioAlteracao, UsuarioEntrada, UsuarioSaida
-from app.nucleo.modelos import PerfilUsuario, Usuario
+from app.nucleo.modelos import Empresa, PerfilUsuario, Usuario
 from app.nucleo.perfis import Perfil
 from app.nucleo.repositorio import UsuarioRepositorio
 
 MENSAGEM_AUTO_ADMIN = "Você não pode remover o próprio acesso de administrador."
+MENSAGEM_SEM_ADMIN = "A empresa precisa ter pelo menos um administrador ativo."
 
 
 def _saida(usuario: Usuario) -> UsuarioSaida:
@@ -63,9 +65,29 @@ def _trocar_perfis(usuario: Usuario, novos: set[Perfil]) -> None:
         usuario.perfis.append(PerfilUsuario(empresa_id=usuario.empresa_id, perfil=perfil))
 
 
+def garantir_admin_ativo(sessao: Session, empresa_id: UUID) -> None:
+    """Falha se a empresa ficou sem nenhum usuário ativo com o perfil admin."""
+    admins = sessao.scalar(
+        select(func.count())
+        .select_from(PerfilUsuario)
+        .join(Usuario, Usuario.id == PerfilUsuario.usuario_id)
+        .where(
+            PerfilUsuario.empresa_id == empresa_id,
+            PerfilUsuario.perfil == Perfil.ADMIN.value,
+            Usuario.empresa_id == empresa_id,
+            Usuario.ativo.is_(True),
+        )
+    )
+    if not admins:
+        raise RegraNegocio(MENSAGEM_SEM_ADMIN)
+
+
 def alterar_usuario(
     sessao: Session, ctx: Contexto, usuario_id: UUID, alteracao: UsuarioAlteracao
 ) -> UsuarioSaida:
+    # Trava a linha da empresa: alterações de usuário da mesma empresa rodam em série, e a
+    # conferência do último admin abaixo não corre contra outra alteração simultânea.
+    sessao.execute(select(Empresa.id).where(Empresa.id == ctx.empresa_id).with_for_update())
     # Usuário de outra empresa não é achado pelo repositório: 404, nunca 403.
     usuario = UsuarioRepositorio(sessao, ctx.empresa_id).obter_ou_erro(
         usuario_id, "Usuário não encontrado."
@@ -77,7 +99,11 @@ def alterar_usuario(
             raise RegraNegocio(MENSAGEM_AUTO_ADMIN)
         if alteracao.perfis is not None and Perfil.ADMIN not in alteracao.perfis:
             raise RegraNegocio(MENSAGEM_AUTO_ADMIN)
-    antes = {"ativo": usuario.ativo, "perfis": sorted(p.perfil for p in usuario.perfis)}
+    antes = {
+        "nome": usuario.nome,
+        "ativo": usuario.ativo,
+        "perfis": sorted(p.perfil for p in usuario.perfis),
+    }
     if alteracao.nome is not None:
         usuario.nome = alteracao.nome
     if alteracao.ativo is not None:
@@ -86,6 +112,7 @@ def alterar_usuario(
         _trocar_perfis(usuario, alteracao.perfis)
     sessao.flush()
     sessao.refresh(usuario)
+    garantir_admin_ativo(sessao, ctx.empresa_id)
     registrar_auditoria(
         sessao,
         ctx.empresa_id,
@@ -93,6 +120,13 @@ def alterar_usuario(
         "usuario.alterar",
         "usuario",
         usuario.id,
-        {"antes": antes, "depois": {"ativo": usuario.ativo, "perfis": _saida(usuario).perfis}},
+        {
+            "antes": antes,
+            "depois": {
+                "nome": usuario.nome,
+                "ativo": usuario.ativo,
+                "perfis": _saida(usuario).perfis,
+            },
+        },
     )
     return _saida(usuario)
