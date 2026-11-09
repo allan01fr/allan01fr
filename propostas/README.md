@@ -15,6 +15,9 @@ perfil, os custos diretos, o preço de cada fase e o prazo, e gera:
 
 ## Como abrir
 
+Requer Python 3.11 ou mais novo ([python.org](https://www.python.org/downloads/), marcando
+"Add to PATH" na instalação).
+
 Windows: dê **dois cliques em `iniciar.bat`**. Na primeira vez ele cria o ambiente e
 instala as dependências, o que leva alguns minutos. Depois a interface abre no navegador.
 
@@ -48,19 +51,21 @@ do repositório, cópia do `propostas/.streamlit/config.toml`. Testes garantem q
 Para restringir o acesso: em [share.streamlit.io](https://share.streamlit.io), clique em ⋮ ao
 lado do app → **Settings** → **Sharing**. Em "Who can view this app", escolha **Only specific
 people can view this app**, inclua os e-mails e clique em **Save**. Com o app aberto, o mesmo
-menu fica em **Manage app** (canto inferior direito) → ⋮ → **Settings**. O menu do canto
-superior direito do app só muda a aparência.
+menu fica em **Manage app** (canto inferior direito) → ⋮ → **Settings**. O botão **Share**
+(canto superior direito) também convida e-mails e alterna entre público e privado; o menu ⋮
+desse canto só tem aparência, impressão e gravação de tela.
 - O repositório é público, então o app nasce público e é indexado por buscadores até ser
   restrito. O código e os arquivos de `dados/` continuam visíveis no GitHub.
-- A conta gratuita permite um app privado por vez.
+- Cada workspace do Community Cloud pode ter só um app privado. Se já houver outro, torne-o
+  público ou apague-o antes de restringir este.
 - Os convidados entram com conta Google ou com um link enviado por e-mail, sem precisar de
   GitHub. Eles também veem as estatísticas de acesso dos apps públicos da conta e podem
   convidar outras pessoas.
 
 Limites da prévia:
 - O que é salvo pela interface (parâmetros, catálogo, histórico e bases importadas na aba 10)
-  fica no servidor da prévia. É compartilhado por quem usa o link e pode se perder quando o app
-  reinicia, hiberna ou é republicado.
+  fica no servidor da prévia e é compartilhado por quem usa o link. O Community Cloud não
+  garante que esses arquivos sejam preservados: trate tudo como temporário.
 - Para guardar uma proposta, use **💾 Salvar proposta (.json)** na barra lateral e carregue o
   arquivo de novo em **📂 Abrir proposta (.json)**.
 - No celular, a barra lateral continua aberta depois de carregar um exemplo. Feche-a («) para
