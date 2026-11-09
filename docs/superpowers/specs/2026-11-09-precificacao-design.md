@@ -108,6 +108,21 @@ trazem assinaturas, fórmulas e um caso conferido à mão.
 - Caso de referência: HH 10,7 / 96,1 / 96,1; equipe 1/2/2; 9 dias úteis, 13 corridos; preço
   R$ 44.921,49.
 
+**Calculadora de BDI.** Hoje o BDI de cada categoria de fornecimento é um número fixo em
+`dados/parametros.json`. Novo `orcamento/bdi.py`:
+
+- `bdi(ac, seguro_garantia, risco, despesas_financeiras, lucro, impostos)`, pela fórmula usada pelo
+  TCU: `BDI = (1 + AC + S + R + G) × (1 + DF) × (1 + L) ÷ (1 − I) − 1`. Impostos que somam 100% ou
+  mais levantam `ErroEntrada`.
+- `bdi_implicito(valor_bdi, custo)`: lê o BDI de um orçamento de terceiros.
+- Tela, aba de parâmetros: uma composição por categoria (mão de obra de execução, material,
+  equipamento, subcontrato). O resultado grava `parametros["bdi"][categoria]`, que
+  `motor._fornecimentos` já usa. Quem preferir digita o percentual direto, como hoje.
+- Faixa de referência: o usuário informa mínimo, mediana e máximo com a fonte e a data, por
+  categoria, e a tela avisa quando o BDI calculado sai da faixa. Nenhuma faixa fica fixa no código.
+- O que já está no custo direto (mão de obra da obra, encargos, administração local) não entra na
+  composição; a tela diz isso ao lado dos campos.
+
 ### B3 — Preço por tabela e comparação com referências
 
 **Forma de cobrança "valor"** (tarefa 5 do T1). A fase pode ter um valor definido:
@@ -118,9 +133,16 @@ com a margem que resulta.
 Cada tabela declara fonte, órgão, data-base, e uma lista de itens:
 
 ```
-{id, descricao, unidade ("m2" | "un"), faixas: [{ate, valor}], modo ("cheio" | "escalonado"),
- minimo, observacao}
+{id, descricao, unidade ("m2" | "TR" | "kW" | "un"), faixas: [{ate, valor}],
+ modo ("cheio" | "escalonado"), minimo, observacao}
 ```
+
+**Área ou capacidade.** A grandeza de entrada segue a unidade do item: área (m²) ou capacidade
+(TR ou kW). As conversões usam constantes nomeadas em `orcamento/unidades.py`
+(1 TR = 12.000 BTU/h = 3,517 kW). O "HP" de VRF é rótulo comercial e não tem fator fixo: quem
+informa HP informa também o kW nominal do fabricante. Quando a referência está numa grandeza e o
+projeto só tem a outra, a tela pede a densidade (m²/TR) como dado do projeto e marca o resultado
+como "estimado pela densidade".
 
 - **Cheio:** a faixa em que a área cai dá o R$/m² de toda a área (projetos de engenharia da CEHOP:
   até 500 m² / acima de 500 m²).
@@ -145,8 +167,22 @@ próprio documento (laudo de 3.000 m²; prédio de 12 pavimentos de 500 m²).
 |---|---|
 | Preço por horas | `motor.precificar_fase` |
 | Preço por tabela | `tabela_referencia.calcular`, atualizado por índice |
-| Mediana de mercado | `referencias.cesta` sobre os itens ligados à fase |
+| Mercado: média, mediana e menor | `referencias.cesta` sobre os itens ligados à fase |
 | ABRAVA (bloco B4) | `honorario_abrava.calcular_abrava` |
+
+A coluna de mercado mostra as três medidas, o critério adotado, o número de cotações usadas e
+quantas ficaram fora de ±25% da mediana.
+
+**Cotações comparáveis.** Cada referência de uma cesta ganha `comparavel` (padrão `True`) e
+`motivo` (modelo diferente, capacidade diferente, escopo diferente, outro). `cesta` deixa as não
+comparáveis fora do cálculo, mas devolve todas, e a tela lista as excluídas com o motivo. Exemplo
+que vira teste: no orçamento do TRE-DF, o derivador E-102SNB2 tem uma cotação do modelo certo
+(R$ 353,98) e três de outras peças; com as três marcadas, o item fica com uma cotação só e a tela
+avisa que faltam referências.
+
+**Data-base presumida.** Uma referência pode ter `data_base_presumida: true` com a justificativa
+(por exemplo, "relatório de 30/04/2026 com cotações de março; mês do SINAPI não informado"). A
+tela mostra o aviso até alguém confirmar a data.
 
 O painel mostra a diferença percentual de cada coluna para o preço adotado e avisa quando o preço
 adotado fica mais de 25% fora da mediana (mesma faixa de alerta da `cesta`). O botão "Adotar este
@@ -199,7 +235,7 @@ Segue as tarefas 6 e 7 do T1.
 
 ## 4. Dados e arquivos
 
-- Criar: `orcamento/{escopos,erros,execucao,tabela_referencia,honorario_abrava,ajustes_honorario,exportar_viabilidade_docx}.py`;
+- Criar: `orcamento/{escopos,erros,execucao,bdi,unidades,tabela_referencia,honorario_abrava,ajustes_honorario,exportar_viabilidade_docx}.py`;
   `dados/execucao.json`; `dados/tabelas/cehop_se_2023.json`; `dados/referencias_publicas/*.csv`;
   `modelos/{contrato,recibo}.docx`; testes em `testes/`.
 - Modificar: `orcamento/{proposta,motor,referencias,viabilidade,exportar_xlsx,exportar_docx,cli}.py`;
@@ -221,6 +257,8 @@ Segue as tarefas 6 e 7 do T1.
 - TDD em cada tarefa. Bateria: `cd propostas && python -m pytest -q`.
 - Casos fixos: preços dos `exemplos/` inalterados; obra de referência (R$ 44.921,49); exemplos de
   cálculo da tabela CEHOP; caso fictício do ABRAVA do plano T1.
+- BDI: o exemplo do spec (AC 4%, seguro e garantia 0,8%, risco 1,27%, despesas financeiras 1,23%,
+  lucro 7,4%, impostos 6,15%) dá 22,88%; BDI implícito de 484,88 sobre 2.181,22 dá 22,23%.
 - XLSX: o teste de recálculo com LibreOffice confere planilha × motor nos blocos B1, B2 e B3.
 - Tela: `testes/test_app.py` (AppTest do Streamlit) cobre as abas novas; ao fim de cada bloco,
   capturas de tela feitas com Playwright vão para o Allan.
