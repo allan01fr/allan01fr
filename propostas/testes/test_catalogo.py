@@ -106,3 +106,35 @@ def test_divisao_por_zero_no_padrao_nao_esconde_outro_erro(cat):
     s["dados"] = [dict(c, padrao=0) if c["id"] == campo else c for c in s["dados"]]
     s["atividades"][0]["driver"] = f"round(1/{campo}, 99)"
     assert any("casas" in e for e in ct.validar(ruim))
+
+
+# ----------------------------------------------------------------------------- hvac.inspecao_conformidade
+def _horas_inspecao(cat, params, **dados):
+    p = pp.padrao(params)
+    item = pp.novo_item(ct.servico(cat, "hvac.inspecao_conformidade"))
+    item["dados"].update(dados)
+    linhas, _ = motor.linhas_item(cat, p, item, 0)
+    return sum(l["total_h"] for l in linhas)
+
+
+def test_inspecao_conformidade_existe_como_laudo_e_valida(cat):
+    s = ct.servico(cat, "hvac.inspecao_conformidade")
+    assert s["tipo"] == "laudo" and s["disciplina"] == "HVAC-R"
+    assert ct.validar(cat) == []
+    ids = [x["id"] for x in cat["servicos"]]
+    assert ids.index("hvac.inspecao_conformidade") == ids.index("hvac.desempenho") + 1
+    assert not any("RE ANVISA" in n or "09/2003" in n for n in s["normas"])
+
+
+def test_inspecao_conformidade_precifica_proposta_minima(cat, params):
+    p = pp.padrao(params)
+    p["opcoes"][0]["itens"] = [pp.novo_item(ct.servico(cat, "hvac.inspecao_conformidade"))]
+    r = motor.precificar(cat, p)["opcoes"][0]
+    assert r["total_h"] > 0 and r["preco"] > 0
+
+
+def test_inspecao_conformidade_medicoes_e_area_aumentam_horas(cat, params):
+    sem = _horas_inspecao(cat, params, medicoes=False)
+    com = _horas_inspecao(cat, params, medicoes=True)
+    assert sem > 0 and com > sem
+    assert _horas_inspecao(cat, params, area=5000.0) > _horas_inspecao(cat, params, area=1000.0)
