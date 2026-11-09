@@ -277,6 +277,10 @@ def _etapa_obra(fase, meses):
              "dias_uteis": 21 * meses, "dias_corridos": 30 * meses, "inicio": 1, "fim": 21 * meses}]
 
 
+def _ativa(fase):
+    return bool(fase.get("ativa", True))
+
+
 def precificar_fase(cat, proposta, opcao, fase, estimativas=None):
     params = proposta["parametros"]
     estimativa = eh_estimativa(opcao)
@@ -284,7 +288,7 @@ def precificar_fase(cat, proposta, opcao, fase, estimativas=None):
     if estimativa:   # a estimativa considera todos os serviços e fornecimentos da opção
         idx, forn = list(range(len(opcao["itens"]))), opcao["fornecimentos"]
     else:   # sem fase válida (arquivo feito à mão), o serviço ou fornecimento fica na primeira fase
-        ids = [f["id"] for f in opcao["fases"]]
+        ids = [f["id"] for f in opcao["fases"]]     # TODAS as fases: o que é de fase desligada não migra
 
         def da_fase(x):
             return (x.get("fase") if x.get("fase") in ids else ids[0]) == fase["id"]
@@ -364,7 +368,11 @@ def precificar_opcao(cat, proposta, opcao, estimativas=None):
     params = proposta["parametros"]
     perfis = list(cat["perfis"])
     estimativa = eh_estimativa(opcao)
-    fases_cfg = opcao["fases"][:1] if estimativa else opcao["fases"]
+    fases_cfg = opcao["fases"][:1] if estimativa else [f for f in opcao["fases"] if _ativa(f)]
+    if not fases_cfg:
+        raise ValueError(f"A opção {opcao['id']} não tem nenhuma fase incluída na proposta.")
+    desligadas = [] if estimativa else [{"id": f["id"], "nome": f["nome"], "modulo": f.get("modulo", "")}
+                                        for f in opcao["fases"] if not _ativa(f)]
     fases = [precificar_fase(cat, proposta, opcao, f, estimativas) for f in fases_cfg]
     res = {k: sum(f[k] for f in fases) for k in SOMAS}
     # cronograma: as fases correm em sequência
@@ -383,7 +391,7 @@ def precificar_opcao(cat, proposta, opcao, estimativas=None):
     res.update({
         "id": opcao["id"], "nome": opcao["nome"],
         "modalidade": "estimativa" if estimativa else "fases", "interno": estimativa,
-        "fases": fases,
+        "fases": fases, "fases_desligadas": desligadas,
         "linhas": [l for f in fases for l in f["linhas"]],
         "diretos": [d for f in fases for d in f["diretos"]],
         "fornecimentos": [x for f in fases for x in f["fornecimentos"]],

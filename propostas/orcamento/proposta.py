@@ -48,6 +48,8 @@ def nova_fase(fid, params, nome=None, cobranca="fechado"):
         "id": fid,
         "nome": nome or f"Fase {fid.lstrip('F')}",
         "cobranca": cobranca,
+        "ativa": True,          # desligada: sai do preço, do cronograma e da proposta, mas continua no arquivo
+        "modulo": "",           # id do módulo de escopo que criou a fase; vazio = fase feita à mão
         # obra acompanhada: base do % e da taxa de desempenho, duração e curva das medições.
         # base_modo: valor informado, estimativa interna de outra opção (parte "obra" = fornecimentos e
         # execução com BDI, ou "global") ou custo dos fornecimentos da própria fase
