@@ -155,6 +155,11 @@ como "estimado pela densidade".
   cálculo lista cada parcela, para a planilha e a proposta.
 - `atualizar_para(valor, data_base, data_alvo, indice, con)` usa `referencias.atualizar`. Sem
   índice importado, o valor fica na data-base e a tela avisa.
+- **Índice de correção à escolha:** INCC, IPCA ou IGP-M. Cada tabela e cada referência guarda o
+  índice sugerido; o painel de comparação tem um seletor que vale para a proposta e pode mostrar o
+  mesmo valor corrigido pelos três, lado a lado. As séries são importadas pela aba de bases com
+  `referencias.importar_indices`, que já existe; a ferramenta não baixa índice sozinha. O índice
+  usado e o fator aplicado aparecem na memória de cálculo.
 
 Primeira tabela: `dados/tabelas/cehop_se_2023.json` (CEHOP-SE, referência jan/2023, valores
 máximos): climatização simples e complexa, as built, compatibilização, orçamento e especificação,
@@ -275,4 +280,5 @@ Segue as tarefas 6 e 7 do T1.
 4. Tabela oficial da ABRAVA e confirmação da fórmula.
 5. Dois links não abriram: o da SES-SP recusa a conexão e o da SEIOP-RJ bloqueia o acesso
    automático. Se forem importantes, enviar os PDFs.
-6. Qual índice usar para trazer as tabelas à data de hoje (INCC, IPCA ou outro).
+6. Índice de correção: decidido em 2026-11-09 — INCC, IPCA e IGP-M, à escolha na tela. Falta o
+   Allan importar as séries (ou dizer de onde tirá-las) e dizer qual é o padrão.
