@@ -29,6 +29,25 @@ Sem interface, pela linha de comando:
 python -m orcamento.cli exemplos/hvac_retrofit_fases.json --xlsx --docx --viabilidade --saida saida/
 ```
 
+### Versão de teste com os escopos separados
+
+A versão em desenvolvimento fica na branch `ccr-1ff54909-xbul6a`. Há duas formas de abri-la:
+
+- **No computador (Linux):**
+
+  ```bash
+  git fetch origin
+  git checkout ccr-1ff54909-xbul6a
+  git pull
+  cd propostas
+  ./iniciar.sh
+  ```
+
+  A interface abre no navegador. As propostas e os parâmetros ficam na sua máquina.
+- **Na prévia online:** siga os passos abaixo trocando a branch por `ccr-1ff54909-xbul6a`. Se já
+  existe um app publicado a partir de outra branch, crie um segundo app com outro endereço (por
+  exemplo `kaptek-propostas-teste`): o Community Cloud não troca a branch de um app publicado.
+
 ### Prévia online (Streamlit Community Cloud)
 
 Para testar no navegador, inclusive no celular, sem instalar nada:
@@ -108,6 +127,29 @@ Limites da prévia:
 9. **Viabilidade**: estudo técnico-econômico para o cliente (seção própria abaixo).
 10. **Bases de referência**: importação de tabelas de preço, convenções coletivas, CUB,
     encargos, índices e faixas de ART (seção própria abaixo).
+
+## Escopos separados
+
+Uma proposta pode levar só uma parte do trabalho. Na aba **2 · Escopo**, a barra **Incluir
+módulo** cria a fase já configurada, com os serviços do catálogo e a forma de cobrança:
+
+| Módulo | O que entra | Cobrança inicial |
+|---|---|---|
+| **Projeto** | Cálculo de carga térmica e projeto de climatização | Escopo fechado |
+| **Acompanhamento de obra** | Acompanhamento técnico e fiscalização | Pacote de horas |
+| **Execução** | Materiais, equipamentos e mão de obra, lançados na aba 3 como fornecimentos desta fase | Escopo fechado |
+| **Inspeção com laudo de conformidade** | Vistoria, verificação contra norma e projeto, e laudo | Escopo fechado |
+| **Avaliação de desempenho** | Medição do desempenho real e comparação com o projeto | Escopo fechado |
+
+- Cada fase tem a chave **Incluir nesta proposta**. A fase desligada continua na lista, com tudo
+  o que foi preenchido, mas fica fora do preço, do cronograma, do pagamento, da planilha e da
+  proposta. Sempre resta pelo menos uma fase incluída.
+- A aba **4 · Preço** mostra o subtotal de cada fase incluída, o total da opção e, abaixo, as
+  fases que ficaram fora.
+- O mesmo módulo pode entrar mais de uma vez (dois prédios, por exemplo); a segunda fase ganha um
+  número no nome.
+- As horas do serviço de inspeção com laudo são iniciais e devem ser calibradas na aba 8 com
+  trabalhos encerrados.
 
 ## Proposta em fases e formas de cobrança
 
