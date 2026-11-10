@@ -23,12 +23,16 @@ from docx import Document
 from docx.text.paragraph import Paragraph
 
 from . import catalogo as ct
+from . import motor
 
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 TEMPLATE = os.path.join(RAIZ, "modelos", "proposta.docx")
 
 FRASE_DESLOCAMENTO = ("Não estão inclusos deslocamentos fora da Região Metropolitana do Rio de Janeiro, "
                       "que serão orçados à parte mediante aprovação prévia.")
+TEXTO_ART_NEUTRO = ("A Anotação de Responsabilidade Técnica (ART) de execução não está incluída neste preço; "
+                    "quando exigida, será recolhida e cobrada à parte.")
+FRASE_ART_MISTA = "A ART cobre as fases de serviços de engenharia e não inclui a execução."
 PREMISSAS_FINAIS = [
     "Os prazos são contados em dias corridos a partir do cumprimento cumulativo das premissas acima.",
     "Atraso na liberação de acesso ou de documentação suspende a contagem dos prazos, sem ônus para a contratada.",
@@ -246,15 +250,15 @@ def _linhas_fase(cat, params, opcao, fr, prefixo="", detalhar=True):
     elif detalhar:
         for _, nome, v in _rateio_servicos(opcao, fr):
             linhas.append((f"Honorários de engenharia — {nome}", "1", moeda(v), moeda(v)))
-    else:
+    elif fr["servicos"]:
         linhas.append((f"{prefixo}escopo fechado", "1 vb", moeda(fr["preco_servicos"]), moeda(fr["preco_servicos"])))
     if fr["fornecimentos"]:
-        if detalhar:
+        if detalhar or not fr["servicos"]:      # fase só de fornecimentos (execução): item a item, como na fase única
             for f in fr["fornecimentos"]:
                 qtd = float(f.get("qtd") or 0)
                 unit = f["preco"] / qtd if qtd else f["preco"]
                 q_txt = f"{qtd:g} {f.get('unid', '')}".strip().replace(".", ",")
-                linhas.append((f.get("descricao", "Fornecimento"), q_txt, moeda(unit), moeda(f["preco"])))
+                linhas.append((prefixo + f.get("descricao", "Fornecimento"), q_txt, moeda(unit), moeda(f["preco"])))
         else:
             linhas.append((f"{prefixo}fornecimentos", "1 vb", moeda(fr["preco_fornec"]), moeda(fr["preco_fornec"])))
     if fr["desempenho"]:
@@ -273,7 +277,10 @@ def _linhas_honorarios(cat, params, opcao, res):
             linhas += _linhas_fase(cat, params, opcao, fr, prefixo=f"Fase {n} — {fr['nome']}: ", detalhar=False)
     if any(d["descricao"].startswith("Taxa de ART") for d in res["diretos"]) and not \
             (len(fases) == 1 and fases[0]["cobranca"] == "hora"):
-        linhas.append(("Taxa de ART junto ao CREA" + (" (uma por fase)" if len(fases) > 1 else ""), "1", "inclusa", "inclusa"))
+        sufixo = ""
+        if len(fases) > 1:
+            sufixo = " (uma por fase de serviços)" if any(motor.fase_so_fornecimentos(f) for f in fases) else " (uma por fase)"
+        linhas.append(("Taxa de ART junto ao CREA" + sufixo, "1", "inclusa", "inclusa"))
     return linhas
 
 
@@ -427,17 +434,20 @@ def _texto_objeto(proposta, opcao, res, varias):
     for l in res["linhas"]:
         if l["servico_nome"] not in nomes:
             nomes.append(l["servico_nome"])
+    so_execucao = not nomes and any(fr["preco_fornec"] > 0 for fr in res["fases"]) \
+        and all(fr["cobranca"] != "pacote" for fr in res["fases"])
     if not nomes:       # fase só de fornecimentos (execução): o objeto é o fornecimento e a mão de obra
         nomes = [f"{fr['nome']} (fornecimento de materiais e mão de obra)" for fr in res["fases"] if fr["preco_fornec"] > 0] \
             or [fr["nome"] for fr in res["fases"]]
-    base = (proposta.get("objeto") or "serviços técnicos de engenharia").rstrip(".")
+    base = (proposta.get("objeto") or "").strip().rstrip(".")
     sufixo = f" — {opcao['nome']}" if varias else ""
+    abertura = "Fornecimento e execução de instalações" if so_execucao else "Prestação de serviços técnicos de engenharia"
     if len(res["fases"]) > 1:
         fases = "; ".join(f"Fase {n} — {_minuscula(fr['nome'])}" for n, fr in enumerate(res["fases"], 1))
-        return (f"Prestação de serviços técnicos de engenharia, em {len(res['fases'])} fases: {base}{sufixo}. "
-                f"Compreende: {fases}, conforme as atividades e os entregáveis relacionados na seção 3.")
-    return (f"Prestação de serviços técnicos de engenharia: {base}{sufixo}. "
-            f"Compreende: {'; '.join(nomes)}, conforme as atividades e os entregáveis relacionados na seção 3.")
+        cabeca = f"{abertura}, em {len(res['fases'])} fases" + (f": {base}{sufixo}" if base else sufixo)
+        return f"{cabeca}. Compreende: {fases}, conforme as atividades e os entregáveis relacionados na seção 3."
+    cabeca = f"{abertura}: {base}{sufixo}" if base else f"{abertura}{sufixo}"     # sem objeto, não repete a cláusula
+    return f"{cabeca}. Compreende: {'; '.join(nomes)}, conforme as atividades e os entregáveis relacionados na seção 3."
 
 
 # ----------------------------------------------------------------------------- API
@@ -470,6 +480,12 @@ def gerar_opcao(cat, proposta, opcao, res, varias=False):
             substituir(par, de, para)
         if par.text.startswith("[Descreva o serviço contratado"):
             _definir(par, _texto_objeto(proposta, opcao, res, varias))
+        elif par.text.startswith("Os serviços serão acompanhados da devida Anotação"):
+            situacao = motor.situacao_art(res["fases"])
+            if situacao == "sem_art":
+                _definir(par, TEXTO_ART_NEUTRO)
+            elif situacao == "mista":
+                _definir(par, par.text + " " + FRASE_ART_MISTA)
 
     rev = _tabela(doc, "Rev.")
     _definir(rev.rows[1].cells[0].paragraphs[0], proposta.get("revisao", "00"))

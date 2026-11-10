@@ -488,6 +488,18 @@ def opcao_tem_preco(r):
     return any(fase_tem_preco(f) for f in r["fases"])
 
 
+def fase_so_fornecimentos(fase):
+    """Fase de execução: sem serviços do catálogo, só fornecimentos com preço, e sem ART no preço."""
+    return not fase["servicos"] and fase["preco_fornec"] > 0 and fase["art"] <= 0
+
+
+def situacao_art(fases):
+    """'sem_art' (nenhuma fase leva ART no preço), 'mista' (há fases com ART e fases só de fornecimentos) ou 'normal'."""
+    if fases and not any(f["art"] > 0 for f in fases):
+        return "sem_art"
+    return "mista" if any(fase_so_fornecimentos(f) for f in fases) else "normal"
+
+
 def avisos(proposta, resultados):
     av = []
     uf = (proposta["cliente"].get("uf") or "").strip().upper()
@@ -530,6 +542,8 @@ def avisos(proposta, resultados):
                     av.append(f"{nome}: fase sem itens — lance materiais e mão de obra na aba Fornecimentos.")
                 else:
                     av.append(f"{nome}: fase sem serviços.")
+            if fase_so_fornecimentos(f):
+                av.append(f"{nome}: fase sem ART no preço — confirme se a execução exige ART própria.")
             if f["cobranca"] == "percentual" and f["base"] <= 0:
                 av.append(f"{nome}: % da obra sem base ({f['base_origem']}) — informe o valor da obra ou vincule a "
                           "estimativa interna.")

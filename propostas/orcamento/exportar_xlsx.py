@@ -841,7 +841,12 @@ def _aba_resumo(ws, cat, proposta, resultados, celulas):
         f.c(r, 2, None, fundo=FUNDO_CAB if forte else None)
         for i, o in enumerate(proposta["opcoes"]):
             ref_cel = celulas[o["id"]].get(chave)
-            if ref_cel:
+            sem_horas = resultados[i]["total_h"] <= 0
+            if sem_horas and chave in ("prazo_uteis", "prazo_corridos") and not resultados[i]["cronograma"]:
+                f.c(r, 3 + i, "a definir")
+            elif sem_horas and chave in ("me", "rs_h"):
+                f.c(r, 3 + i, "—")
+            elif ref_cel:
                 f.vinculo(r, 3 + i, "=" + ref_cel, fmt, negrito=forte)
             else:
                 f.c(r, 3 + i, "—")
@@ -863,9 +868,15 @@ def _aba_resumo(ws, cat, proposta, resultados, celulas):
             r += 1
     r += 1
     f.nota(r, cat.get("nota", ""), ate)
-    f.nota(r + 1, "Valores com tributos incidentes. Parcela estimada: hora técnica e % sobre as medições da obra. Fundo "
-                  "amarelo = entrada editável; verde = vínculo com outra aba. O documento técnico só produz efeito "
-                  "acompanhado da ART registrada e quitada (Lei 6.496/1977).", ate)
+    situacao = motor.situacao_art([fr for res in resultados if not res["interno"] for fr in res["fases"]])
+    base_nota = ("Valores com tributos incidentes. Parcela estimada: hora técnica e % sobre as medições da obra. Fundo "
+                 "amarelo = entrada editável; verde = vínculo com outra aba. ")
+    if situacao == "sem_art":
+        art_nota = "A ART de execução não está incluída neste preço; quando exigida, será recolhida e cobrada à parte."
+    else:
+        art_nota = ("O documento técnico só produz efeito acompanhado da ART registrada e quitada (Lei 6.496/1977)."
+                    + (" A ART cobre as fases de serviços de engenharia e não inclui a execução." if situacao == "mista" else ""))
+    f.nota(r + 1, base_nota + art_nota, ate)
     ws.freeze_panes = "A7"
     _impressao(ws, paisagem=n > 2)
     ws.page_setup.fitToHeight = 1
