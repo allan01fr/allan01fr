@@ -1319,7 +1319,7 @@
      "calibracao": 1.0
     },
     {
-     "id": "medicoes",
+     "id": "medicoes_pontuais",
      "nome": "Medições pontuais de vazão, temperatura e pressão",
      "entregavel": "Planilha de medições",
      "etapa": "campo",

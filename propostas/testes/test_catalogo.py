@@ -1,4 +1,5 @@
 import copy
+import json
 
 import pytest
 
@@ -124,6 +125,9 @@ def test_inspecao_conformidade_existe_como_laudo_e_valida(cat):
     ids = [x["id"] for x in cat["servicos"]]
     assert ids.index("hvac.inspecao_conformidade") == ids.index("hvac.desempenho") + 1
     assert not any("RE ANVISA" in n or "09/2003" in n for n in s["normas"])
+    assert "09/2003" not in json.dumps(s, ensure_ascii=False)       # norma revogada: nem em textos, nem em premissas
+    assert [a["id"] for a in s["atividades"]].count("medicoes_pontuais") == 1
+    assert "medicoes" not in [a["id"] for a in s["atividades"]]     # o dado "medicoes" é outra coisa
 
 
 def test_inspecao_conformidade_precifica_proposta_minima(cat, params):
@@ -138,3 +142,4 @@ def test_inspecao_conformidade_medicoes_e_area_aumentam_horas(cat, params):
     com = _horas_inspecao(cat, params, medicoes=True)
     assert sem > 0 and com > sem
     assert _horas_inspecao(cat, params, area=5000.0) > _horas_inspecao(cat, params, area=1000.0)
+    assert _horas_inspecao(cat, params, ambientes=40) > _horas_inspecao(cat, params, ambientes=10)
