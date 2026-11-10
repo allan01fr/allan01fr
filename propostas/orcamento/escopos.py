@@ -51,8 +51,9 @@ def modulo(modulo_id):
         raise KeyError(f"Módulo de escopo desconhecido: {modulo_id!r}. Válidos: {', '.join(MODULOS)}.") from None
 
 
-def _nome_livre(opcao, nome):
-    usados = {f["nome"] for f in opcao["fases"]}
+def _nome_livre(opcao, nome, ignorar=None):
+    """Primeiro nome livre; a fase `ignorar` (a que vai ser reaproveitada) não conta como ocupando o nome."""
+    usados = {f["nome"] for f in opcao["fases"] if f is not ignorar}
     if nome not in usados:
         return nome
     n = 2
@@ -75,11 +76,12 @@ def incluir(opcao, modulo_id, cat, params):
     if opcao.get("modalidade") == "estimativa":
         raise ValueError("Módulos de escopo valem para propostas em fases, não para a estimativa interna.")
     servicos = [ct.servico(cat, sid) for sid in m["servicos"]]     # falha antes de alterar a opção
-    nome = _nome_livre(opcao, m["nome"])
     if _fase_inicial_intocada(opcao):
         fase = opcao["fases"][0]
-        fase.update(nome=nome, cobranca=m["cobranca"], modulo=modulo_id)
+        fase.update(nome=_nome_livre(opcao, m["nome"], ignorar=fase), cobranca=m["cobranca"], modulo=modulo_id,
+                    ativa=True)
     else:
+        nome = _nome_livre(opcao, m["nome"])
         fase = pp.nova_fase(pp.proxima_fase(opcao), params, nome=nome, cobranca=m["cobranca"])
         fase["modulo"] = modulo_id
         opcao["fases"].append(fase)

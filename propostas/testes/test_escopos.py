@@ -171,3 +171,41 @@ def test_modulos_da_opcao(cat, params):
     escopos.incluir(o, "desempenho", cat, p["parametros"])
     o["fases"].append(pp.nova_fase("F9", p["parametros"]))
     assert escopos.modulos_da_opcao(o) == ["projeto", "desempenho", ""]
+
+
+def test_fase_inicial_renomeada_pelo_usuario_mantem_o_nome(cat, params):
+    p = nova(params)
+    o = p["opcoes"][0]
+    o["fases"][0]["nome"] = "Projeto"
+    f = escopos.incluir(o, "projeto", cat, p["parametros"])
+    assert f is o["fases"][0] and f["nome"] == "Projeto"
+
+
+def test_fase_inicial_desligada_reaproveitada_fica_ativa(cat, params):
+    p = nova(params)
+    o = p["opcoes"][0]
+    o["fases"][0]["ativa"] = False
+    f = escopos.incluir(o, "projeto", cat, p["parametros"])
+    assert f["ativa"] is True
+
+
+def test_fase_inicial_de_arquivo_antigo_sem_modulo_e_reaproveitada(cat, params):
+    p = nova(params)
+    o = p["opcoes"][0]
+    del o["fases"][0]["modulo"]
+    del o["fases"][0]["ativa"]
+    f = escopos.incluir(o, "execucao", cat, p["parametros"])
+    assert len(o["fases"]) == 1 and f["modulo"] == "execucao" and f["ativa"] is True
+
+
+def test_excluir_fase_e_incluir_de_novo_nao_duplica_nome(cat, params):
+    p = nova(params)
+    o = p["opcoes"][0]
+    for _ in range(3):
+        escopos.incluir(o, "projeto", cat, p["parametros"])
+    o["fases"] = [f for f in o["fases"] if f["nome"] != "Projeto 2"]
+    o["itens"] = [i for i in o["itens"] if i["fase"] != "F2"]
+    nova_f = escopos.incluir(o, "projeto", cat, p["parametros"])
+    nomes = [f["nome"] for f in o["fases"]]
+    assert nova_f["nome"] == "Projeto 2" and len(nomes) == len(set(nomes))
+    assert len({f["id"] for f in o["fases"]}) == len(o["fases"])
