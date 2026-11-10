@@ -137,3 +137,46 @@ def test_cli_sem_fase_incluida_da_erro_sem_traceback(cat, params, tmp_path, caps
     assert cli.main([str(arq), "--saida", str(tmp_path / "s")]) == 2
     err = capsys.readouterr().err
     assert err.startswith("Erro: ") and "nenhuma fase incluída" in err and "Traceback" not in err
+
+
+def _opcao_cfd_tab(cat, params, tab_ligada, fase_item="F2"):
+    """F1: CFD; F2: TAB. O CFD exclui a validação em campo, salvo se o TAB estiver na proposta."""
+    import copy as _c
+    from orcamento import catalogo as ct
+    from orcamento import proposta as pp
+    p = pp.completar(pp.padrao(_c.deepcopy(params)), cat, params)
+    o = p["opcoes"][0]
+    o["fases"] = [pp.nova_fase("F1", params, "Simulação"), pp.nova_fase("F2", params, "Medições")]
+    o["itens"] = [pp.novo_item(ct.servico(cat, "hvac.cfd"), "F1"), pp.novo_item(ct.servico(cat, "hvac.tab"), fase_item)]
+    o["fornecimentos"] = []
+    o["fases"][1]["ativa"] = tab_ligada
+    return p, o
+
+
+EXCL_CFD = "Validação experimental em campo, salvo se contratada (TAB)."
+
+
+@pytest.mark.parametrize("tab_ligada", [True, False])
+def test_exclusao_exceto_se_segue_a_fase_ligada(cat, params, tab_ligada):
+    p, o = _opcao_cfd_tab(cat, params, tab_ligada)
+    res = motor.precificar(cat, p)["opcoes"][0]
+    assert (EXCL_CFD in exportar_docx._exclusoes(cat, o, res)) is (not tab_ligada)
+
+
+def test_item_sem_fase_valida_segue_o_mesmo_destino_do_motor(cat, params):
+    # F1 desligada + item sem "fase": o motor o põe na primeira fase (desligada), então ele sai do preço e dos textos.
+    p, o = _opcao_cfd_tab(cat, params, True)
+    o["fases"][0]["ativa"] = False
+    del o["itens"][0]["fase"]
+    res = motor.precificar(cat, p)["opcoes"][0]
+    assert [f["id"] for f in res["fases"]] == ["F2"]
+    assert exportar_docx._servicos_ativos(o, res) == ["hvac.tab"]
+    assert EXCL_CFD not in exportar_docx._exclusoes(cat, o, res)
+    from orcamento import catalogo as ct
+    textos = exportar_docx._exclusoes(cat, o, res) + exportar_docx._premissas(cat, p, o, res)
+    proprios_tab = {ct.texto_condicional(t)["texto"] for t in
+                    ct.servico(cat, "hvac.tab").get("exclusoes", []) + ct.servico(cat, "hvac.tab").get("premissas", [])}
+    cfd = ct.servico(cat, "hvac.cfd")
+    so_cfd = [ct.texto_condicional(t)["texto"] for t in cfd.get("exclusoes", []) + cfd.get("premissas", [])
+              if ct.texto_condicional(t)["texto"] not in proprios_tab]
+    assert so_cfd and not any(t in textos for t in so_cfd)

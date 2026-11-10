@@ -286,9 +286,8 @@ def _total_texto(res):
 
 
 def _servicos_ativos(opcao, res):
-    """Serviços da opção, sem os das fases desligadas."""
-    off = {x["id"] for x in res.get("fases_desligadas", [])}
-    return [it["servico"] for it in opcao["itens"] if it.get("fase") not in off]
+    """Serviços das fases precificadas, pelos mesmos índices do motor (item sem fase válida cai na primeira fase)."""
+    return [opcao["itens"][i]["servico"] for f in res["fases"] for i in f["servicos"]]
 
 
 def _exclusoes(cat, opcao, res):
