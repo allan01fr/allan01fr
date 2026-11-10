@@ -478,6 +478,15 @@ ROTULO_COBRANCA = {"fechado": "escopo fechado", "hora": "hora técnica", "percen
                    "pacote": "pacote de horas"}
 
 
+def fase_tem_preco(fase):
+    """Fase com o que cobrar: serviços com horas, pacote de horas ou fornecimentos (a execução só os tem)."""
+    return bool(fase["linhas"]) or fase["cobranca"] == "pacote" or fase["preco_fornec"] > 0
+
+
+def opcao_tem_preco(r):
+    return any(fase_tem_preco(f) for f in r["fases"])
+
+
 def avisos(proposta, resultados):
     av = []
     uf = (proposta["cliente"].get("uf") or "").strip().upper()
@@ -508,15 +517,18 @@ def avisos(proposta, resultados):
                 av.append(f"{r['nome']} (estimativa): faltam as etapas {', '.join(faltando)} — inclua ou marque como "
                           "fora da estimativa.")
             continue
-        if not r["linhas"] and not any(f["cobranca"] == "pacote" for f in r["fases"]):
+        if not opcao_tem_preco(r):
             av.append(f"{r['nome']}: nenhum serviço com horas — adicione serviços na aba Escopo.")
         for f in r["fases"]:
             nome = f"{r['nome']} / {f['nome']}"
             soma = sum(m["pct"] for m in f["pagamento"])
             if f["pagamento"] and abs(soma - 1) > 0.001:
                 av.append(f"{nome}: as parcelas de pagamento somam {soma:.0%}, não 100%.")
-            if not f["linhas"] and f["cobranca"] in ("fechado", "hora"):
-                av.append(f"{nome}: fase sem serviços.")
+            if not fase_tem_preco(f) and f["cobranca"] in ("fechado", "hora"):
+                if cfg_fases[r["id"]][f["id"]].get("modulo") == "execucao":
+                    av.append(f"{nome}: fase sem itens — lance materiais e mão de obra na aba Fornecimentos.")
+                else:
+                    av.append(f"{nome}: fase sem serviços.")
             if f["cobranca"] == "percentual" and f["base"] <= 0:
                 av.append(f"{nome}: % da obra sem base ({f['base_origem']}) — informe o valor da obra ou vincule a "
                           "estimativa interna.")
