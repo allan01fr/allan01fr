@@ -124,3 +124,16 @@ def test_xlsx_recalculado_com_fase_desligada(cat, params, tmp_path):
         for k, fr in enumerate(r["fases"]):
             for rot, chave in (("PREÇO DA FASE", "preco"), ("Custo da fase", "custo_servicos"), ("Horas da fase", "total_h")):
                 assert float(wo.cell(rot_o[rot], 3 + k).value or 0) == pytest.approx(fr[chave], abs=0.01), (r["id"], fr["id"], rot)
+
+
+def test_cli_sem_fase_incluida_da_erro_sem_traceback(cat, params, tmp_path, capsys):
+    import json
+    p, _, _ = _pares(cat, params)
+    for o in p["opcoes"]:
+        for f in o["fases"]:
+            f["ativa"] = False
+    arq = tmp_path / "off.json"
+    arq.write_text(json.dumps(p), encoding="utf-8")
+    assert cli.main([str(arq), "--saida", str(tmp_path / "s")]) == 2
+    err = capsys.readouterr().err
+    assert err.startswith("Erro: ") and "nenhuma fase incluída" in err and "Traceback" not in err
