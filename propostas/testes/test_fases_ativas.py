@@ -32,33 +32,48 @@ def test_nova_fase_ativa_e_sem_modulo(params):
     assert f["modulo"] == ""
 
 
-def test_desligar_fase_equivale_a_remove_la(cat, params):
-    # Opção A do retrofit tem 4 fases; a estimativa E (base da F4) não depende da F2, então é seguro desligá-la.
-    p = abrir_exemplo(RETROFIT, cat, params)
-    A = next(o for o in p["opcoes"] if o["id"] == "A")
-    assert len(A["fases"]) >= 2
-    fid = A["fases"][1]["id"]
-    assert any(x["fase"] == fid for x in A["itens"] + A["fornecimentos"])
+def _fases_de_exemplos():
+    """(arquivo, opção, índice da fase) de cada fase de cada opção "fases" com mais de uma fase dos exemplos."""
+    casos = []
+    for caminho in EXEMPLOS:
+        with open(caminho, encoding="utf-8") as f:
+            dados = json.load(f)
+        for o in dados["opcoes"]:
+            fases = o.get("fases") or []
+            if o.get("modalidade", "fases") == "fases" and len(fases) > 1:
+                casos += [pytest.param(caminho, o["id"], i, id=f"{os.path.basename(caminho)[:-5]}-{o['id']}-F{i + 1}")
+                          for i in range(len(fases))]
+    return casos
+
+
+@pytest.mark.parametrize("caminho,oid,idx", _fases_de_exemplos())
+def test_desligar_fase_equivale_a_remove_la(caminho, oid, idx, cat, params):
+    p = abrir_exemplo(caminho, cat, params)
+    A = next(o for o in p["opcoes"] if o["id"] == oid)
+    fid = A["fases"][idx]["id"]
 
     removida = copy.deepcopy(p)
-    RA = next(o for o in removida["opcoes"] if o["id"] == "A")
+    RA = next(o for o in removida["opcoes"] if o["id"] == oid)
     RA["fases"] = [f for f in RA["fases"] if f["id"] != fid]
     RA["itens"] = [x for x in RA["itens"] if x["fase"] != fid]
     RA["fornecimentos"] = [x for x in RA["fornecimentos"] if x["fase"] != fid]
 
-    A["fases"][1]["ativa"] = False
-    A["fases"][1]["modulo"] = "m1"
+    A["fases"][idx]["ativa"] = False
+    A["fases"][idx]["modulo"] = "m1"
     ligada = motor.precificar(cat, p)
     esperada = motor.precificar(cat, removida)
-    a, e = opcao(ligada, "A"), opcao(esperada, "A")
+    a, e = opcao(ligada, oid), opcao(esperada, oid)
     assert a["preco"] == pytest.approx(e["preco"])
     assert a["total_h"] == pytest.approx(e["total_h"])
     assert len(a["cronograma"]) == len(e["cronograma"])
     assert a["prazo_dias_uteis"] == e["prazo_dias_uteis"]
-    assert [a for a in ligada["avisos"] if "fases desligadas" not in a] == esperada["avisos"]
-    assert any("fases desligadas" in a for a in ligada["avisos"])
-    # a outra opção não muda
-    assert opcao(ligada, "B")["preco"] == pytest.approx(opcao(esperada, "B")["preco"])
+    assert [x["id"] for x in a["fases"]] == [x["id"] for x in e["fases"]]
+    assert [x for x in ligada["avisos"] if "fases desligadas" not in x] == esperada["avisos"]
+    assert (any("fases desligadas" in x for x in ligada["avisos"])) == bool(
+        any(x["fase"] == fid for x in A["itens"] + A["fornecimentos"]))
+    for o in p["opcoes"]:       # as outras opções não mudam
+        if o["id"] != oid:
+            assert opcao(ligada, o["id"])["preco"] == pytest.approx(opcao(esperada, o["id"])["preco"])
 
 
 def test_fase_desligada_listada(cat, params):

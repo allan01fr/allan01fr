@@ -4,13 +4,12 @@ import io
 import os
 import re
 import shutil
-import subprocess
 
 import pytest
 from docx import Document
 from openpyxl import load_workbook
 
-from conftest import abrir_exemplo
+from conftest import abrir_exemplo, erros_xlsx, recalcular_xlsx
 from orcamento import cli, exportar_docx, exportar_xlsx, motor
 
 RETROFIT = os.path.join(os.path.dirname(__file__), "..", "exemplos", "hvac_retrofit_fases.json")
@@ -20,9 +19,15 @@ ROTULOS = {"Horas técnicas": "total_h", "Prazo (dias corridos)": "prazo_dias_co
            "Preço mínimo dos serviços (margem zero)": "preco_minimo_servicos"}
 
 
-def _pares(cat, params, idx=1):
+CONSULTORIA = os.path.join(os.path.dirname(__file__), "..", "exemplos", "hvac_consultoria_2d_3d_bim.json")
+# primeira, do meio e última fase da opção A do retrofit (4 fases) e a segunda da consultoria (2 fases)
+CASOS = [pytest.param(RETROFIT, 0, id="retrofit-primeira"), pytest.param(RETROFIT, 1, id="retrofit-meio"),
+         pytest.param(RETROFIT, 3, id="retrofit-ultima"), pytest.param(CONSULTORIA, 1, id="consultoria-ultima")]
+
+
+def _pares(cat, params, idx=1, caminho=RETROFIT):
     """(proposta com a fase desligada, cópia com a fase, seus itens e fornecimentos removidos)."""
-    p = abrir_exemplo(RETROFIT, cat, params)
+    p = abrir_exemplo(caminho, cat, params)
     A = next(o for o in p["opcoes"] if o["id"] == "A")
     fid = A["fases"][idx]["id"]
     assert any(x["fase"] == fid for x in A["itens"]) or any(x["fase"] == fid for x in A["fornecimentos"])
@@ -49,19 +54,9 @@ def _texto_docx(conteudo):
     return "\n".join(partes)
 
 
-def test_xlsx_sem_vestigio_da_fase_desligada(cat, params):
-    p, rem, f2 = _pares(cat, params)
-    nomes_itens = {x.get("descricao") for x in p["opcoes"][0]["fornecimentos"] if x["fase"] == f2["id"]}
-    cel = _celulas(exportar_xlsx.gerar(cat, p, motor.precificar(cat, p)))
-    plano = "\n".join(str(v) for linhas in cel["Opção A"] for v in linhas if v is not None)
-    assert f2["nome"] not in plano
-    for n in nomes_itens - {None, ""}:
-        assert n not in "\n".join(str(v) for linhas in cel["Fornecimentos"] for v in linhas if v is not None) or \
-            any(x.get("descricao") == n and x["fase"] != f2["id"] for x in p["opcoes"][0]["fornecimentos"])
-
-
-def test_xlsx_equivale_a_proposta_sem_a_fase(cat, params):
-    p, rem, _ = _pares(cat, params)
+@pytest.mark.parametrize("caminho,idx", CASOS)
+def test_xlsx_equivale_a_proposta_sem_a_fase(caminho, idx, cat, params):
+    p, rem, _ = _pares(cat, params, idx, caminho)
     a = _celulas(exportar_xlsx.gerar(cat, p, motor.precificar(cat, p)))
     b = _celulas(exportar_xlsx.gerar(cat, rem, motor.precificar(cat, rem)))
     assert a.keys() == b.keys()
@@ -69,15 +64,17 @@ def test_xlsx_equivale_a_proposta_sem_a_fase(cat, params):
         assert a[aba] == b[aba], aba
 
 
-def test_docx_sem_a_fase_desligada(cat, params):
-    p, rem, f2 = _pares(cat, params)
+@pytest.mark.parametrize("caminho,idx", CASOS)
+def test_docx_sem_a_fase_desligada(caminho, idx, cat, params):
+    p, rem, f2 = _pares(cat, params, idx, caminho)
     da = exportar_docx.gerar(cat, p, motor.precificar(cat, p))
     db = exportar_docx.gerar(cat, rem, motor.precificar(cat, rem))
     assert len(da) == len(db)
     for (ca, na, _), (cb, nb, _) in zip(da, db):
         ta, tb = _texto_docx(ca), _texto_docx(cb)
         if "-opA-" in na:
-            assert f2["nome"] not in ta     # a opção B também tem uma "Fase 2" com esse nome
+            nome_a = next(o["nome"] for o in p["opcoes"] if o["id"] == "A")
+            assert f2["nome"] not in ta.replace(nome_a, "")     # o nome da opção pode conter o da fase
         assert ta == tb
         fases = [int(n) for n in re.findall(r"Fase (\d+)", ta)]
         assert fases == [] or set(fases) == set(range(1, max(fases) + 1))
@@ -106,14 +103,8 @@ def test_cli_so_lista_fases_ativas(cat, params, tmp_path, capsys):
 def test_xlsx_recalculado_com_fase_desligada(cat, params, tmp_path):
     p, rem, _ = _pares(cat, params)
     res = motor.precificar(cat, p)
-    arq = tmp_path / "f.xlsx"
-    arq.write_bytes(exportar_xlsx.gerar(cat, p, res))
-    subprocess.run(["soffice", "--headless", "--calc", "--convert-to", "xlsx", "--outdir", str(tmp_path / "rec"), str(arq)],
-                   check=True, capture_output=True, timeout=180)
-    wb = load_workbook(tmp_path / "rec" / "f.xlsx", data_only=True)
-    codigos = ("#NAME?", "#VALUE!", "#REF!", "#DIV/0!", "#N/A", "#NUM!", "#NULL!", "Err:")
-    assert not [c.coordinate for ws in wb for row in ws.iter_rows() for c in row
-                if isinstance(c.value, str) and c.value.startswith(codigos)]
+    wb = recalcular_xlsx(exportar_xlsx.gerar(cat, p, res), tmp_path)
+    assert not erros_xlsx(wb)
     ws = wb["Resumo"]
     linha = {ws.cell(r, 1).value: r for r in range(1, ws.max_row + 1)}
     for i, r in enumerate(res["opcoes"]):
