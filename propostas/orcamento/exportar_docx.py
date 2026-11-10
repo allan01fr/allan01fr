@@ -285,8 +285,14 @@ def _total_texto(res):
     return moeda(res["preco"])
 
 
+def _servicos_ativos(opcao, res):
+    """Serviços da opção, sem os das fases desligadas."""
+    off = {x["id"] for x in res.get("fases_desligadas", [])}
+    return [it["servico"] for it in opcao["itens"] if it.get("fase") not in off]
+
+
 def _exclusoes(cat, opcao, res):
-    return ct.textos_validos(cat, [it["servico"] for it in opcao["itens"]], bool(res["fornecimentos"]), "exclusoes")
+    return ct.textos_validos(cat, _servicos_ativos(opcao, res), bool(res["fornecimentos"]), "exclusoes")
 
 
 def _premissas_fases(res):
@@ -319,7 +325,7 @@ def _premissas_fases(res):
 
 
 def _premissas(cat, proposta, opcao, res):
-    textos = [p for p in ct.textos_validos(cat, [it["servico"] for it in opcao["itens"]], bool(res["fornecimentos"]),
+    textos = [p for p in ct.textos_validos(cat, _servicos_ativos(opcao, res), bool(res["fornecimentos"]),
                                            "premissas") if p not in PREMISSAS_FINAIS]
     return textos + _premissas_fases(res) + PREMISSAS_FINAIS
 

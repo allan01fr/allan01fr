@@ -255,10 +255,12 @@ def _aba_opcao(wb, cat, proposta, opcao, res, ref, celulas):
     rot_etapa = {e["id"]: e["rotulo"] for e in cat["etapas"]}
 
     r0 = r = 4
+    # numeração posicional sobre os serviços das fases ativas (sem lacuna onde há fase desligada)
+    ordem_item = {i: n for n, i in enumerate(sorted({l["item"] for fr in fases for l in fr["linhas"]}), 1)}
     for fr in fases:
         for l in fr["linhas"]:
             f.c(r, 1, fr["id"], alinhar="center")
-            f.c(r, 2, l["item"] + 1, INT, alinhar="center")
+            f.c(r, 2, ordem_item[l["item"]], INT, alinhar="center")
             f.c(r, 3, l["servico_nome"], quebra=True, tam=9)
             f.c(r, 4, l["nome"], quebra=True, tam=9)
             f.c(r, 5, l["entregavel"], quebra=True, tam=9)
