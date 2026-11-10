@@ -2101,7 +2101,7 @@
    "disciplina": "HVAC-R",
    "tipo": "ensaio",
    "nome": "Avaliação da qualidade do ar interior",
-   "descricao": "Coleta de amostras e medições conforme a Resolução ANVISA RE 09/2003, com relatório e ART.",
+   "descricao": "Coleta de amostras e medições conforme a ABNT NBR 17037, com relatório e ART.",
    "dados": [
     {
      "id": "pontos",
@@ -2109,7 +2109,7 @@
      "tipo": "int",
      "padrao": 3,
      "unidade": "pontos",
-     "ajuda": "Defina pela área climatizada, conforme a tabela da Resolução ANVISA RE 09/2003.",
+     "ajuda": "Defina pela área climatizada, conforme o critério de amostragem da ABNT NBR 17037.",
      "min": 0
     },
     {
@@ -2234,7 +2234,7 @@
     "Os sistemas estarão em operação normal durante as medições."
    ],
    "normas": [
-    "Resolução ANVISA RE 09/2003",
+    "ABNT NBR 17037",
     "Lei 13.589/2018"
    ]
   },

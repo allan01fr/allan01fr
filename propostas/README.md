@@ -325,7 +325,7 @@ por hora excedente. A base pode ser:
 
 | Disciplina | Serviços |
 |---|---|
-| HVAC-R | carga térmica, projeto 2D/3D/BIM (sistema de climatização + ventilação: VRF, água gelada, DOAS, VAV...), as-built 2D/3D/BIM, desempenho real × projeto, TAB, CFD, simulação energética, PMOC, qualidade do ar (RE 09), comissionamento, plano emergencial, viabilidade (CAPEX/OPEX/breakeven/payback) |
+| HVAC-R | carga térmica, projeto 2D/3D/BIM (sistema de climatização + ventilação: VRF, água gelada, DOAS, VAV...), as-built 2D/3D/BIM, desempenho real × projeto, TAB, CFD, simulação energética, PMOC, qualidade do ar (NBR 17037), comissionamento, plano emergencial, viabilidade (CAPEX/OPEX/breakeven/payback) |
 | Mecânica e utilidades | ar comprimido, vapor e condensado, redes de gases, bombeamento, inspeção NR-13, prontuário NR-13, ensaios de pressão |
 | Segurança do trabalho | NR-12, insalubridade (NR-15), periculosidade (NR-16), LTCAT, PGR, inspeção NR-10/33/35, perícia |
 | Hidráulica e incêndio | hidrossanitário, SPCI, aprovação no CBMERJ, vistoria de incêndio, teste de hidrantes e bombas |
