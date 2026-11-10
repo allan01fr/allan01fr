@@ -56,8 +56,8 @@ Para testar no navegador, inclusive no celular, sem instalar nada:
    vez, conecte o GitHub em **Workspaces** → **Connect GitHub account** → **Authorize streamlit**.
 2. Clique em **Create app** (canto superior direito). Na pergunta "Do you already have an app?",
    escolha **Yup, I have an app**.
-3. Repositório `allan01fr/allan01fr`, branch `claude/wonderful-wright-m65umc`, arquivo
-   principal `propostas/app/app.py`. Em **App URL**, escolha um endereço curto, por exemplo
+3. Repositório `allan01fr/allan01fr`, a branch da qual o app foi publicado (a versão de teste
+   está hoje na branch `ccr-1ff54909-xbul6a`), arquivo principal `propostas/app/app.py`. Em **App URL**, escolha um endereço curto, por exemplo
    `kaptek-propostas`; sem isso o endereço gerado fica enorme.
 4. Em **Advanced settings**, confira **Python version** = 3.12 (já é o padrão) e clique em
    **Save**. Depois clique em **Deploy**. A versão do Python não muda depois de publicado: para
@@ -141,13 +141,17 @@ módulo** cria a fase já configurada, com os serviços do catálogo e a forma d
 | **Inspeção com laudo de conformidade** | Vistoria, verificação contra norma e projeto, e laudo | Escopo fechado |
 | **Avaliação de desempenho** | Medição do desempenho real e comparação com o projeto | Escopo fechado |
 
-- Cada fase tem a chave **Incluir nesta proposta**. A fase desligada continua na lista, com tudo
+- Cada fase tem a chave **Incluir** ("Incluir esta fase na proposta"). A fase desligada continua na lista, com tudo
   o que foi preenchido, mas fica fora do preço, do cronograma, do pagamento, da planilha e da
-  proposta. Sempre resta pelo menos uma fase incluída.
+  proposta. A tela mantém pelo menos uma fase incluída.
 - A aba **4 · Preço** mostra o subtotal de cada fase incluída, o total da opção e, abaixo, as
   fases que ficaram fora.
 - O mesmo módulo pode entrar mais de uma vez (dois prédios, por exemplo); a segunda fase ganha um
   número no nome.
+- Uma opção só com **Execução** é precificada a partir dos fornecimentos com BDI e não leva ART
+  no preço; o cronograma mostra "a definir" até o **Prazo de execução** ser preenchido na aba 3.
+- Na planilha, o Resumo mostra "a definir" no prazo e "—" na margem efetiva e no R$/h de uma
+  opção sem horas de serviço.
 - As horas do serviço de inspeção com laudo são iniciais e devem ser calibradas na aba 8 com
   trabalhos encerrados.
 
