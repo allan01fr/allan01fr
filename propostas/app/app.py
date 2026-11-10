@@ -133,6 +133,12 @@ def sincronizar_fases(o):
         ss[k("fz_ativa", o["id"], o["fases"][0]["id"])] = True
 
 
+def assinatura_fases(o):
+    """Muda quando uma fase é ligada, desligada ou renomeada. Entra na chave dos seletores de fase para que o
+    navegador redesenhe os rótulos ('Fase N'); sem isso ele mantém o texto antigo da opção já escolhida."""
+    return "".join(("1" if fase_ativa(f) else "0") + f["nome"] for f in o["fases"])
+
+
 def rotulos_fases(o):
     """Rótulo de cada fase: 'Fase N — nome' com N entre as fases ATIVAS (a mesma numeração do preço e dos documentos);
     a desligada não tem número."""
@@ -366,7 +372,7 @@ with abas[1]:
             fase_nova = ids_fases[0]
             if not estimativa and len(ids_fases) > 1:
                 fase_nova = st.selectbox("Na fase", ids_fases, index=len(ids_fases) - 1, format_func=rotulos_fases(O).get,
-                                         key=k("f_fase"))
+                                         key=k("f_fase", assinatura_fases(O)))
             if st.button("Adicionar à opção", type="primary"):
                 O["itens"].append(pp.novo_item(ct.servico(CAT, sid), fase_nova))
                 ss.aberto = len(O["itens"]) - 1
@@ -394,7 +400,7 @@ with abas[1]:
             if not estimativa and len(ids_fases) > 1:
                 atual_f = it.get("fase") if it.get("fase") in ids_fases else ids_fases[0]
                 nova_f = st.selectbox("Fase", ids_fases, index=ids_fases.index(atual_f), format_func=rotulos_fases(O).get,
-                                      key=k("it_fase", O["id"], i))
+                                      key=k("it_fase", O["id"], i, assinatura_fases(O)))
                 if nova_f != it.get("fase"):
                     it["fase"] = nova_f
                     estrutura_mudou()

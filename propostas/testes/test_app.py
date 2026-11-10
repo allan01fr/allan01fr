@@ -105,7 +105,7 @@ def test_app_cria_fase_muda_cobranca_e_move_servico(tmp_path, monkeypatch):
     at.selectbox(key=f"{v}|fz_cob|A|F2").select("percentual").run()
     at.selectbox(key=f"{v}|fz|A|F2|bmodo").select("informado").run()
     at.number_input(key=f"{v}|fz|A|F2|bval").set_value(500000.0).run()
-    at.selectbox(key=f"{v}|it_fase|A|0").select("F2").run()
+    next(s for s in at.selectbox if (s.key or "").startswith(f"{v}|it_fase|A|0|")).select("F2").run()
     assert not at.exception, at.exception
     p = at.session_state.proposta
     assert p["opcoes"][0]["itens"][0]["fase"] == "F2"
@@ -425,9 +425,9 @@ def test_app_botao_de_modulo_tem_nome_completo_no_help():
 def test_app_seletores_de_fase_usam_a_numeracao_das_fases_ativas():
     at, v = _tres_fases_com_a_do_meio_desligada()
     esperado = ["Fase 1 — Projeto", "Inspeção com laudo de conformidade (desligada)", "Fase 2 — Execução"]
-    assert at.selectbox(key=f"{v}|f_fase").options == esperado
-    assert at.selectbox(key=f"{v}|it_fase|A|0").options == esperado
-    seletores = [s for s in at.selectbox if s.key and s.key.endswith("|f_fase") or "|it_fase|" in (s.key or "")]
+    assert next(s for s in at.selectbox if (s.key or "").startswith(f"{v}|f_fase|")).options == esperado
+    assert next(s for s in at.selectbox if (s.key or "").startswith(f"{v}|it_fase|A|0|")).options == esperado
+    seletores = [s for s in at.selectbox if s.key and "|f_fase|" in s.key or "|it_fase|" in (s.key or "")]
     assert seletores and all(s.options == esperado for s in seletores)
     assert not any("Fase 3" in o for s in seletores for o in s.options)
 
