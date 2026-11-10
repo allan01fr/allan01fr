@@ -464,7 +464,8 @@ def pagamento_padrao(proposta, etapas, res):
     if res["preco_fornec"] > 0:   # há fornecimento: ele pesa na parcela de execução
         meio = (1 - sinal) * (res["preco_fornec"] + res["preco_servicos"] * h_campo / h_total) / res["preco_fechado"]
     meio = _arredonda_5(meio)
-    texto_meio = "na conclusão da execução e do comissionamento" if tem_obra else "na conclusão das atividades de campo"
+    execucao = tem_obra or (h_campo == 0 and res["preco_fornec"] > 0)      # só fornecimentos: paga na execução
+    texto_meio = "na conclusão da execução e do comissionamento" if execucao else "na conclusão das atividades de campo"
     marcos = [{"marco": "na assinatura do instrumento contratual ou no aceite formal desta proposta", "pct": sinal}]
     if meio > 0:
         marcos.append({"marco": texto_meio, "pct": meio})

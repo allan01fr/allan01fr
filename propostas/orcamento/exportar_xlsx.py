@@ -737,8 +737,9 @@ def _aba_cronograma(wb, cat, proposta, resultados, celulas, ref):
                 formula=[f"AND({L(G0)}${r_ini - 1}*5>=$F{r_ini},({L(G0)}${r_ini - 1}-1)*5+1<=$G{r_ini})"],
                 fill=_fill(AZUL), stopIfTrue=False))
         f.c(r, 2, "PRAZO TOTAL", negrito=True, fundo=FUNDO_CAB)
-        f.c(r, 5, f"=SUM(E{r_ini}:E{max(r_fim, r_ini)})", INT, negrito=True, fundo=FUNDO_CAB)
-        f.c(r, 8, f"=SUM(H{r_ini}:H{max(r_fim, r_ini)})", INT, negrito=True, fundo=FUNDO_CAB)
+        # sem etapas (opção só com fornecimentos e sem prazo de execução) a soma não pode incluir a própria linha
+        f.c(r, 5, f"=SUM(E{r_ini}:E{r_fim})" if r_fim >= r_ini else 0, INT, negrito=True, fundo=FUNDO_CAB)
+        f.c(r, 8, f"=SUM(H{r_ini}:H{r_fim})" if r_fim >= r_ini else 0, INT, negrito=True, fundo=FUNDO_CAB)
         cel["prazo_uteis"] = f"Cronograma!$E${r}"
         cel["prazo_corridos"] = f"Cronograma!$H${r}"
         r += 2

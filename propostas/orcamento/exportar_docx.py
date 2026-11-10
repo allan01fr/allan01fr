@@ -386,6 +386,10 @@ def _linhas_escopo(res):
         for k, g in enumerate(grupos, 1):
             num = f"{n}.{k}" if varias else f"{len(saida) + 1:02d}"
             saida.append((num, f"{g['nome']}: {'; '.join(g['ativ'])}.", "; ".join(g["entr"])))
+        if not grupos and fr["cobranca"] != "pacote" and fr["preco_fornec"] > 0:
+            num = f"{n}.1" if varias else f"{len(saida) + 1:02d}"
+            saida.append((num, f"{fr['nome']}: fornecimento de materiais e mão de obra de execução, conforme os itens "
+                               "relacionados na seção 7.", "Obra executada e entregue conforme os itens da seção 7"))
         if not grupos and fr["cobranca"] == "pacote":
             num = f"{n}.1" if varias else f"{len(saida) + 1:02d}"
             saida.append((num, f"{fr['nome']}: fiscalização e planejamento da obra sob demanda, dentro do pacote de horas.",
@@ -403,9 +407,18 @@ def _linhas_prazos(res):
             etapas = [e for e in res["cronograma"] if e["fase"] == fr["id"]]
             meses = next((e["meses"] for e in etapas if e.get("meses")), None)
             dias = sum(e["dias_corridos"] for e in etapas)
-            prazos.append((f"Fase {n} — {fr['nome']}", f"durante a obra ({meses} meses)" if meses else f"{dias} dias",
-                           etapas[-1]["marco"] if etapas else "Conclusão da fase"))
-    prazos.append(("Prazo total estimado", f"{res['prazo_dias_corridos']} dias", "Conclusão dos serviços"))
+            texto = f"durante a obra ({meses} meses)" if meses else (f"{dias} dias" if etapas else "a definir")
+            prazos.append((f"Fase {n} — {fr['nome']}", texto, etapas[-1]["marco"] if etapas else "Conclusão da fase"))
+    sem_prazo = [fr["nome"] for fr in fases if not any(e["fase"] == fr["id"] for e in res["cronograma"])]
+    if not res["cronograma"]:
+        total = "a definir"
+    elif sem_prazo:
+        total = f"{res['prazo_dias_corridos']} dias, sem {', '.join(sem_prazo)} (prazo a definir)"
+    else:
+        total = f"{res['prazo_dias_corridos']} dias"
+    if len(fases) == 1 and not res["cronograma"]:
+        prazos.append((fases[0]["nome"], "a definir", "Conclusão da fase"))
+    prazos.append(("Prazo total estimado", total, "Conclusão dos serviços"))
     return prazos
 
 
@@ -414,6 +427,9 @@ def _texto_objeto(proposta, opcao, res, varias):
     for l in res["linhas"]:
         if l["servico_nome"] not in nomes:
             nomes.append(l["servico_nome"])
+    if not nomes:       # fase só de fornecimentos (execução): o objeto é o fornecimento e a mão de obra
+        nomes = [f"{fr['nome']} (fornecimento de materiais e mão de obra)" for fr in res["fases"] if fr["preco_fornec"] > 0] \
+            or [fr["nome"] for fr in res["fases"]]
     base = (proposta.get("objeto") or "serviços técnicos de engenharia").rstrip(".")
     sufixo = f" — {opcao['nome']}" if varias else ""
     if len(res["fases"]) > 1:
