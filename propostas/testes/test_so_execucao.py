@@ -112,7 +112,11 @@ def test_xlsx_recalculado_bate_com_o_motor(caso, cat, params, tmp_path):
     linha = {ws.cell(r, 1).value: r for r in range(1, ws.max_row + 1)}
     r = res["opcoes"][0]
     for rot, chave in ROTULOS.items():
-        assert float(ws.cell(linha[rot], 3).value or 0) == pytest.approx(r[chave], abs=0.01), rot
+        valor = ws.cell(linha[rot], 3).value
+        if valor == "a definir":        # opção sem horas nem cronograma: o prazo é "a definir", não 0
+            assert chave == "prazo_dias_corridos" and r[chave] == 0 and not r["cronograma"]
+            continue
+        assert float(valor or 0) == pytest.approx(r[chave], abs=0.01), rot
     wo = wb["Opção A"]
     rot_o = {wo.cell(k, 2).value: k for k in range(1, wo.max_row + 1) if wo.cell(k, 2).value}
     for k, fr in enumerate(r["fases"]):
