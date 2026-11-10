@@ -92,7 +92,12 @@ def test_cli_so_lista_fases_ativas(cat, params, tmp_path, capsys):
         arq.write_text(json.dumps(prop), encoding="utf-8")
         cli.main([str(arq), "--saida", str(tmp_path / nome)])
         saidas.append(capsys.readouterr().out)
-    assert saidas[0] == saidas[1]
+    aviso = "estão em fases desligadas e ficaram fora do preço."
+    com_aviso = [l for l in saidas[0].splitlines() if aviso in l]
+    assert len(com_aviso) == 1 and com_aviso[0].startswith("AVISO: Opção A:")      # o CLI continua avisando
+    assert aviso not in saidas[1]
+    sem_aviso = "\n".join(l for l in saidas[0].splitlines() if aviso not in l)
+    assert sem_aviso.strip() == saidas[1].strip()
     bloco_a = saidas[0].split("Opção B")[0] if "Opção B" in saidas[0] else saidas[0]
     assert f2["nome"] not in bloco_a
 
