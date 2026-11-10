@@ -55,7 +55,8 @@ def test_desligar_fase_equivale_a_remove_la(cat, params):
     assert a["total_h"] == pytest.approx(e["total_h"])
     assert len(a["cronograma"]) == len(e["cronograma"])
     assert a["prazo_dias_uteis"] == e["prazo_dias_uteis"]
-    assert ligada["avisos"] == esperada["avisos"]
+    assert [a for a in ligada["avisos"] if "fases desligadas" not in a] == esperada["avisos"]
+    assert any("fases desligadas" in a for a in ligada["avisos"])
     # a outra opção não muda
     assert opcao(ligada, "B")["preco"] == pytest.approx(opcao(esperada, "B")["preco"])
 
@@ -108,3 +109,43 @@ def test_estimativa_ignora_ativa(cat, params):
     r = opcao(motor.precificar(cat, p), "E")
     assert r["preco"] == antes
     assert r["fases_desligadas"] == []
+
+
+# ----------------------------------------------------------------------------- aviso de itens em fase desligada
+def _aviso(res, texto="fases desligadas"):
+    return [a for a in res["avisos"] if texto in a]
+
+
+def test_aviso_itens_em_fase_desligada(cat, params):
+    p = abrir_exemplo(RETROFIT, cat, params)
+    A = next(o for o in p["opcoes"] if o["id"] == "A")
+    fid = A["fases"][1]["id"]
+    n_it = sum(1 for x in A["itens"] if x["fase"] == fid)
+    n_fo = sum(1 for x in A["fornecimentos"] if x["fase"] == fid)
+    assert n_it + n_fo
+    A["fases"][1]["ativa"] = False
+    av = _aviso(motor.precificar(cat, p))
+    assert f"Opção {A['id']}: {n_it} serviço(s) e {n_fo} fornecimento(s) estão em fases desligadas e ficaram fora do preço." in av
+
+
+def test_aviso_sem_itens_em_fase_desligada_nao_aparece(cat, params):
+    p = abrir_exemplo(RETROFIT, cat, params)
+    A = next(o for o in p["opcoes"] if o["id"] == "A")
+    A["fases"].append(pp.nova_fase(pp.proxima_fase(A), params))
+    A["fases"][-1]["ativa"] = False
+    assert _aviso(motor.precificar(cat, p)) == []
+
+
+def test_aviso_item_orfao_cai_na_primeira_fase_desligada(cat, params):
+    p = abrir_exemplo(RETROFIT, cat, params)
+    A = next(o for o in p["opcoes"] if o["id"] == "A")
+    A["itens"][-1]["fase"] = "F99"            # fase inexistente: o item cai na primeira fase
+    A["fases"][0]["ativa"] = False
+    av = _aviso(motor.precificar(cat, p))
+    n_it = sum(1 for x in A["itens"] if x["fase"] == A["fases"][0]["id"] or x["fase"] == "F99")
+    assert av and f"{n_it} serviço(s)" in av[0]
+
+
+@pytest.mark.parametrize("caminho", EXEMPLOS)
+def test_exemplos_sem_aviso_de_fase_desligada(caminho, cat, params):
+    assert _aviso(motor.precificar(cat, abrir_exemplo(caminho, cat, params))) == []

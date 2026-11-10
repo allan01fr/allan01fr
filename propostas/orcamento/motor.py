@@ -487,6 +487,20 @@ def avisos(proposta, resultados):
     if resultados and len(ids_est) == len(resultados):
         av.append("Todas as opções são estimativas internas: nenhuma proposta será gerada para o cliente.")
     cfg_fases = {o["id"]: {f["id"]: f for f in o["fases"]} for o in proposta["opcoes"]}
+    for o in proposta["opcoes"]:
+        if o.get("modalidade") == "estimativa":
+            continue
+        ids = [f["id"] for f in o["fases"]]
+        off = {f["id"] for f in o["fases"] if not f.get("ativa", True)}
+        if not off:
+            continue
+
+        def desligada(x):       # sem fase válida o item cai na primeira fase
+            return (x.get("fase") if x.get("fase") in ids else ids[0]) in off
+        n_it, n_fo = sum(map(desligada, o["itens"])), sum(map(desligada, o["fornecimentos"]))
+        if n_it or n_fo:
+            av.append(f"Opção {o['id']}: {n_it} serviço(s) e {n_fo} fornecimento(s) estão em fases desligadas e "
+                      "ficaram fora do preço.")
     for r in resultados:
         if r["interno"]:
             faltando = [e["rotulo"] for e in r["checklist_turnkey"] if e["status"] == "faltando"]

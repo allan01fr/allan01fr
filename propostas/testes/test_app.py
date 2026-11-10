@@ -145,3 +145,126 @@ def test_tema_da_raiz_do_repositorio_igual_ao_local():
         pytest.skip("pasta propostas fora do repositório original")
     with open(raiz_repo, encoding="utf-8") as a, open(os.path.join(RAIZ, ".streamlit", "config.toml"), encoding="utf-8") as b:
         assert a.read() == b.read()
+
+
+# ----------------------------------------------------------------------------- módulos de escopo e fases ligadas
+MODULOS_ROTULOS = ["Projeto", "Acompanhamento de obra", "Execução", "Inspeção com laudo de conformidade",
+                   "Avaliação de desempenho"]
+
+
+def _botao_modulo(at, rotulo):
+    return next(b for b in at.button if b.label == rotulo)
+
+
+def _tabela_precos(at):
+    return next(d.value for d in at.dataframe if {"Módulo", "Cobrança", "Preço"} <= set(d.value.columns))
+
+
+def _preco_motor(at, oid="A"):
+    from orcamento import catalogo as ct
+    from orcamento import motor
+    r = next(r for r in motor.precificar(ct.carregar(), at.session_state.proposta)["opcoes"] if r["id"] == oid)
+    return r
+
+
+def test_app_tem_cinco_botoes_de_modulo():
+    at = _rodar()
+    rotulos = [b.label for b in at.button]
+    for r in MODULOS_ROTULOS:
+        assert r in rotulos
+    assert "➕ Nova fase" in rotulos
+
+
+def test_app_modulos_projeto_e_inspecao_viram_duas_fases():
+    from orcamento import exportar_docx
+    at = _rodar()
+    _botao_modulo(at, "Projeto").click().run()
+    assert not at.exception, at.exception
+    O = at.session_state.proposta["opcoes"][0]
+    assert [f["id"] for f in O["fases"]] == ["F1"] and O["fases"][0]["modulo"] == "projeto"
+    assert [i["servico"] for i in O["itens"]] == ["hvac.carga_termica", "hvac.projeto"]
+    _botao_modulo(at, "Inspeção com laudo de conformidade").click().run()
+    assert not at.exception, at.exception
+    O = at.session_state.proposta["opcoes"][0]
+    assert [f["id"] for f in O["fases"]] == ["F1", "F2"] and O["fases"][1]["modulo"] == "inspecao_laudo"
+    tab = _tabela_precos(at)
+    assert len(tab) == 3                                    # duas fases + total
+    assert list(tab["Módulo"][:2]) == ["Projeto", "Inspeção com laudo de conformidade"]
+    assert tab["Preço"].iloc[-1] == exportar_docx.moeda(_preco_motor(at)["preco"])
+
+
+def test_app_desliga_e_religa_fase():
+    from orcamento import exportar_docx
+    at = _rodar()
+    _botao_modulo(at, "Projeto").click().run()
+    _botao_modulo(at, "Inspeção com laudo de conformidade").click().run()
+    v = at.session_state.versao
+    total2 = _preco_motor(at)["preco"]
+    at.toggle(key=f"{v}|fz_ativa|A|F2").set_value(False).run()
+    assert not at.exception, at.exception
+    r = _preco_motor(at)
+    assert [f["id"] for f in r["fases"]] == ["F1"] and r["preco"] < total2
+    tab = _tabela_precos(at)
+    assert len(tab) == 2 and tab["Preço"].iloc[-1] == exportar_docx.moeda(r["preco"])
+    textos = [m.value for m in at.markdown] + [c.value for c in at.caption]
+    assert any("Fora desta proposta" in t and "Inspeção com laudo de conformidade" in t for t in textos)
+    assert any("Fases desligadas (fora desta proposta)" in t for t in textos)
+    at.toggle(key=f"{v}|fz_ativa|A|F2").set_value(True).run()
+    assert not at.exception, at.exception
+    assert _tabela_precos(at)["Preço"].iloc[-1] == exportar_docx.moeda(total2)
+
+
+def test_app_ultima_fase_ativa_nao_desliga():
+    at = _rodar()
+    v = at.session_state.versao
+    assert at.toggle(key=f"{v}|fz_ativa|A|F1").disabled is True
+    _botao_modulo(at, "Projeto").click().run()
+    _botao_modulo(at, "Acompanhamento de obra").click().run()
+    v = at.session_state.versao
+    assert at.toggle(key=f"{v}|fz_ativa|A|F1").disabled is False
+    at.toggle(key=f"{v}|fz_ativa|A|F2").set_value(False).run()
+    assert at.toggle(key=f"{v}|fz_ativa|A|F1").disabled is True
+
+
+def test_app_excluir_unica_fase_ativa_liga_a_primeira_restante():
+    at = _rodar()
+    _botao_modulo(at, "Projeto").click().run()
+    _botao_modulo(at, "Inspeção com laudo de conformidade").click().run()
+    v = at.session_state.versao
+    at.toggle(key=f"{v}|fz_ativa|A|F1").set_value(False).run()          # só a F2 fica ativa
+    at.button(key=f"{v}|fz_rm|A|F2").click().run()
+    assert not at.exception, at.exception
+    fases = at.session_state.proposta["opcoes"][0]["fases"]
+    assert [f["id"] for f in fases] == ["F1"] and fases[0]["ativa"] is True
+
+
+def test_app_exemplo_de_fases_nao_muda_de_preco(tmp_path, monkeypatch):
+    from orcamento import catalogo as ct
+    from orcamento import motor
+    at = _carregar("hvac_retrofit_fases.json", tmp_path, monkeypatch)
+    assert not at.exception
+    r = motor.precificar(ct.carregar(), at.session_state.proposta)
+    assert not [a for a in r["avisos"] if "fases desligadas" in a]
+    A = r["opcoes"][0]
+    tab = _tabela_precos(at)
+    assert len(tab) == len(A["fases"]) + 1
+    assert list(tab["Nº"][:-1]) == [str(n) for n in range(1, len(A["fases"]) + 1)]
+    assert tab["Preço"].iloc[-1] == __import__("orcamento.exportar_docx", fromlist=["moeda"]).moeda(A["preco"])
+
+
+def test_app_estimativa_sem_botoes_de_modulo():
+    at = _rodar()
+    v = at.session_state.versao
+    at.radio(key=f"{v}|modalidade|A").set_value("estimativa").run()
+    assert not at.exception, at.exception
+    assert not [b for b in at.button if b.label in MODULOS_ROTULOS]
+
+
+def test_app_sem_fase_incluida_mostra_erro_sem_quebrar():
+    at = _rodar()
+    _botao_modulo(at, "Projeto").click().run()
+    at.session_state.proposta["opcoes"][0]["fases"][0]["ativa"] = False      # arquivo editado à mão
+    at.session_state.versao += 1
+    at.run()
+    assert not at.exception, at.exception
+    assert any("nenhuma fase incluída" in e.value for e in at.error)
