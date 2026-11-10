@@ -148,8 +148,8 @@ def test_tema_da_raiz_do_repositorio_igual_ao_local():
 
 
 # ----------------------------------------------------------------------------- módulos de escopo e fases ligadas
-MODULOS_ROTULOS = ["Projeto", "Acompanhamento de obra", "Execução", "Inspeção com laudo de conformidade",
-                   "Avaliação de desempenho"]
+MODULOS_ROTULOS = ["Projeto", "Acompanhamento de obra", "Execução", "Inspeção com laudo",
+                   "Avaliação de desempenho"]      # o nome completo do módulo fica no help do botão
 
 
 def _botao_modulo(at, rotulo):
@@ -157,7 +157,7 @@ def _botao_modulo(at, rotulo):
 
 
 def _tabela_precos(at):
-    return next(d.value for d in at.dataframe if {"Módulo", "Cobrança", "Preço"} <= set(d.value.columns))
+    return next(d.value for d in at.dataframe if {"Cobrança", "Preço"} <= set(d.value.columns))
 
 
 def _preco_motor(at, oid="A"):
@@ -183,13 +183,14 @@ def test_app_modulos_projeto_e_inspecao_viram_duas_fases():
     O = at.session_state.proposta["opcoes"][0]
     assert [f["id"] for f in O["fases"]] == ["F1"] and O["fases"][0]["modulo"] == "projeto"
     assert [i["servico"] for i in O["itens"]] == ["hvac.carga_termica", "hvac.projeto"]
-    _botao_modulo(at, "Inspeção com laudo de conformidade").click().run()
+    _botao_modulo(at, "Inspeção com laudo").click().run()
     assert not at.exception, at.exception
     O = at.session_state.proposta["opcoes"][0]
     assert [f["id"] for f in O["fases"]] == ["F1", "F2"] and O["fases"][1]["modulo"] == "inspecao_laudo"
     tab = _tabela_precos(at)
     assert len(tab) == 3                                    # duas fases + total
-    assert list(tab["Módulo"][:2]) == ["Projeto", "Inspeção com laudo de conformidade"]
+    assert list(tab["Fase"][:2]) == ["Projeto", "Inspeção com laudo de conformidade"]
+    assert "Módulo" not in tab.columns                      # o módulo repetiria o nome de todas as fases
     assert tab["Preço"].iloc[-1] == exportar_docx.moeda(_preco_motor(at)["preco"])
 
 
@@ -197,7 +198,7 @@ def test_app_desliga_e_religa_fase():
     from orcamento import exportar_docx
     at = _rodar()
     _botao_modulo(at, "Projeto").click().run()
-    _botao_modulo(at, "Inspeção com laudo de conformidade").click().run()
+    _botao_modulo(at, "Inspeção com laudo").click().run()
     v = at.session_state.versao
     total2 = _preco_motor(at)["preco"]
     at.toggle(key=f"{v}|fz_ativa|A|F2").set_value(False).run()
@@ -229,7 +230,7 @@ def test_app_ultima_fase_ativa_nao_desliga():
 def test_app_excluir_unica_fase_ativa_liga_a_primeira_restante():
     at = _rodar()
     _botao_modulo(at, "Projeto").click().run()
-    _botao_modulo(at, "Inspeção com laudo de conformidade").click().run()
+    _botao_modulo(at, "Inspeção com laudo").click().run()
     v = at.session_state.versao
     at.toggle(key=f"{v}|fz_ativa|A|F1").set_value(False).run()          # só a F2 fica ativa
     at.button(key=f"{v}|fz_rm|A|F2").click().run()
@@ -402,3 +403,71 @@ def test_app_duas_fases_desligadas_na_mesma_execucao_mantem_a_primeira(tmp_path,
     assert not any("nenhuma fase incluída" in e.value for e in at.error)
     O = at.session_state.proposta["opcoes"][0]
     assert [f["ativa"] for f in O["fases"]] == [True] + [False] * (len(ids) - 1)
+
+
+# ----------------------------------------------------------------------------- rótulos e textos da tela (fix-2)
+def _tres_fases_com_a_do_meio_desligada():
+    at = _rodar()
+    for r in ("Projeto", "Inspeção com laudo", "Execução"):
+        _botao_modulo(at, r).click().run()
+    v = at.session_state.versao
+    at.toggle(key=f"{v}|fz_ativa|A|F2").set_value(False).run()
+    assert not at.exception, at.exception
+    return at, at.session_state.versao
+
+
+def test_app_botao_de_modulo_tem_nome_completo_no_help():
+    at = _rodar()
+    b = _botao_modulo(at, "Inspeção com laudo")
+    assert b.help.startswith("Inspeção com laudo de conformidade")
+
+
+def test_app_seletores_de_fase_usam_a_numeracao_das_fases_ativas():
+    at, v = _tres_fases_com_a_do_meio_desligada()
+    esperado = ["Fase 1 — Projeto", "Inspeção com laudo de conformidade (desligada)", "Fase 2 — Execução"]
+    assert at.selectbox(key=f"{v}|f_fase").options == esperado
+    assert at.selectbox(key=f"{v}|it_fase|A|0").options == esperado
+    seletores = [s for s in at.selectbox if s.key and s.key.endswith("|f_fase") or "|it_fase|" in (s.key or "")]
+    assert seletores and all(s.options == esperado for s in seletores)
+    assert not any("Fase 3" in o for s in seletores for o in s.options)
+
+
+def test_app_toggle_de_fase_tem_rotulo_curto_com_ajuda():
+    at, v = _tres_fases_com_a_do_meio_desligada()
+    t = at.toggle(key=f"{v}|fz_ativa|A|F1")
+    assert t.label == "Incluir" and t.help
+    assert at.toggle(key=f"{v}|fz_religa|A|F2").label == "Incluir"
+
+
+def test_app_sem_redundancia_entre_fase_e_modulo():
+    at, v = _tres_fases_com_a_do_meio_desligada()
+    textos = [m.value for m in at.markdown] + [c.value for c in at.caption]
+    assert "Fora desta proposta: Inspeção com laudo de conformidade." in textos
+    assert not any("Módulo: " in t for t in textos)
+    assert not any("· Inspeção com laudo de conformidade ·" in t or "Inspeção com laudo de conformidade · Inspeção" in t
+                   for t in textos)
+    off = next(t for t in textos if t.startswith("~~"))
+    assert off == "~~Inspeção com laudo de conformidade~~ · desligada"
+
+
+def test_app_modulo_diferente_do_nome_da_fase_aparece_em_parenteses_e_na_tabela():
+    at, v = _tres_fases_com_a_do_meio_desligada()
+    at.toggle(key=f"{v}|fz_religa|A|F2").set_value(True).run()
+    v = at.session_state.versao
+    at.text_input(key=f"{v}|fz_nome|A|F2").set_value("Laudo do 3º andar").run()
+    assert "Módulo" in _tabela_precos(at).columns
+    assert "Módulo: Inspeção com laudo de conformidade" in [c.value for c in at.caption]
+    at.toggle(key=f"{v}|fz_ativa|A|F2").set_value(False).run()
+    textos = [m.value for m in at.markdown] + [c.value for c in at.caption]
+    assert "Fora desta proposta: Laudo do 3º andar (Inspeção com laudo de conformidade)." in textos
+    assert "~~Laudo do 3º andar~~ · Inspeção com laudo de conformidade · desligada" in textos
+
+
+def test_app_nome_de_fase_desligada_nao_vira_markdown():
+    at, v = _tres_fases_com_a_do_meio_desligada()
+    at.toggle(key=f"{v}|fz_religa|A|F2").set_value(True).run()
+    v = at.session_state.versao
+    at.text_input(key=f"{v}|fz_nome|A|F2").set_value("a*b_c~d[e]`f$").run()
+    at.toggle(key=f"{v}|fz_ativa|A|F2").set_value(False).run()
+    riscado = next(m.value for m in at.markdown if m.value.startswith("~~"))
+    assert riscado.startswith("~~a\\*b\\_c\\~d\\[e\\]\\`f\\$~~")

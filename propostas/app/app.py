@@ -46,9 +46,17 @@ CATEGORIAS = {"material": "Material", "equipamento": "Equipamento", "mo_execucao
 moeda = exportar_docx.moeda
 
 
+_MD_ESPECIAIS = "\\$~*_[]`"
+
+
+# nome do botão do módulo quando o nome completo (escopos.MODULOS) é longo demais para o botão; o completo vai no help
+ROTULO_BOTAO_MODULO = {"inspecao_laudo": "Inspeção com laudo"}
+
+
 def md(texto):
-    """Escapa o $ para o markdown do Streamlit não ler 'R$ ... R$' como fórmula LaTeX."""
-    return str(texto).replace("$", "\\$")
+    """Escapa o que o markdown do Streamlit leria como formatação ($ vira fórmula LaTeX; ~ * _ [ ] ` formatam),
+    para um nome digitado pelo usuário aparecer como foi escrito, inclusive dentro de ~~riscado~~."""
+    return "".join("\\" + c if c in _MD_ESPECIAIS else c for c in str(texto))
 
 # ----------------------------------------------------------------------------- estado
 ss = st.session_state
@@ -270,7 +278,6 @@ with abas[1]:
     estimativa = O["modalidade"] == "estimativa"
     sincronizar_fases(O)
     ids_fases = [f["id"] for f in O["fases"]]
-    nome_fase = rotulos_fases(O)
     if estimativa:
         with st.container(border=True):
             st.markdown("**Etapas da obra consideradas no valor global**")
@@ -294,8 +301,11 @@ with abas[1]:
             st.markdown("**Incluir módulo**")
             st.caption("Cada módulo cria uma fase própria, já com os serviços do escopo; depois é só ligar ou desligar "
                        "a fase abaixo.")
-            for col, (mid, mod) in zip(st.columns(len(escopos.MODULOS)), escopos.MODULOS.items()):
-                if col.button(mod["nome"], key=k("mod", O["id"], mid), help=mod["descricao"], width="stretch"):
+            mods = list(escopos.MODULOS.items())
+            colunas_mod = st.columns(3) + st.columns(3)       # duas linhas: o nome do botão cabe inteiro
+            for col, (mid, mod) in zip(colunas_mod, mods):
+                if col.button(ROTULO_BOTAO_MODULO.get(mid, mod["nome"]), key=k("mod", O["id"], mid),
+                              help=f"{mod['nome']}. {mod['descricao']}", width="stretch"):
                     try:
                         escopos.incluir(O, mid, CAT, P["parametros"])
                     except (KeyError, ValueError) as e:
@@ -311,18 +321,20 @@ with abas[1]:
                 c1.markdown(f"**{pos}**" if ativa else "—")
                 fz["nome"] = c2.text_input("Nome da fase", fz["nome"], key=k("fz_nome", O["id"], fz["id"]),
                                            label_visibility="collapsed")
-                if fz.get("modulo") in escopos.MODULOS:
-                    c2.caption(f"Módulo: {escopos.MODULOS[fz['modulo']]['nome']}" + ("" if ativa else " · desligada"))
-                elif not ativa:
-                    c2.caption("desligada")
+                mod_nome = escopos.MODULOS.get(fz.get("modulo"), {}).get("nome")
+                legenda = [x for x in ((f"Módulo: {mod_nome}" if mod_nome and mod_nome != fz["nome"] else ""),
+                                       "" if ativa else "desligada") if x]
+                if legenda:
+                    c2.caption(" · ".join(legenda))
                 fz["cobranca"] = c3.selectbox("Cobrança", list(COBRANCAS), index=list(COBRANCAS).index(fz["cobranca"]),
                                               format_func=COBRANCAS.get, key=k("fz_cob", O["id"], fz["id"]),
                                               label_visibility="collapsed")
                 ultima = ativa and n_ativas == 1
                 fz["ativa"] = bool(c4.toggle(
-                    "Incluir nesta proposta", value=ativa, key=k("fz_ativa", O["id"], fz["id"]), disabled=ultima,
+                    "Incluir", value=ativa, key=k("fz_ativa", O["id"], fz["id"]), disabled=ultima,
                     help="A proposta precisa de pelo menos uma fase incluída." if ultima else
-                         "Desligada, a fase sai do preço, do cronograma e da proposta, mas continua guardada."))
+                         "Incluir esta fase na proposta. Desligada, a fase sai do preço, do cronograma e da proposta, "
+                         "mas continua guardada."))
                 if c5.button("⬆", key=k("fz_sobe", O["id"], fz["id"]), disabled=n == 0, help="Subir a fase"):
                     O["fases"][n - 1], O["fases"][n] = O["fases"][n], O["fases"][n - 1]
                     estrutura_mudou()
@@ -353,7 +365,7 @@ with abas[1]:
             st.caption(ct.servico(CAT, sid)["descricao"])
             fase_nova = ids_fases[0]
             if not estimativa and len(ids_fases) > 1:
-                fase_nova = st.selectbox("Na fase", ids_fases, index=len(ids_fases) - 1, format_func=nome_fase.get,
+                fase_nova = st.selectbox("Na fase", ids_fases, index=len(ids_fases) - 1, format_func=rotulos_fases(O).get,
                                          key=k("f_fase"))
             if st.button("Adicionar à opção", type="primary"):
                 O["itens"].append(pp.novo_item(ct.servico(CAT, sid), fase_nova))
@@ -374,13 +386,14 @@ with abas[1]:
         serv = ct.servico(CAT, it["servico"])
         if not estimativa and len(ids_fases) > 1 and it.get("fase") != fase_atual:
             fase_atual = it.get("fase")
-            st.markdown(f"**{nome_fase.get(fase_atual, nome_fase[ids_fases[0]])}**")
+            rot_fases = rotulos_fases(O)
+            st.markdown(f"**{rot_fases.get(fase_atual, rot_fases[ids_fases[0]])}**")
         titulo = f"{i + 1}. {it.get('descricao') or serv['nome']}  ·  {serv['disciplina']}"
         with st.expander(titulo, expanded=(ss.get("aberto") == i)):
             st.caption(serv["descricao"])
             if not estimativa and len(ids_fases) > 1:
                 atual_f = it.get("fase") if it.get("fase") in ids_fases else ids_fases[0]
-                nova_f = st.selectbox("Fase", ids_fases, index=ids_fases.index(atual_f), format_func=nome_fase.get,
+                nova_f = st.selectbox("Fase", ids_fases, index=ids_fases.index(atual_f), format_func=rotulos_fases(O).get,
                                       key=k("it_fase", O["id"], i))
                 if nova_f != it.get("fase"):
                     it["fase"] = nova_f
@@ -654,8 +667,10 @@ with abas[3]:
             for fz in desligadas_p:
                 c1, c2 = st.columns([4, 1.5])
                 mod = escopos.MODULOS.get(fz.get("modulo"), {}).get("nome")
-                c1.markdown("~~" + md(fz["nome"]) + "~~" + (f" · {md(mod)}" if mod else "") + " · desligada")
-                if c2.toggle("Incluir nesta proposta", value=False, key=k("fz_religa", O["id"], fz["id"])):
+                c1.markdown("~~" + md(fz["nome"]) + "~~" + (f" · {md(mod)}" if mod and mod != fz["nome"] else "")
+                            + " · desligada")
+                if c2.toggle("Incluir", value=False, key=k("fz_religa", O["id"], fz["id"]),
+                             help="Incluir esta fase na proposta"):
                     fz["ativa"] = True
                     estrutura_mudou()
     with st.expander("Parâmetros comerciais da proposta", expanded=False):
@@ -868,10 +883,18 @@ with abas[3]:
                              "Fixo": moeda(R["preco_fixo"]), "Estimado": moeda(R["preco_estimado"]),
                              "Custo": moeda(R["custo_servicos"]), "Margem efetiva": pct(R["margem_efetiva"]),
                              "Horas": num_br(R["total_h"]), "Prazo (dias)": R["prazo_dias_corridos"]})
-            st.dataframe(pd.DataFrame(linhas_f), hide_index=True, width="stretch")
+            df_f = pd.DataFrame(linhas_f)
+            if all(f["nome"] == modulo_nome(f["id"]) for f in R["fases"]):      # o módulo só repetiria o nome da fase
+                df_f = df_f.drop(columns=["Módulo"])
+            st.dataframe(df_f, hide_index=True, width="stretch", column_config={
+                "Nº": st.column_config.TextColumn("Nº", width="small"),
+                "Fase": st.column_config.TextColumn("Fase", width="large"),
+                "Módulo": st.column_config.TextColumn("Módulo", width="large"),
+                "Cobrança": st.column_config.TextColumn("Cobrança", width="medium")})
             if R["fases_desligadas"]:
                 st.caption(md("Fora desta proposta: " + "; ".join(
-                    d["nome"] + (f" ({escopos.MODULOS[d['modulo']]['nome']})" if d["modulo"] in escopos.MODULOS else "")
+                    d["nome"] + (f" ({escopos.MODULOS[d['modulo']]['nome']})"
+                                 if d["modulo"] in escopos.MODULOS and escopos.MODULOS[d["modulo"]]["nome"] != d["nome"] else "")
                     for d in R["fases_desligadas"]) + "."))
             st.caption(md(f"{num_br(R['total_h'])} h · {R['prazo_dias_corridos']} dias corridos · ART {moeda(R['art'])} "
                           f"(uma por fase) · referência: tudo em escopo fechado {moeda(R['preco_fechado'])}."
