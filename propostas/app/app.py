@@ -114,10 +114,15 @@ def fase_ativa(fz):
 
 def sincronizar_fases(o):
     """Traz para o dado o estado dos botões 'Incluir nesta proposta' (os widgets rodam depois do cálculo de quem os lê)."""
+    mexeu = False
     for fz in o["fases"]:
         chave = k("fz_ativa", o["id"], fz["id"])
         if chave in ss:
+            mexeu = mexeu or fase_ativa(fz) != bool(ss[chave])
             fz["ativa"] = bool(ss[chave])
+    if mexeu and o["fases"] and not any(fase_ativa(f) for f in o["fases"]):      # dois botões desligados na mesma execução
+        o["fases"][0]["ativa"] = True
+        ss[k("fz_ativa", o["id"], o["fases"][0]["id"])] = True
 
 
 def rotulos_fases(o):
@@ -309,7 +314,7 @@ with abas[1]:
                 if fz.get("modulo") in escopos.MODULOS:
                     c2.caption(f"Módulo: {escopos.MODULOS[fz['modulo']]['nome']}" + ("" if ativa else " · desligada"))
                 elif not ativa:
-                    c2.caption("Desligada")
+                    c2.caption("desligada")
                 fz["cobranca"] = c3.selectbox("Cobrança", list(COBRANCAS), index=list(COBRANCAS).index(fz["cobranca"]),
                                               format_func=COBRANCAS.get, key=k("fz_cob", O["id"], fz["id"]),
                                               label_visibility="collapsed")
@@ -322,13 +327,14 @@ with abas[1]:
                     O["fases"][n - 1], O["fases"][n] = O["fases"][n], O["fases"][n - 1]
                     estrutura_mudou()
                 if c6.button("🗑", key=k("fz_rm", O["id"], fz["id"]), disabled=len(O["fases"]) == 1,
-                             help="Remover a fase (os serviços vão para a primeira fase restante)"):
+                             help="Remover a fase (os serviços vão para a primeira fase incluída)"):
                     O["fases"].pop(n)
-                    for x in O["itens"] + O["fornecimentos"]:
-                        if x.get("fase") == fz["id"]:
-                            x["fase"] = O["fases"][0]["id"]
                     if not any(fase_ativa(f) for f in O["fases"]):      # a proposta nunca fica sem fase incluída
                         O["fases"][0]["ativa"] = True
+                    destino = next(f for f in O["fases"] if fase_ativa(f))["id"]
+                    for x in O["itens"] + O["fornecimentos"]:
+                        if x.get("fase") == fz["id"]:
+                            x["fase"] = destino
                     estrutura_mudou()
             if st.button("➕ Nova fase", key=k("fz_nova", O["id"])):
                 O["fases"].append(pp.nova_fase(pp.proxima_fase(O), P["parametros"]))
@@ -648,7 +654,7 @@ with abas[3]:
             for fz in desligadas_p:
                 c1, c2 = st.columns([4, 1.5])
                 mod = escopos.MODULOS.get(fz.get("modulo"), {}).get("nome")
-                c1.markdown(f"~~{fz['nome']}~~" + (f" · {mod}" if mod else "") + " · desligada")
+                c1.markdown("~~" + md(fz["nome"]) + "~~" + (f" · {md(mod)}" if mod else "") + " · desligada")
                 if c2.toggle("Incluir nesta proposta", value=False, key=k("fz_religa", O["id"], fz["id"])):
                     fz["ativa"] = True
                     estrutura_mudou()
@@ -825,11 +831,11 @@ def detalhe_fase(fr):
 
 with abas[3]:
     with topo_preco:
-        tem_escopo = R and (R["linhas"] or any(f["cobranca"] == "pacote" for f in R["fases"]))
+        tem_escopo = R and motor.opcao_tem_preco(R)
         if erro_calc:
             st.error(f"Não foi possível calcular: {erro_calc}")
         elif not tem_escopo:
-            st.info("Adicione serviços na aba Escopo para ver o preço.")
+            st.info("Adicione serviços na aba Escopo (ou materiais e mão de obra na aba Fornecimentos) para ver o preço.")
         elif R["interno"]:
             st.subheader(f"Estimativa interna — {O['nome']}")
             c1, c2, c3 = st.columns(3)
@@ -887,22 +893,25 @@ with abas[3]:
 
 # ----------------------------------------------------------------------------- 5 prazo e pagamento
 with abas[4]:
-    if R and (R["linhas"] or any(f["cobranca"] == "pacote" for f in R["fases"])):
+    if R and motor.opcao_tem_preco(R):
         st.subheader(f"Cronograma — {O['nome']}")
         varias_f = len(R["fases"]) > 1
         num_f = {f["id"]: n for n, f in enumerate(R["fases"], 1)}
-        dfg = pd.DataFrame([{"Etapa": (f"F{num_f[e['fase']]} · " if varias_f else "") + e["rotulo"],
-                             "Início": e["inicio"], "Fim": e["fim"] + 1, "Horas": round(e["horas"], 1),
-                             "Dias úteis": e["dias_uteis"], "Dias corridos": e["dias_corridos"], "Marco": e["marco"]}
-                            for e in R["cronograma"]])
-        graf = alt.Chart(dfg).mark_bar(color=AZUL, cornerRadius=2).encode(
-            x=alt.X("Início:Q", title="Dia útil"), x2="Fim:Q",
-            y=alt.Y("Etapa:N", sort=None, title=None, axis=alt.Axis(labelLimit=360)),
-            tooltip=["Etapa", "Dias úteis", "Horas", "Marco"]).properties(height=36 * len(dfg) + 40)
-        st.altair_chart(graf, width="stretch")
-        st.dataframe(dfg.drop(columns=["Fim"]), hide_index=True, width="stretch")
-        st.caption(f"Prazo total: {R['prazo_dias_uteis']} dias úteis ≈ {R['prazo_dias_corridos']} dias corridos. Fases em "
-                   "sequência; dias úteis = horas da etapa ÷ (8 h × equipe); fases de obra duram os meses da obra.")
+        if not R["cronograma"]:
+            st.info("Sem serviços com horas, o cronograma depende do prazo de execução: informe-o na aba Fornecimentos.")
+        if R["cronograma"]:
+            dfg = pd.DataFrame([{"Etapa": (f"F{num_f[e['fase']]} · " if varias_f else "") + e["rotulo"],
+                                 "Início": e["inicio"], "Fim": e["fim"] + 1, "Horas": round(e["horas"], 1),
+                                 "Dias úteis": e["dias_uteis"], "Dias corridos": e["dias_corridos"], "Marco": e["marco"]}
+                                for e in R["cronograma"]])
+            graf = alt.Chart(dfg).mark_bar(color=AZUL, cornerRadius=2).encode(
+                x=alt.X("Início:Q", title="Dia útil"), x2="Fim:Q",
+                y=alt.Y("Etapa:N", sort=None, title=None, axis=alt.Axis(labelLimit=360)),
+                tooltip=["Etapa", "Dias úteis", "Horas", "Marco"]).properties(height=36 * len(dfg) + 40)
+            st.altair_chart(graf, width="stretch")
+            st.dataframe(dfg.drop(columns=["Fim"]), hide_index=True, width="stretch")
+            st.caption(f"Prazo total: {R['prazo_dias_uteis']} dias úteis ≈ {R['prazo_dias_corridos']} dias corridos. Fases em "
+                       "sequência; dias úteis = horas da etapa ÷ (8 h × equipe); fases de obra duram os meses da obra.")
         if R["interno"]:
             st.info("Estimativa interna: não tem forma de pagamento (não gera proposta).")
         else:
@@ -943,9 +952,9 @@ with abas[5]:
     if RES:
         for av in RES["avisos"]:
             st.warning(av)
-    pronto = RES and any(r["linhas"] or any(f["cobranca"] == "pacote" for f in r["fases"]) for r in RES["opcoes"])
+    pronto = RES and any(motor.opcao_tem_preco(r) for r in RES["opcoes"])
     if not pronto:
-        st.info("Adicione serviços para exportar.")
+        st.info("Adicione serviços (ou materiais e mão de obra de execução) para exportar.")
     else:
         arquivos = ss.get("arquivos")
         if arquivos and arquivos["assinatura"] != ASSINATURA:

@@ -268,3 +268,137 @@ def test_app_sem_fase_incluida_mostra_erro_sem_quebrar():
     at.run()
     assert not at.exception, at.exception
     assert any("nenhuma fase incluída" in e.value for e in at.error)
+
+
+# ----------------------------------------------------------------------------- só execução (fornecimentos sem serviços)
+def _so_execucao_no_app():
+    from orcamento import proposta as pp
+    at = _rodar()
+    _botao_modulo(at, "Execução").click().run()
+    O = at.session_state.proposta["opcoes"][0]
+    O["fornecimentos"] += [pp.novo_fornecimento("Tubulação de cobre", "material", "m", 120, 85.0, fase="F1"),
+                           pp.novo_fornecimento("Instalação do sistema", "mo_execucao", "dia", 20, 650.0, fase="F1")]
+    at.session_state.versao += 1
+    at.run()
+    assert not at.exception, at.exception
+    return at
+
+
+def test_app_so_execucao_mostra_preco_prazo_e_libera_exportacao():
+    from orcamento import exportar_docx
+    at = _so_execucao_no_app()
+    r = _preco_motor(at)
+    assert r["linhas"] == [] and r["preco"] > 0
+    textos = [i.value for i in at.info] + [w.value for w in at.warning]
+    assert not any("Adicione serviços" in t for t in textos)
+    assert not any("nenhum serviço com horas" in t or "sem serviços" in t for t in textos)
+    assert _tabela_precos(at)["Preço"].iloc[-1] == exportar_docx.moeda(r["preco"])
+    assert any("prazo de execução" in t for t in textos)             # no lugar do cronograma vazio
+    next(b for b in at.button if b.label == "Gerar planilha e propostas").click().run()
+    assert not at.exception, at.exception
+    arq = at.session_state.arquivos
+    assert arq["xlsx"][0][:2] == b"PK" and len(arq["docx"]) == 1
+
+
+def test_app_execucao_sem_nada_nao_libera_exportacao():
+    at = _rodar()
+    _botao_modulo(at, "Execução").click().run()
+    assert any("Adicione serviços" in i.value for i in at.info)
+    assert not [b for b in at.button if b.label == "Gerar planilha e propostas"]
+
+
+# ----------------------------------------------------------------------------- fases desligadas na tela (revisão)
+def _retrofit_com_f1_f2_off(tmp_path, monkeypatch):
+    at = _carregar("hvac_retrofit_fases.json", tmp_path, monkeypatch)
+    v = at.session_state.versao
+    for fid in ("F1", "F2"):
+        at.toggle(key=f"{v}|fz_ativa|A|{fid}").set_value(False).run()
+    return at
+
+
+def test_app_excluir_fase_leva_servicos_para_a_primeira_fase_ativa(tmp_path, monkeypatch):
+    at = _retrofit_com_f1_f2_off(tmp_path, monkeypatch)
+    O = at.session_state.proposta["opcoes"][0]
+    assert [f["ativa"] for f in O["fases"][:3]] == [False, False, True]
+    movidos = [x for x in O["itens"] + O["fornecimentos"] if x["fase"] == "F3"]
+    assert movidos
+    v = at.session_state.versao
+    at.button(key=f"{v}|fz_rm|A|F3").click().run()
+    assert not at.exception, at.exception
+    O = at.session_state.proposta["opcoes"][0]
+    primeira_ativa = next(f["id"] for f in O["fases"] if f.get("ativa", True))
+    assert primeira_ativa != "F1" and all(x["fase"] == primeira_ativa for x in movidos)
+    assert not any(x["fase"] in ("F1", "F2") and x in movidos for x in O["itens"] + O["fornecimentos"])
+    ids_precificados = {f["id"] for f in _preco_motor(at)["fases"]}
+    assert primeira_ativa in ids_precificados               # os serviços de F3 continuam no preço
+
+
+def test_app_excluir_unica_fase_ativa_leva_servicos_para_a_fase_religada(tmp_path, monkeypatch):
+    at = _carregar("hvac_retrofit_fases.json", tmp_path, monkeypatch)
+    O = at.session_state.proposta["opcoes"][0]
+    v = at.session_state.versao
+    ids = [f["id"] for f in O["fases"]]
+    movidos = [x for x in O["itens"] + O["fornecimentos"] if x["fase"] == ids[-1]]
+    assert movidos
+    for fid in ids[:-1]:
+        at.toggle(key=f"{v}|fz_ativa|A|{fid}").set_value(False).run()
+    at.button(key=f"{v}|fz_rm|A|{ids[-1]}").click().run()
+    assert not at.exception, at.exception
+    O = at.session_state.proposta["opcoes"][0]
+    assert O["fases"][0]["ativa"] is True
+    assert all(x["fase"] == O["fases"][0]["id"] for x in movidos)
+    assert _preco_motor(at)["preco"] > 0
+
+
+def test_app_reordenar_com_fase_desligada_mantem_numeracao_do_preco(tmp_path, monkeypatch):
+    at = _carregar("hvac_retrofit_fases.json", tmp_path, monkeypatch)
+    v = at.session_state.versao
+    at.toggle(key=f"{v}|fz_ativa|A|F1").set_value(False).run()
+    at.button(key=f"{v}|fz_sobe|A|F3").click().run()
+    assert not at.exception, at.exception
+    r = _preco_motor(at)
+    tab = _tabela_precos(at)
+    assert list(tab["Fase"][:-1]) == [f["nome"] for f in r["fases"]]
+    assert list(tab["Nº"][:-1]) == [str(n) for n in range(1, len(r["fases"]) + 1)]
+
+
+def test_app_religa_fase_pela_aba_de_preco(tmp_path, monkeypatch):
+    at = _retrofit_com_f1_f2_off(tmp_path, monkeypatch)
+    v = at.session_state.versao
+    at.toggle(key=f"{v}|fz_religa|A|F2").set_value(True).run()
+    assert not at.exception, at.exception
+    fases = {f["id"]: f for f in at.session_state.proposta["opcoes"][0]["fases"]}
+    assert fases["F2"]["ativa"] is True and fases["F1"]["ativa"] is False
+
+
+def test_app_json_com_fase_desligada_mostra_o_botao_desligado(tmp_path, monkeypatch):
+    import json
+    from conftest import RAIZ as raiz
+    d = json.load(open(os.path.join(raiz, "exemplos", "hvac_retrofit_fases.json"), encoding="utf-8"))
+    d["opcoes"][0]["fases"][1]["ativa"] = False
+    (tmp_path / "ex").mkdir()
+    (tmp_path / "ex" / "off.json").write_text(json.dumps(d), encoding="utf-8")
+    at = _carregar("hvac_retrofit_fases.json", tmp_path, monkeypatch)
+    from orcamento import proposta as pp
+    from orcamento import parametros as pm
+    at.session_state.proposta = pp.completar(pp.carregar_json(json.dumps(d)), at.session_state.cat, pm.carregar())
+    at.session_state.versao += 1
+    at.run()
+    assert not at.exception, at.exception
+    v = at.session_state.versao
+    fid = d["opcoes"][0]["fases"][1]["id"]
+    assert at.toggle(key=f"{v}|fz_ativa|A|{fid}").value is False
+
+
+def test_app_duas_fases_desligadas_na_mesma_execucao_mantem_a_primeira(tmp_path, monkeypatch):
+    at = _carregar("hvac_retrofit_fases.json", tmp_path, monkeypatch)
+    O = at.session_state.proposta["opcoes"][0]
+    v = at.session_state.versao
+    ids = [f["id"] for f in O["fases"]]
+    for fid in ids:      # troca todos os botões de uma vez, sem rodar entre eles
+        at.session_state[f"{v}|fz_ativa|A|{fid}"] = False
+    at.run()
+    assert not at.exception, at.exception
+    assert not any("nenhuma fase incluída" in e.value for e in at.error)
+    O = at.session_state.proposta["opcoes"][0]
+    assert [f["ativa"] for f in O["fases"]] == [True] + [False] * (len(ids) - 1)
