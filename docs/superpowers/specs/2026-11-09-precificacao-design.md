@@ -300,6 +300,64 @@ viabilidade. O plano fica mais enxuto:
 
 Prévia visual atualizada em `app/pages/2_Prévia_dos_próximos_blocos.py`.
 
+### B8 — Quantitativo por desenho (bloco futuro, depois de B2–B7)
+
+Objetivo: levantar quantidades a partir do desenho do cliente ou do projetista, sem medir à mão,
+e mandá-las para os itens da execução. Daí elas seguem para HH, material, curva ABC e ARTs, e a
+área segue para a CEHOP e a ABRAVA.
+
+**Formatos, em ordem de entrega:**
+
+1. **DXF (exato).**
+   - Biblioteca `ezdxf`.
+   - O comprimento é somado por camada: cobre, dreno, duto.
+   - Os blocos são contados: evaporadoras, grelhas.
+   - A área vem das polilinhas fechadas ou das hachuras.
+   - A escala vem de `INSUNITS` e é conferida contra uma cota.
+2. **DWG.**
+   - Caminho principal: exportar DXF no AutoCAD (`DXFOUT` ou script em lote).
+   - Arquivo de terceiros: `dwg2dxf` do LibreDWG (GPL, aberto, falha em DWG novo e complexo).
+     Testar com os arquivos reais da KAPTEK antes de prometer.
+   - Alternativa fechada e gratuita: ODA File Converter.
+3. **IFC (o mais rico).**
+   - Biblioteca `ifcopenshell`, a mesma do Bonsai e do FreeCAD.
+   - Lê tipo, sistema, diâmetro e comprimento de tubos e dutos, sem mapa de camadas.
+   - Troca de IFC com o Revit perde parametria: o IFC2x3 é o mais compatível, o IFC4 é mais rico.
+4. **PDF vetorial (assistido).**
+   - Biblioteca `PyMuPDF` extrai linhas, textos e camadas (OCG), quando existem.
+   - Calibração: o usuário clica numa cota conhecida.
+   - Sem camadas, a separação é por cor ou espessura de linha.
+   - Sempre com conferência humana.
+5. **PDF escaneado ou imagem.**
+   - IA com visão só para ler legenda, quadro de equipamentos e capacidades.
+   - Nunca é medida final.
+
+**Mapeamento:**
+- Tabela "camada ou bloco → item do orçamento", com unidade e fator de perda (ex.: cobre +10%).
+- Salva por projetista ou cliente e reaproveitada nos próximos desenhos.
+
+**Seleção de ambientes:** orçar só um andar ou algumas salas.
+- **IFC:** marcar os `IfcSpace` numa lista. O recorte é geométrico, porque os elementos costumam
+  estar ligados ao pavimento, não à sala.
+- **DXF:** polilinha fechada com o nome do ambiente, ou polígono desenhado na tela. O corte na
+  borda usa `shapely`.
+- **PDF:** polígono desenhado sobre a planta calibrada.
+- **Casos especiais:**
+  - prumada e tronco compartilhado entram como "área comum", com rateio;
+  - a condensadora fora do ambiente entra pelo sistema ligado a ele.
+
+**Rastreio:** cada quantidade guarda a origem (arquivo, camada ou bloco, ambiente, contagem ou
+comprimento) para auditoria e para a proposta.
+
+**Tela:** botão "Importar desenho" na aba Execução, que abre três passos:
+1. mapeamento;
+2. seleção de ambientes;
+3. tabela de quantitativos, que o usuário confere antes de aplicar.
+
+**Antes de implementar:** verificar se o repositório `hvac-duct-dx` (trilha T5) já lê DXF de
+dutos e pode ser reaproveitado. Comparar com Bluebeam, PlanSwift, Togal.AI, Kreo e Countfire, e
+com os exemplos que o Allan vai trazer.
+
 ## 4. Dados e arquivos
 
 - Criar: `orcamento/{escopos,erros,execucao,bdi,unidades,tabela_referencia,honorario_abrava,ajustes_honorario,exportar_viabilidade_docx}.py`;
