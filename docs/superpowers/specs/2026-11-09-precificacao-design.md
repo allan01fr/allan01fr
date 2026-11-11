@@ -272,6 +272,34 @@ faixa do valor do contrato.
 - Proposta (DOCX): lista as ARTs previstas e diz quais estão inclusas e quais são do
   subcontratado.
 
+### Ajustes de 2026-11-11 (aprovados pelo Allan)
+
+A comparação com o OrçaFascio (orçamento de obra civil sobre a SINAPI e outras bases oficiais)
+e com os softwares de PMOC mostrou que nenhum junta projeto, execução, ART, ABRAVA e
+viabilidade. O plano fica mais enxuto:
+
+1. **Nova ordem de entrega:**
+   1. B2 (execução + BDI) e B7 (ARTs), que mudam o preço direto;
+   2. B6 (documentos);
+   3. painel de comparação (B3 + B4);
+   4. relatório de viabilidade (B5).
+2. **B3 e B4 viram um painel só.** A ABRAVA é uma coluna da comparação, com o detalhe numa caixa
+   recolhível na aba de preço, sem aba própria.
+3. **Execução sobre composições SINAPI** (B2): cada item aponta para uma base (`sinapi` ou
+   `propria`). A SINAPI dá o HH e o material de referência; os fatores de produtividade valem por
+   cima. A tela escolhe encargos sociais com ou sem desoneração. A base própria continua para os
+   itens que a SINAPI não cobre, como VRF e comissionamento.
+4. **Curva ABC** dos itens e insumos da execução (classes A ≤ 80%, B ≤ 95%, C resto), na aba
+   Execução e na XLSX.
+5. **Reaproveitamento:** duplicar proposta, modelos (kits como "split 12k padrão") e importação
+   de lista de equipamentos pelo Excel.
+6. **Correção por índice** começa com o fator digitado à mão e a fonte anotada. A importação das
+   séries de INCC, IPCA e IGP-M fica para depois.
+7. **Verificação:** revisão completa só no motor de preço. Na tela, só uma checagem rápida de que
+   abre sem erro.
+
+Prévia visual atualizada em `app/pages/2_Prévia_dos_próximos_blocos.py`.
+
 ## 4. Dados e arquivos
 
 - Criar: `orcamento/{escopos,erros,execucao,bdi,unidades,tabela_referencia,honorario_abrava,ajustes_honorario,exportar_viabilidade_docx}.py`;

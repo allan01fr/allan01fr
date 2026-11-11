@@ -36,24 +36,30 @@ def cruzamento(acum, alvo):
     return None
 
 
-t1, t2, t3, t4, t5 = st.tabs(
-    ["Execução de obra", "Preço por tabela e referências", "Honorário ABRAVA", "Viabilidade", "Documentos"]
-)
+b1, b2, b3, _ = st.columns([1, 1, 1, 3])
+b1.button("Duplicar proposta", on_click=em_construcao)
+b2.button("Usar modelo (kit)", on_click=em_construcao)
+b3.button("Importar do Excel", on_click=em_construcao)
+
+t1, t2, t4, t5 = st.tabs(["Execução de obra", "Preço, comparação e ARTs", "Viabilidade", "Documentos"])
 
 # ---------------------------------------------------------------- 1. Execução de obra
 with t1:
     funcoes = ["Mecânico", "Auxiliar", "Eletricista"]
     custo_h = {"Mecânico": 37.61, "Auxiliar": 24.81, "Eletricista": 33.25}
     itens = pd.DataFrame([
-        {"Item": "Instalação de split 12.000 BTU/h", "Unid": "un", "Qtd": 8.0, "HH/unid": 6.0, "Função": "Mecânico"},
-        {"Item": "Rede frigorígena cobre 3/8–5/8", "Unid": "m", "Qtd": 120.0, "HH/unid": 0.25, "Função": "Mecânico"},
-        {"Item": "Dreno PVC 25 mm", "Unid": "m", "Qtd": 60.0, "HH/unid": 0.15, "Função": "Auxiliar"},
-        {"Item": "Instalação condensadora VRF 28 HP", "Unid": "un", "Qtd": 2.0, "HH/unid": 24.0, "Função": "Mecânico"},
-        {"Item": "Startup e comissionamento", "Unid": "vb", "Qtd": 1.0, "HH/unid": 16.0, "Função": "Eletricista"},
+        {"Base": "SINAPI (fictício)", "Item": "Instalação de split 12.000 BTU/h", "Unid": "un", "Qtd": 8.0, "HH/unid": 6.0, "Função": "Mecânico", "Material (R$)": 1450.0},
+        {"Base": "SINAPI (fictício)", "Item": "Rede frigorígena cobre 3/8–5/8", "Unid": "m", "Qtd": 120.0, "HH/unid": 0.25, "Função": "Mecânico", "Material (R$)": 96.0},
+        {"Base": "SINAPI (fictício)", "Item": "Dreno PVC 25 mm", "Unid": "m", "Qtd": 60.0, "HH/unid": 0.15, "Função": "Auxiliar", "Material (R$)": 9.5},
+        {"Base": "Própria", "Item": "Instalação condensadora VRF 28 HP", "Unid": "un", "Qtd": 2.0, "HH/unid": 24.0, "Função": "Mecânico", "Material (R$)": 2800.0},
+        {"Base": "Própria", "Item": "Startup e comissionamento", "Unid": "vb", "Qtd": 1.0, "HH/unid": 16.0, "Função": "Eletricista", "Material (R$)": 0.0},
     ])
 
     with st.container(border=True):
-        st.markdown("**Fatores de produtividade**")
+        st.markdown("**Base de composições e fatores de produtividade**")
+        g1, g2 = st.columns(2)
+        g1.selectbox("Base de composições", ["SINAPI-RJ (mês de referência fictício)", "Própria da empresa"])
+        g2.radio("Encargos sociais", ["Com desoneração", "Sem desoneração"], horizontal=True, index=1)
         f1, f2, f3, f4 = st.columns(4)
         altura = f1.selectbox("Altura", ["até 3 m", "3–6 m", "acima de 6 m"], index=1)
         acesso = f2.selectbox("Acesso", ["livre", "restrito", "difícil"], index=1)
@@ -150,6 +156,20 @@ with t1:
     m4.metric("Total com BDI", brl(total))
     st.caption(f"BDI aplicado sobre o custo direto: {pct(bdi)}")
 
+    with st.container(border=True):
+        st.markdown("**Curva ABC (custo por item)**")
+        abc = itens_ed.assign(**{"Custo (R$)": itens_ed["Qtd"] * (itens_ed["HH/unid"] * fator * itens_ed["Função"].map(custo_h).fillna(30.0) + itens_ed["Material (R$)"].fillna(0.0))})
+        abc = abc.sort_values("Custo (R$)", ascending=False)
+        abc["% acumulado"] = abc["Custo (R$)"].cumsum() / abc["Custo (R$)"].sum() * 100
+        abc["Classe"] = abc["% acumulado"].map(lambda v: "A" if v <= 80 else ("B" if v <= 95 else "C"))
+        st.altair_chart(
+            alt.Chart(abc).mark_bar().encode(
+                x=alt.X("Item:N", sort=None, title=None), y=alt.Y("Custo (R$):Q"),
+                color=alt.Color("Classe:N", scale=alt.Scale(domain=["A", "B", "C"], range=["#1f4e79", "#5b9bd5", "#bdd7ee"])),
+            ).properties(height=220),
+            use_container_width=True,
+        )
+
 # ---------------------------------------------------------------- 2. Preço por tabela
 with t2:
     with st.container(border=True):
@@ -206,68 +226,69 @@ with t2:
             if st.button("Adotar este valor", type="primary"):
                 em_construcao()
 
-# ---------------------------------------------------------------- 3. Honorário ABRAVA
-with t3:
-    st.warning("Parâmetros provisórios — conferir com o documento oficial.")
-    esq, dir_ = st.columns([3, 2])
-    with esq:
+# ---------------------------------------------------------------- ABRAVA (coluna do painel, dentro da aba de preço)
+with t2:
+    with st.expander("Honorário ABRAVA — detalhe da coluna do painel"):
+        st.warning("Parâmetros provisórios — conferir com o documento oficial.")
+        esq, dir_ = st.columns([3, 2])
+        with esq:
+            with st.container(border=True):
+                st.markdown("**Ambientes**")
+                amb = st.data_editor(
+                    pd.DataFrame([
+                        {"Tipo": "Sala de reuniões", "Área m²": 45.0, "Repetições": 2},
+                        {"Tipo": "Escritório", "Área m²": 30.0, "Repetições": 6},
+                        {"Tipo": "Auditório", "Área m²": 120.0, "Repetições": 1},
+                        {"Tipo": "Recepção", "Área m²": 60.0, "Repetições": 1},
+                    ]),
+                    num_rows="dynamic",
+                    hide_index=True,
+                )
+        with dir_:
+            with st.container(border=True):
+                st.markdown("**Parâmetros**")
+                tipo_inst = st.selectbox("Tipo de instalação", ["Split", "VRF", "Água gelada"], index=1)
+                custo_tr = st.number_input("Custo por TR (R$)", min_value=0.0, value=1850.0, step=50.0)
+                dific = st.selectbox(
+                    "Fator de dificuldade",
+                    [1.00, 1.15, 1.30],
+                    index=1,
+                    format_func=lambda x: f"{x:.2f}".replace(".", ","),
+                )
+
+        fator_inst = {"Split": 1.00, "VRF": 1.20, "Água gelada": 1.35}[tipo_inst]
+        area_corr = (amb["Área m²"] * amb["Repetições"]).sum() * fator_inst
+        custo_base = area_corr / 30 * custo_tr * dific
+        curva = 0.045
+        honor = custo_base * curva
+        o1, o2, o3, o4 = st.columns(4)
+        o1.metric("Área corrigida", f"{area_corr:,.1f} m²".replace(",", "X").replace(".", ",").replace("X", "."))
+        o2.metric("Custo base", brl(custo_base))
+        o3.metric("Percentual da curva", pct(curva))
+        o4.metric("Honorário calculado", brl(honor))
+
         with st.container(border=True):
-            st.markdown("**Ambientes**")
-            amb = st.data_editor(
+            st.markdown("**Ajustes da empresa**")
+            a1, a2, a3 = st.columns(3)
+            nivel = a1.selectbox("Nível do RT", ["Júnior", "Pleno", "Sênior"], index=1)
+            planilha = a2.checkbox("Planilha +10 %")
+            desc = a3.number_input("Desconto (%)", min_value=0.0, max_value=30.0, value=5.0, step=0.5)
+            f_nivel = {"Júnior": 0.90, "Pleno": 1.00, "Sênior": 1.10}[nivel]
+            aj_nivel = honor * (f_nivel - 1)
+            aj_plan = honor * 0.10 if planilha else 0.0
+            base_aj = honor + aj_nivel + aj_plan
+            aj_desc = -base_aj * desc / 100
+            final = base_aj + aj_desc
+            st.dataframe(
                 pd.DataFrame([
-                    {"Tipo": "Sala de reuniões", "Área m²": 45.0, "Repetições": 2},
-                    {"Tipo": "Escritório", "Área m²": 30.0, "Repetições": 6},
-                    {"Tipo": "Auditório", "Área m²": 120.0, "Repetições": 1},
-                    {"Tipo": "Recepção", "Área m²": 60.0, "Repetições": 1},
+                    {"Linha": "Ajuste da empresa — nível do RT", "Valor (R$)": aj_nivel},
+                    {"Linha": "Ajuste da empresa — planilha +10 %", "Valor (R$)": aj_plan},
+                    {"Linha": "Ajuste da empresa — desconto", "Valor (R$)": aj_desc},
                 ]),
-                num_rows="dynamic",
                 hide_index=True,
+                column_config={"Valor (R$)": st.column_config.NumberColumn(format="%.2f")},
             )
-    with dir_:
-        with st.container(border=True):
-            st.markdown("**Parâmetros**")
-            tipo_inst = st.selectbox("Tipo de instalação", ["Split", "VRF", "Água gelada"], index=1)
-            custo_tr = st.number_input("Custo por TR (R$)", min_value=0.0, value=1850.0, step=50.0)
-            dific = st.selectbox(
-                "Fator de dificuldade",
-                [1.00, 1.15, 1.30],
-                index=1,
-                format_func=lambda x: f"{x:.2f}".replace(".", ","),
-            )
-
-    fator_inst = {"Split": 1.00, "VRF": 1.20, "Água gelada": 1.35}[tipo_inst]
-    area_corr = (amb["Área m²"] * amb["Repetições"]).sum() * fator_inst
-    custo_base = area_corr / 30 * custo_tr * dific
-    curva = 0.045
-    honor = custo_base * curva
-    o1, o2, o3, o4 = st.columns(4)
-    o1.metric("Área corrigida", f"{area_corr:,.1f} m²".replace(",", "X").replace(".", ",").replace("X", "."))
-    o2.metric("Custo base", brl(custo_base))
-    o3.metric("Percentual da curva", pct(curva))
-    o4.metric("Honorário calculado", brl(honor))
-
-    with st.container(border=True):
-        st.markdown("**Ajustes da empresa**")
-        a1, a2, a3 = st.columns(3)
-        nivel = a1.selectbox("Nível do RT", ["Júnior", "Pleno", "Sênior"], index=1)
-        planilha = a2.checkbox("Planilha +10 %")
-        desc = a3.number_input("Desconto (%)", min_value=0.0, max_value=30.0, value=5.0, step=0.5)
-        f_nivel = {"Júnior": 0.90, "Pleno": 1.00, "Sênior": 1.10}[nivel]
-        aj_nivel = honor * (f_nivel - 1)
-        aj_plan = honor * 0.10 if planilha else 0.0
-        base_aj = honor + aj_nivel + aj_plan
-        aj_desc = -base_aj * desc / 100
-        final = base_aj + aj_desc
-        st.dataframe(
-            pd.DataFrame([
-                {"Linha": "Ajuste da empresa — nível do RT", "Valor (R$)": aj_nivel},
-                {"Linha": "Ajuste da empresa — planilha +10 %", "Valor (R$)": aj_plan},
-                {"Linha": "Ajuste da empresa — desconto", "Valor (R$)": aj_desc},
-            ]),
-            hide_index=True,
-            column_config={"Valor (R$)": st.column_config.NumberColumn(format="%.2f")},
-        )
-        st.metric("Valor final do honorário", brl(final))
+            st.metric("Valor final do honorário", brl(final))
 
 # ---------------------------------------------------------------- 4. Viabilidade
 with t4:
