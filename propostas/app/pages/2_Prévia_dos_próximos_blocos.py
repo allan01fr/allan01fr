@@ -36,8 +36,8 @@ def cruzamento(acum, alvo):
     return None
 
 
-t1, t2, t3, t4, t5 = st.tabs(
-    ["Execução de obra", "Preço por tabela e referências", "Honorário ABRAVA", "Viabilidade", "Documentos"]
+t1, t2, t3, t4, t6, t5 = st.tabs(
+    ["Execução de obra", "Preço por tabela e referências", "Honorário ABRAVA", "Viabilidade", "ARTs", "Documentos"]
 )
 
 # ---------------------------------------------------------------- 1. Execução de obra
@@ -387,3 +387,47 @@ with t5:
 **Validade:** {validade} dias a partir da emissão
 """
         )
+
+
+# ---------------------------------------------------------------- 6. ARTs
+with t6:
+    st.warning("Regras de agrupamento provisórias — confirmar com o CREA-RJ antes de usar.")
+    st.caption("O sistema sugere as ARTs a partir das fases e serviços incluídos; você confirma, junta ou separa.")
+    c1, c2, c3 = st.columns(3)
+    c1.toggle("Uma ART por atividade (não agrupar)", value=False)
+    c2.toggle("Execução elétrica com profissional próprio", value=True)
+    c3.toggle("Subcontratado emite ART própria", value=True)
+
+    def taxa(v):
+        return 108.39 if v <= 15000 else 285.59
+
+    arts = pd.DataFrame([
+        {"Incluir": True, "Tipo": "Obra/serviço", "Profissional": "RT mecânico (KAPTEK)",
+         "Atividades": "Projeto de climatização; compatibilização", "Fases": "1", "Valor base (R$)": 36657.0},
+        {"Incluir": True, "Tipo": "Obra/serviço", "Profissional": "RT mecânico (KAPTEK)",
+         "Atividades": "Execução de instalação; comissionamento", "Fases": "2", "Valor base (R$)": 182400.0},
+        {"Incluir": True, "Tipo": "Obra/serviço", "Profissional": "Eng. eletricista (KAPTEK)",
+         "Atividades": "Execução da alimentação elétrica dos equipamentos", "Fases": "2", "Valor base (R$)": 14200.0},
+        {"Incluir": True, "Tipo": "Obra/serviço", "Profissional": "RT mecânico (KAPTEK)",
+         "Atividades": "Acompanhamento de obra (fiscalização)", "Fases": "3", "Valor base (R$)": 9800.0},
+        {"Incluir": False, "Tipo": "Do subcontratado", "Profissional": "Isolamento térmico (terceiro)",
+         "Atividades": "Execução de isolamento", "Fases": "2", "Valor base (R$)": 21000.0},
+    ])
+    arts["Taxa (R$)"] = arts["Valor base (R$)"].map(taxa)
+    st.data_editor(arts, use_container_width=True, hide_index=True, key="arts_ed",
+                   column_config={"Tipo": st.column_config.SelectboxColumn(options=[
+                       "Obra/serviço", "Múltipla (mensal)", "Complementar (aditivo)",
+                       "Corresponsabilidade", "Do subcontratado"])})
+    inc = arts[arts["Incluir"]]
+    m1, m2, m3 = st.columns(3)
+    m1.metric("ARTs no preço", len(inc))
+    m2.metric("Taxas de ART no preço", brl(inc["Taxa (R$)"].sum()))
+    m3.metric("ARTs de terceiros (fora do preço)", int((~arts["Incluir"]).sum()))
+    with st.expander("Por que estas ARTs"):
+        st.markdown(
+            "- **Fase 1 e 2 separadas:** atividades de natureza diferente (projeto × execução).\n"
+            "- **Elétrica à parte:** atividade de outra modalidade, com profissional próprio.\n"
+            "- **Acompanhamento:** fiscalização tem ART própria.\n"
+            "- **Isolamento:** subcontratado emite a própria ART; fica listada, fora do preço."
+        )
+    st.button("Aplicar ARTs ao preço", on_click=em_construcao)

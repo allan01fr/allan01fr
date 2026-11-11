@@ -238,6 +238,40 @@ Segue as tarefas 6 e 7 do T1.
   técnico de `dados/kaptek_org.json`.
 - PDF: fora desta entrega. O Allan revisa o DOCX no Word e exporta.
 
+### B7 — Plano de ARTs (pedido em 2026-11-11)
+
+Decisão do Allan: a ART **entra no preço**, inclusive na execução. Um orçamento pode exigir mais
+de uma ART, então a ferramenta precisa dizer **quantas e quais** e somar a taxa de cada uma pela
+faixa do valor do contrato.
+
+- Catálogo: cada serviço ganha `art: {atividade, modalidade}`. A atividade pode ser projeto,
+  execução, fiscalização/acompanhamento, laudo/vistoria, manutenção/PMOC ou consultoria. A
+  modalidade pode ser mecânica, elétrica ou civil. A mão de obra de execução da aba Execução ganha
+  a mesma marca, por função (eletricista conta como modalidade elétrica).
+- Novo `orcamento/arts.py`: `planejar_arts(opcao, cat, params) -> [ART]`. Cada ART tem:
+  - tipo: obra/serviço, múltipla mensal, complementar (aditivo), corresponsabilidade ou do
+    subcontratado;
+  - profissional/modalidade, atividades, fases vinculadas e valor base (soma do preço das fases
+    ou itens vinculados);
+  - taxa, calculada por `motor.valor_art`;
+  - `no_preco: bool`.
+- Regras de sugestão, todas editáveis, ficam em `parametros["art"]["regras"]` e não fixas no
+  código. São **provisórias** e precisam ser confirmadas com o CREA-RJ:
+  1. Atividades de natureza diferente (projeto, execução, fiscalização, laudo) ficam em ARTs
+     separadas. Existe uma chave "agrupar por profissional" que junta as do mesmo profissional.
+  2. Modalidade diferente (elétrica) exige ART do profissional dessa modalidade.
+  3. Manutenção recorrente usa ART de obra/serviço pela vigência do contrato, ou múltipla mensal.
+  4. Subcontratado com ART própria fica listado e fora do preço, ou como repasse, se marcado.
+  5. Aditivo gera ART complementar.
+- Motor: a soma das ARTs com `no_preco` substitui a ART por fase de hoje. Cada taxa é rateada na
+  fase de origem. Propostas antigas sem plano de ARTs continuam com a regra atual (uma por fase
+  com serviço), e os preços dos `exemplos/` não mudam.
+- Tela: aba "ARTs" com a tabela sugerida (incluir, tipo, profissional, atividades, fases, valor
+  base, taxa), a explicação de cada sugestão e o total que vai para o preço. Prévia visual em
+  `app/pages/2_Prévia_dos_próximos_blocos.py`.
+- Proposta (DOCX): lista as ARTs previstas e diz quais estão inclusas e quais são do
+  subcontratado.
+
 ## 4. Dados e arquivos
 
 - Criar: `orcamento/{escopos,erros,execucao,bdi,unidades,tabela_referencia,honorario_abrava,ajustes_honorario,exportar_viabilidade_docx}.py`;
