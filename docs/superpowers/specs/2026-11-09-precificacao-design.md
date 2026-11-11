@@ -266,8 +266,8 @@ faixa do valor do contrato.
 - Motor: a soma das ARTs com `no_preco` substitui a ART por fase de hoje. Cada taxa é rateada na
   fase de origem. Propostas antigas sem plano de ARTs continuam com a regra atual (uma por fase
   com serviço), e os preços dos `exemplos/` não mudam.
-- Tela: aba "ARTs" com a tabela sugerida (incluir, tipo, profissional, atividades, fases, valor
-  base, taxa), a explicação de cada sugestão e o total que vai para o preço. Prévia visual em
+- Tela: caixa "ARTs previstas" na aba Preço (sem aba própria), com tabela simples (no preço,
+  profissional, atividade, valor base, taxa) e o total que vai para o preço. Prévia visual em
   `app/pages/2_Prévia_dos_próximos_blocos.py`.
 - Proposta (DOCX): lista as ARTs previstas e diz quais estão inclusas e quais são do
   subcontratado.
