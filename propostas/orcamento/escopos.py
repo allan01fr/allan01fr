@@ -87,8 +87,41 @@ def incluir(opcao, modulo_id, cat, params):
         opcao["fases"].append(fase)
     for serv in servicos:
         opcao["itens"].append(pp.novo_item(serv, fase=fase["id"]))
+    _ligar_acompanhamento_execucao(opcao, fase, modulo_id)
     return fase
+
+
+def _acompanhamento_padrao(fase):
+    """Acompanhamento ainda na configuração de fábrica (pacote mensal, sem base informada)."""
+    pk, ob = fase["pacote"], fase["obra"]
+    return (fase["cobranca"] == "pacote" and pk.get("forma", "mensal") == "mensal" and not float(pk.get("horas_mes") or 0)
+            and ob.get("base_modo", "informado") == "informado" and not float(ob.get("base_valor") or 0))
+
+
+def _ligar_acompanhamento_execucao(opcao, fase, modulo_id):
+    """Acompanhamento + Execução na mesma opção: % sobre o valor da execução, com o pacote por horas da obra pronto.
+    Só quando a opção já tem itens de execução ou fornecimentos de execução; sem eles a base seria zero."""
+    if not (opcao.get("itens_execucao") or any(f.get("origem") == "execucao" for f in opcao.get("fornecimentos", []))):
+        return
+    if modulo_id == "acompanhamento":
+        alvo = [fase] if any(f.get("modulo") == "execucao" for f in opcao["fases"]) else []
+    elif modulo_id == "execucao":
+        alvo = [f for f in opcao["fases"] if f.get("modulo") == "acompanhamento" and _acompanhamento_padrao(f)]
+    else:
+        return
+    for f in alvo:
+        if not _acompanhamento_padrao(f):
+            continue
+        f["cobranca"] = "percentual"
+        f["obra"]["base_modo"] = "execucao"
+        f["obra"]["base_parte"] = "obra"
+        f["pacote"].update(forma="obra", horas_dia_obra=2.0, horas_fixas=8.0)
 
 
 def modulos_da_opcao(opcao):
     return [f.get("modulo", "") for f in opcao["fases"]]
+
+
+def ligar_acompanhamento_execucao(opcao):
+    """Chamado quando a execução é levada ao preço: acompanhamentos ainda no padrão passam a % sobre a execução."""
+    _ligar_acompanhamento_execucao(opcao, None, "execucao")

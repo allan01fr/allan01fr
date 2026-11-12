@@ -9,7 +9,8 @@ As medições são projetadas mês a mês por uma curva S, (1 − cos πt) ÷ 2,
 
 Pacote de horas (fiscalização e planejamento):
 - "mensal": h/mês × meses, mensalidade fixa;
-- "total": N horas sob demanda dentro de um prazo de validade, pagas em parcelas.
+- "total": N horas sob demanda dentro de um prazo de validade, pagas em parcelas;
+- "obra": horas estimadas = dias úteis da obra × h/dia de acompanhamento + horas fixas (mobilização e relatório).
 Taxa do pacote = taxa média de venda do mix de perfis × (1 − desconto). Sem horas informadas,
 o pacote usa as horas calculadas dos serviços da fase.
 
@@ -79,10 +80,19 @@ def mix_perfis(horas_perfil, mix_padrao):
     return {p: mix_padrao.get(p, 0) / soma for p in horas_perfil}
 
 
-def pacote(cfg, horas_servicos, mix_padrao, custo_h, taxa_h):
+def pacote(cfg, horas_servicos, mix_padrao, custo_h, taxa_h, dias_obra=None):
     total_serv = sum(horas_servicos.values())
     mix = mix_perfis(horas_servicos, mix_padrao)
-    if cfg.get("forma", "mensal") == "mensal":
+    extra = {}
+    if cfg.get("forma", "mensal") == "obra":
+        dias = float(dias_obra if dias_obra is not None else cfg.get("dias_obra") or 0)
+        h_dia = float(cfg.get("horas_dia_obra", 2.0))
+        fixas = float(cfg.get("horas_fixas", 8.0))
+        horas = dias * h_dia + fixas
+        meses = max(1, math.ceil(dias / 21))
+        horas_mes, parcelas = horas / meses, meses
+        extra = {"dias_obra": dias, "horas_dia_obra": h_dia, "horas_fixas": fixas}
+    elif cfg.get("forma", "mensal") == "mensal":
         meses = max(1, int(cfg.get("meses") or 1))
         horas_mes = float(cfg.get("horas_mes") or 0) or total_serv / meses
         horas, parcelas = horas_mes * meses, meses
@@ -99,7 +109,7 @@ def pacote(cfg, horas_servicos, mix_padrao, custo_h, taxa_h):
             "taxa_cheia": taxa_cheia, "desconto": desconto, "taxa": taxa, "honorarios": honorarios,
             "parcela": honorarios / parcelas, "custo_medio_h": sum(mix[p] * custo_h[p] for p in mix),
             "taxa_excedente": taxa_cheia * (1 + float(cfg.get("excedente_pct") or 0)),
-            "acumula_saldo": bool(cfg.get("acumula_saldo")), "validade_meses": int(cfg.get("validade_meses") or 0)}
+            "acumula_saldo": bool(cfg.get("acumula_saldo")), "validade_meses": int(cfg.get("validade_meses") or 0), **extra}
 
 
 def marcos_pacote(pk):

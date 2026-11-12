@@ -95,6 +95,10 @@ def render(O, params, k, estrutura_mudou):
 
     if st.button("Levar execução para o preço", key=k("exec_levar", O["id"])):
         n = ei.sincronizar_fornecimentos(O, params)
+        if n:
+            from orcamento import escopos
+            escopos.ligar_acompanhamento_execucao(O)
+            estrutura_mudou()          # redesenha os seletores de cobrança com a configuração nova
         st.success(f"{n} itens levados")
         st.rerun()
     st.caption("O preço aparece na aba Preço (fornecimentos de mão de obra/material da execução).")

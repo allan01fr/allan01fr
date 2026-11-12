@@ -625,6 +625,7 @@ with abas[3]:
 # ----------------------------------------------------------------------------- 4 preço (entradas antes do cálculo)
 with abas[4]:
     topo_preco = st.container()
+    AO_CALCULAR = []        # (tipo, id da fase, espaço): preenchidos depois do cálculo, que vem mais abaixo
     if O["modalidade"] == "fases":
         st.markdown("**Cobrança de cada fase**")
         ests = {o["id"]: o["nome"] for o in P["opcoes"] if o.get("modalidade") == "estimativa"}
@@ -648,7 +649,8 @@ with abas[4]:
                                                              float(pc.get("parcela_fixa") or 0), step=500.0, key=kf("fixa"))
                 st.markdown("Valor global da obra (base do % e da taxa de desempenho)")
                 c1, c2, c3 = st.columns(3)
-                modos = {"opcao": "Estimativa interna", "informado": "Valor informado", "fornecimentos": "Custo dos fornecimentos da fase"}
+                modos = {"opcao": "Estimativa interna", "informado": "Valor informado", "fornecimentos": "Custo dos fornecimentos da fase",
+                         "execucao": "Valor da execução desta opção"}
                 ob["base_modo"] = c1.selectbox("Base", list(modos), index=list(modos).index(ob.get("base_modo", "informado")),
                                                format_func=modos.get, key=kf("bmodo"))
                 if ob["base_modo"] == "opcao":
@@ -661,6 +663,11 @@ with abas[4]:
                                                         index=list(partes).index(ob.get("base_parte", "obra")))
                     else:
                         c2.warning("Crie uma opção 'Estimativa interna' (aba Escopo → Nova opção → Modalidade).")
+                elif ob["base_modo"] == "execucao":
+                    AO_CALCULAR.append(("base", fz["id"], c2.empty()))
+                    partes = {"obra": "Fornecimentos e execução (com BDI)", "global": "Preço total das fases de execução"}
+                    ob["base_parte"] = c3.selectbox("Parte", list(partes), format_func=partes.get, key=kf("bparte"),
+                                                    index=list(partes).index(ob.get("base_parte", "obra")))
                 elif ob["base_modo"] == "informado":
                     ob["base_valor"] = c2.number_input("Valor global da obra (R$)", 0.0, 1e11, float(ob.get("base_valor") or 0),
                                                        step=10000.0, key=kf("bval"))
@@ -673,7 +680,8 @@ with abas[4]:
                                                index=list(curvas).index(ob.get("curva", "s")))
                 if cob == "pacote":
                     st.markdown("Pacote de horas")
-                    formas = {"mensal": "Mensal (h/mês × meses)", "total": "Total sob demanda"}
+                    formas = {"mensal": "Mensal (h/mês × meses)", "total": "Total sob demanda",
+                              "obra": "Estimado pelas horas da obra"}
                     c1, c2, c3, c4 = st.columns(4)
                     pk["forma"] = c1.selectbox("Forma", list(formas), format_func=formas.get, key=kf("pkf"),
                                                index=list(formas).index(pk.get("forma", "mensal")))
@@ -682,6 +690,12 @@ with abas[4]:
                                                           float(pk.get("horas_mes") or 0), step=4.0, key=kf("pkh"))
                         pk["meses"] = int(c3.number_input("Meses", 1, 120, int(pk.get("meses") or 1), key=kf("pkm")))
                         pk["acumula_saldo"] = c4.checkbox("Saldo do mês acumula", bool(pk.get("acumula_saldo")), key=kf("pks"))
+                    elif pk["forma"] == "obra":
+                        pk["horas_dia_obra"] = c2.number_input("Horas de acompanhamento por dia útil", 0.0, 24.0,
+                                                               float(pk.get("horas_dia_obra", 2.0)), step=0.5, key=kf("pkhd"))
+                        pk["horas_fixas"] = c3.number_input("Horas fixas (mobilização e relatório)", 0.0, 2000.0,
+                                                            float(pk.get("horas_fixas", 8.0)), step=2.0, key=kf("pkhf"))
+                        AO_CALCULAR.append(("horas", fz["id"], st.empty()))
                     else:
                         pk["horas"] = c2.number_input("Horas do pacote (0 = pelos serviços da fase)", 0.0, 20000.0,
                                                       float(pk.get("horas") or 0), step=8.0, key=kf("pkt"))
@@ -827,6 +841,14 @@ except Exception as e:  # noqa: BLE001
     RES, erro_calc = None, e
 ASSINATURA = assinatura([P, CAT])
 R = RES["opcoes"][ss.op_idx] if RES else None
+for _tipo, _fid, _ph in AO_CALCULAR:
+    _rf = next((x for x in R["fases"] if x["id"] == _fid), None) if R else None
+    if _tipo == "base":
+        _ph.metric("Valor da execução", moeda(_rf["base"]) if _rf and _rf.get("base") is not None else "—")
+    elif _rf and (_rf.get("pacote") or {}).get("forma") == "obra":
+        _pr = _rf["pacote"]
+        _ph.caption(f"≈ {_pr['dias_obra']:.0f} dias úteis de obra × {_pr['horas_dia_obra']:g} h/dia + "
+                    f"{_pr['horas_fixas']:g} fixas = {_pr['horas']:.0f} h")
 
 
 def tabela_indicadores(resultados):

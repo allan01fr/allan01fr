@@ -260,6 +260,20 @@ def _margem_efetiva(honorarios, custo, imp):
     return (honorarios * (1 - imp) - custo) / honorarios if honorarios > 0 else None
 
 
+CHAVE_EXECUCAO = "__execucao__"     # reservada em `estimativas`: valor da execução da opção, calculado antes das demais fases
+
+
+def valor_execucao(cat, proposta, opcao, fases_cfg, estimativas=None):
+    """Fornecimentos com BDI ("obra") e preço total ("global") das fases ativas do módulo Execução da opção."""
+    v = {"obra": 0.0, "global": 0.0}
+    for f in fases_cfg:
+        if f.get("modulo") == "execucao":
+            r = precificar_fase(cat, proposta, opcao, f, estimativas)
+            v["obra"] += r["preco_fornec"]
+            v["global"] += r["preco"]
+    return v
+
+
 def base_obra(fase, res_fase, estimativas):
     """Valor global da obra que serve de base ao % e à taxa de desempenho. Devolve (valor, origem)."""
     ob = fase["obra"]
@@ -270,9 +284,21 @@ def base_obra(fase, res_fase, estimativas):
         if ob.get("base_parte") == "global":
             return e["preco_fechado"], f"preço global da estimativa {e['id']}"
         return e["preco_fornec"], f"fornecimentos e execução da estimativa {e['id']}"
+    if ob.get("base_modo") == "execucao":
+        v = ((estimativas or {}).get(CHAVE_EXECUCAO) or {}).get("global" if ob.get("base_parte") == "global" else "obra", 0.0)
+        return v, ("valor da execução desta opção" if v > 0
+                   else "valor da execução desta opção: nenhuma fase de execução ativa com valor")
     if ob.get("base_modo") == "fornecimentos":
         return res_fase["custo_fornec"], "custo dos fornecimentos da fase"
     return float(ob.get("base_valor") or 0), "valor informado"
+
+
+def _dias_uteis_execucao(opcao, params):
+    """Dias úteis de obra do plano de execução da opção; None sem plano."""
+    from . import execucao_itens as ei      # import tardio: evita ciclo
+    plano = ei.calcular_execucao(opcao, params).get("plano")
+    dias = float((plano or {}).get("prazo_dias_uteis") or 0)
+    return dias if dias > 0 else None
 
 
 def _etapa_obra(fase, meses):
@@ -317,8 +343,13 @@ def precificar_fase(cat, proposta, opcao, fase, estimativas=None, art_fixo=None)
                  pct_minimo=r["preco_minimo_servicos"] / base if base > 0 else None,
                  pct_equivalente_fechado=r["preco_servicos"] / base if base > 0 else None)
     elif cob == "pacote":
+        dias_obra = None
+        if fase["pacote"].get("forma") == "obra":
+            dias_obra = _dias_uteis_execucao(opcao, params)
+            if dias_obra is None:
+                dias_obra = float(fase["pacote"].get("dias_obra") or 0)
         pk = cb.pacote(fase["pacote"], r["horas_servicos"], params["cobranca"]["pacote"]["mix_padrao"],
-                       r["custo_h"], r["taxa_h"])
+                       r["custo_h"], r["taxa_h"], dias_obra=dias_obra)
         meses = pk["meses"]
         # o custo do pacote é o das horas vendidas, não o das horas estimadas para os serviços
         custo_mo = sum(pk["horas_perfil"][p] * r["custo_h"][p] for p in pk["horas_perfil"])
@@ -377,6 +408,9 @@ def precificar_opcao(cat, proposta, opcao, estimativas=None):
         raise ValueError(f"A opção {opcao['id']} não tem nenhuma fase incluída na proposta.")
     desligadas = [] if estimativa else [{"id": f["id"], "nome": f["nome"], "modulo": f.get("modulo", "")}
                                         for f in opcao["fases"] if not _ativa(f)]
+    if not estimativa and any(f["cobranca"] in ("percentual", "pacote") and (f.get("obra") or {}).get("base_modo") == "execucao"
+                              for f in fases_cfg):
+        estimativas = {**(estimativas or {}), CHAVE_EXECUCAO: valor_execucao(cat, proposta, opcao, fases_cfg, estimativas)}
     arts = None
     if opcao.get("plano_arts") and not estimativa:
         # B7: valor base de cada fase sem ART -> plano de ARTs -> taxa rateada pelas fases de cada ART
