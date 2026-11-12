@@ -13,7 +13,13 @@ try:
 except ImportError:                       # módulos ainda em construção
     ei = gx = None
 
-COLUNAS = ["descricao", "unid", "qtd", "hh_unid", "funcao", "material", "base", "fase"]
+COLUNAS = ["descricao", "unid", "qtd", "hh_unid", "funcao", "material", "base", "fase", "kit"]
+ROTULOS = {"descricao": "Descrição", "unid": "Unid", "qtd": "Qtd", "hh_unid": "HH/unid", "funcao": "Função",
+           "material": "Material (R$/unid)", "base": "Base", "fase": "Fase", "kit": "Frente/kit"}
+
+
+def _brl(v):
+    return "R$ " + f"{float(v or 0):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
 def render(O, params, k, estrutura_mudou):
@@ -36,9 +42,10 @@ def render(O, params, k, estrutura_mudou):
                 estrutura_mudou()
 
     st.markdown("**Itens de execução**")
-    itens = ei.itens_da_opcao(O)
+    itens = O.get("itens_execucao") or []
     df = pd.DataFrame(itens, columns=COLUNAS) if itens else pd.DataFrame(columns=COLUNAS)
-    ed = st.data_editor(df, num_rows="dynamic", hide_index=True, width="stretch", key=k("exec_itens", O["id"]))
+    ed = st.data_editor(df, num_rows="dynamic", hide_index=True, width="stretch", key=k("exec_itens", O["id"]),
+                        column_config={c: st.column_config.Column(r) for c, r in ROTULOS.items()})
     novos = [{c: (None if pd.isna(v) else v) for c, v in r.items()} for r in ed.to_dict("records")]
     O["itens_execucao"] = [r for r in novos if r.get("descricao")]
 
@@ -66,9 +73,9 @@ def render(O, params, k, estrutura_mudou):
     if plano:
         hh = sum((plano.get("hh_funcao") or {}).values())
         m = st.columns(4)
-        m[0].metric("HH total", f"{hh:,.1f}")
-        m[1].metric("Mão de obra", f"R$ {res.get('mao_obra', 0):,.2f}")
-        m[2].metric("Material", f"R$ {res.get('material', 0):,.2f}")
+        m[0].metric("HH total", f"{hh:,.1f}".replace(",", "X").replace(".", ",").replace("X", "."))
+        m[1].metric("Mão de obra", _brl(res.get('mao_obra', 0)))
+        m[2].metric("Material", _brl(res.get('material', 0)))
         m[3].metric("Prazo (dias úteis)", plano.get("prazo_dias_uteis", "-"))
         st.dataframe(gx.tabela_equipe(plano), hide_index=True, width="stretch")
         g = gx.grafico_frentes(plano)
