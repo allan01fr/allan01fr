@@ -161,6 +161,41 @@ def rotulos_fases(o):
 
 
 # ----------------------------------------------------------------------------- barra lateral
+
+TIPOS_PROPOSTA = {
+    "Só projeto": ["projeto"],
+    "Projeto + acompanhamento de obra": ["projeto", "acompanhamento"],
+    "Projeto + acompanhamento + execução": ["projeto", "acompanhamento", "execucao"],
+    "Só execução (obra)": ["execucao"],
+    "Inspeção com laudo de conformidade": ["inspecao_laudo"],
+    "Avaliação de desempenho": ["desempenho"],
+    "Escolher módulos…": None,
+    "Em branco": [],
+}
+
+
+@st.dialog("Nova proposta")
+def dialogo_nova_proposta():
+    """Pergunta o tipo de proposta e já cria as fases dos módulos escolhidos."""
+    tipo = st.radio("Que tipo de proposta?", list(TIPOS_PROPOSTA), key="nova_tipo")
+    mods = TIPOS_PROPOSTA[tipo]
+    if mods is None:
+        mods = st.multiselect("Módulos", list(escopos.MODULOS), format_func=lambda m: escopos.MODULOS[m]["nome"],
+                              default=["projeto"], key="nova_mods")
+    if mods:
+        st.caption("Fases: " + " → ".join(escopos.MODULOS[m]["nome"] for m in mods)
+                   + ". Dá para incluir ou desligar módulos depois, na aba 2.")
+    c1, c2 = st.columns(2)
+    if c1.button("Criar", type="primary", width="stretch", key="nova_criar"):
+        novo = pp.padrao(ss.params)
+        for m in mods:
+            escopos.incluir(novo["opcoes"][0], m, CAT, novo["parametros"])
+        substituir_proposta(novo)
+        st.rerun()
+    if c2.button("Cancelar", width="stretch", key="nova_cancelar"):
+        st.rerun()
+
+
 with st.sidebar:
     if os.path.exists(LOGO):
         st.image(LOGO, width=190)
@@ -190,9 +225,8 @@ with st.sidebar:
         with open(os.path.join(PASTA_EXEMPLOS, ex), encoding="utf-8") as f:
             substituir_proposta(pp.carregar_json(f.read()))
         st.rerun()
-    if st.button("Nova proposta em branco", width="stretch"):
-        substituir_proposta(pp.padrao(ss.params))
-        st.rerun()
+    if st.button("Nova proposta", width="stretch", type="primary"):
+        dialogo_nova_proposta()
     st.divider()
     st.caption("Fluxo: 1 Dados gerais → 2 Escopo e fases → 3 Fornecimentos → 4 Preço e cobrança por fase → "
                "5 Prazo e pagamento → 6 Exportar")
