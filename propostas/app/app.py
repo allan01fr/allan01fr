@@ -32,6 +32,8 @@ from orcamento import parametros as pm
 from orcamento import viabilidade as vb
 from orcamento import proposta as pp
 from orcamento import referencias as rf
+from orcamento import indices_bcb as ibcb
+from orcamento import tabela_referencia as tref
 
 st.set_page_config(page_title="Propostas KAPTEK", page_icon="📐", layout="wide")
 
@@ -1401,6 +1403,20 @@ with abas[10]:
                                         "importado_em": "Importado em"})
         else:
             st.caption("Nenhuma base importada ainda.")
+        with st.container(border=True):
+            st.markdown("**Tabelas de referência (JSON)**")
+            try:
+                tabs_json = tref.listar_tabelas()
+            except OSError:
+                tabs_json = []
+            if tabs_json:
+                st.dataframe(pd.DataFrame(tabs_json)[["fonte", "tipo", "data_base", "provisorio"]], hide_index=True, width="stretch",
+                             column_config={"fonte": "Fonte", "tipo": "Tipo", "data_base": "Data-base",
+                                            "provisorio": st.column_config.CheckboxColumn("Provisório")})
+            else:
+                st.caption("Nenhuma tabela JSON encontrada.")
+            st.caption("Para usar a sua tabela, importe uma planilha XLSX/CSV na aba Importar (vale para qualquer estado ou entidade) "
+                       "ou coloque um arquivo JSON em dados/tabelas.")
 
     with sub[1]:
         tipo_imp = st.radio("O que importar", list(TIPOS_IMPORT), format_func=lambda t: TIPOS_IMPORT[t][0], key="imp_tipo")
@@ -1528,8 +1544,36 @@ with abas[10]:
                 st.caption("Prioridade das fontes para " + uf_b + ": " + " → ".join(ordem))
             if termo:
                 achados = rf.buscar(con, termo, uf_b, fontes_b or None, P["parametros"]["hierarquia_fontes"])
-                dfb = pd.DataFrame([{"fonte": a["fonte"], "codigo": a["codigo"], "descricao": a["descricao"], "unidade": a["unidade"],
-                                     "valor": a["valor"], "data_base": a["data_base"], "uf": a["uf"]} for a in achados])
+                with st.container(border=True):
+                    st.markdown("**Correção da data-base**")
+                    disp_c = {i["nome"]: i for i in rf.indices_disponiveis(con)}
+                    cc = st.columns(2)
+                    idx_c = cc[0].selectbox("Corrigir por índice", ["Nenhum"] + list(disp_c), key="busca_idx",
+                                            help="Leva o valor da data-base de cada item para a data-alvo.")
+                    alvo_c = None
+                    if idx_c != "Nenhum":
+                        alvo_c = cc[1].text_input("Data-alvo (AAAA-MM)", disp_c[idx_c]["ate"], key=f"busca_alvo_mes|{idx_c}")
+                    st.caption("Tabelas antigas são trazidas para o dinheiro de hoje pela variação do índice escolhido "
+                               "entre a data-base do item e a data-alvo. Sem o mês no índice, o valor fica sem correção.")
+                hoje_m = dt.date.today().year * 12 + dt.date.today().month
+
+                def _velha(db):
+                    try:
+                        a_, m_ = str(db)[:7].split("-")
+                        return hoje_m - (int(a_) * 12 + int(m_)) > 12
+                    except ValueError:
+                        return False
+                linhas_b = []
+                for a in achados:
+                    lin = {"fonte": a["fonte"], "codigo": a["codigo"], "descricao": a["descricao"], "unidade": a["unidade"],
+                           "valor": a["valor"], "data_base": a["data_base"], "uf": a["uf"]}
+                    if alvo_c:
+                        v_c, f_c = rf.atualizar(con, a["valor"], str(a["data_base"])[:7], alvo_c, idx_c)
+                        lin["fator"] = f_c
+                        lin["valor_corrigido"] = v_c if f_c is not None else None
+                    lin["aviso"] = "⚠ data-base > 12 meses" if _velha(a["data_base"]) else ""
+                    linhas_b.append(lin)
+                dfb = pd.DataFrame(linhas_b)
                 if dfb.empty:
                     st.info("Nada encontrado.")
                 else:
@@ -1537,7 +1581,9 @@ with abas[10]:
                                        key="busca_res", column_config={
                                            "fonte": "Fonte", "codigo": "Código", "descricao": "Descrição", "unidade": "Unid.",
                                            "valor": st.column_config.NumberColumn("Valor (R$)", format="%.2f"),
-                                           "data_base": "Data-base", "uf": "UF"})
+                                           "data_base": "Data-base", "uf": "UF", "aviso": "Aviso",
+                                           "fator": st.column_config.NumberColumn("Fator", format="%.4f"),
+                                           "valor_corrigido": st.column_config.NumberColumn("Valor corrigido (R$)", format="%.2f")})
                     linhas_sel = [achados[i] for i in sel.selection.rows] if sel and sel.selection else []
                     c = st.columns([2, 1, 1])
                     alvos = {"__novo__": "Criar novo fornecimento"} | {f["uid"]: f["descricao"] for f in O["fornecimentos"]}
@@ -1668,6 +1714,17 @@ with abas[10]:
             st.success("Tabela de ART salva.")
 
     with sub[6]:
+        with st.container(border=True):
+            st.markdown("**Índices de correção**")
+            sel_idx = st.multiselect("Índices", list(ibcb.SERIES), default=["INPC", "IGP-M"], key="bcb_sel")
+            if st.button("Baixar/atualizar do Banco Central", key="bcb_baixar", disabled=not sel_idx):
+                for nome_i in sel_idx:
+                    try:
+                        n_i = ibcb.atualizar_banco(con, nome_i)
+                        st.success(f"{nome_i}: {n_i} meses atualizados.")
+                    except RuntimeError as e:
+                        st.error(str(e))
+            st.caption("Se o download falhar, importe a série em CSV (aba Importar → Índice de reajuste) ou informe o mês abaixo.")
         idx = rf.indices_disponiveis(con)
         if idx:
             st.dataframe(pd.DataFrame(idx), hide_index=True, width="stretch")
