@@ -1,0 +1,27 @@
+{
+  "provisorio": true,
+  "nota": "Provisório — conferir com o documento oficial",
+  "fonte": "FICTÍCIO — exemplo de formato",
+  "edicao": "Rev. 01/2014 (a conferir)",
+  "secao_tabela": "a conferir",
+  "edicao_superada": false,
+  "regiao": "RJ",
+  "tipos_ambiente": {
+    "escritorio": {"rotulo": "Escritório", "edificacao": "comercial", "peso": 1.0, "provisorio": true},
+    "auditorio": {"rotulo": "Auditório", "edificacao": "comercial", "peso": 1.2, "provisorio": true},
+    "cpd": {"rotulo": "CPD", "edificacao": "comercial", "peso": 1.5, "provisorio": true}
+  },
+  "fator_repeticao": 0.5,
+  "peso_ventilacao": {"exaustao": 0.3, "cozinha": 0.8},
+  "densidade_tr_m2": 0.05,
+  "fs": 1.1,
+  "custo_tr": {"expansao_direta": 4000, "vrf": 6000, "agua_gelada": 8000},
+  "curva_percentual": [
+    {"custo_base": 0, "pct": 0.08},
+    {"custo_base": 100000, "pct": 0.06},
+    {"custo_base": 500000, "pct": 0.04}
+  ],
+  "fator_escopo": {"planilha_orcamento": 0.4, "nova_em_existente": 1.1, "nova_em_novo": 1.0, "retrofit": 1.2},
+  "fatores_metodo": {},
+  "piso_salarios_minimos": 3
+}
