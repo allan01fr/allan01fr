@@ -27,6 +27,7 @@ from orcamento import calibracao as cb
 from orcamento import catalogo as ct
 from orcamento import escopos, exportar_documentos, exportar_docx, exportar_viabilidade, exportar_xlsx, motor
 from orcamento import modelos
+import aba_execucao
 from orcamento import parametros as pm
 from orcamento import viabilidade as vb
 from orcamento import proposta as pp
@@ -195,7 +196,7 @@ with st.sidebar:
                "5 Prazo e pagamento → 6 Exportar")
 
 O = P["opcoes"][ss.op_idx]
-abas = st.tabs(["1 · Dados gerais", "2 · Escopo", "3 · Fornecimentos e subcontratações", "4 · Preço",
+abas = st.tabs(["1 · Dados gerais", "2 · Escopo", "3 · Fornecimentos e subcontratações", "3b · Execução", "4 · Preço",
                 "5 · Prazo e pagamento", "6 · Exportar", "7 · Catálogo e parâmetros", "8 · Calibração",
                 "9 · Viabilidade", "10 · Bases de referência"])
 
@@ -581,24 +582,12 @@ with abas[2]:
                         ref["fator"] = l["fator"] or 1.0
                     estrutura_mudou()
 
-    with st.container(border=True):
-        st.markdown("**Kits de execução**")
-        try:
-            kits = modelos.carregar_kits()
-        except (OSError, ValueError, KeyError):
-            kits = []
-        if kits:
-            kc1, kc2 = st.columns([3, 1])
-            kit_sel = kc1.selectbox("Aplicar kit", range(len(kits)), format_func=lambda i: kits[i]["nome"], key=k("kit_sel", O["id"]))
-            if kc2.button("Aplicar kit", key=k("kit_ap", O["id"])):
-                modelos.aplicar_kit(O, kits[kit_sel])
-                estrutura_mudou()
-        if O.get("itens_execucao"):
-            st.dataframe(pd.DataFrame(O.get("itens_execucao", [])), hide_index=True, width="stretch")
-        st.caption("Itens de execução (preço entra quando a aba Execução ficar pronta)")
+# ----------------------------------------------------------------------------- 3b execução
+with abas[3]:
+    aba_execucao.render(O, ss.params, k, estrutura_mudou)
 
 # ----------------------------------------------------------------------------- 4 preço (entradas antes do cálculo)
-with abas[3]:
+with abas[4]:
     topo_preco = st.container()
     if O["modalidade"] == "fases":
         st.markdown("**Cobrança de cada fase**")
@@ -874,7 +863,7 @@ def detalhe_fase(fr):
                      hide_index=True, width="stretch")
 
 
-with abas[3]:
+with abas[4]:
     with topo_preco:
         tem_escopo = R and motor.opcao_tem_preco(R)
         if erro_calc:
@@ -958,7 +947,7 @@ with abas[3]:
                     tooltip=["Opção", "Fase", alt.Tooltip("Preço:Q", format=",.2f")]).properties(height=280), width="stretch")
 
 # ----------------------------------------------------------------------------- 5 prazo e pagamento
-with abas[4]:
+with abas[5]:
     if R and motor.opcao_tem_preco(R):
         st.subheader(f"Cronograma — {O['nome']}")
         varias_f = len(R["fases"]) > 1
@@ -1013,7 +1002,7 @@ with abas[4]:
         st.info("Adicione serviços na aba Escopo para ver o cronograma.")
 
 # ----------------------------------------------------------------------------- 6 exportar
-with abas[5]:
+with abas[6]:
     st.subheader("Exportar")
     if RES:
         for av in RES["avisos"]:
@@ -1072,7 +1061,7 @@ with abas[5]:
                     "registrada e quitada (Lei 6.496/1977).")
 
 # ----------------------------------------------------------------------------- 7 catálogo e parâmetros
-with abas[6]:
+with abas[7]:
     sub = st.tabs(["Serviços do catálogo", "Parâmetros da empresa"])
     with sub[0]:
         st.caption(CAT.get("nota", ""))
@@ -1226,7 +1215,7 @@ with abas[6]:
                     st.success("Aplicado aos parâmetros da empresa; use 'Aplicar à proposta aberta' para valer na proposta.")
 
 # ----------------------------------------------------------------------------- 8 calibração
-with abas[7]:
+with abas[8]:
     st.subheader("Calibração com horas realizadas")
     st.caption("Ao encerrar um projeto, registre as horas reais de cada atividade. O fator sugerido é a mediana de "
                "realizado ÷ estimado; aplicar grava o fator no catálogo e as próximas propostas já saem calibradas.")
@@ -1264,7 +1253,7 @@ def anos_meses_txt(anos, meses):
     return anos_txt(anos) + (f" ({meses} meses)" if meses else "")
 
 
-with abas[8]:
+with abas[9]:
     VB = P["viabilidade"]
     st.subheader("Estudo de viabilidade — breakeven, payback, VPL e TIR")
     st.caption("Compara alternativas de intervenção com o sistema atual e com o projeto original. O CAPEX de uma "
@@ -1388,7 +1377,7 @@ TIPOS_IMPORT = {
     "indices": ("Índice de reajuste (INCC, IPCA, IGP-M)", {"codigo": "Mês", "valor": "Número-índice ou variação (%)"}),
 }
 
-with abas[9]:
+with abas[10]:
     con = base_referencias()
     registro = rf.carregar_fontes()
     st.subheader("Bases de referência e convenções coletivas")

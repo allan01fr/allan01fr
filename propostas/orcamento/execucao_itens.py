@@ -32,6 +32,12 @@ def _lista(opcao):
     return [it for it in (opcao.get("itens_execucao") or []) if isinstance(it, dict)]
 
 
+def _fatores_opcao(opcao):
+    """Fatores neutros, trocados pelos escolhidos na aba Execução (execucao.fator_padrao) quando válidos."""
+    pad = (opcao.get("execucao") or {}).get("fator_padrao") or {}
+    return {**_NEUTROS, **{n: v for n, v in pad.items() if v in ex.FATORES_PADRAO.get(n, {})}}
+
+
 def itens_da_opcao(opcao):
     """Itens de kit da opção no formato de `planejar_execucao` (fatores neutros; material em
     custo_material_unit; a frente é o kit de origem)."""
@@ -39,7 +45,7 @@ def itens_da_opcao(opcao):
     for n, it in enumerate(_lista(opcao)):
         saida.append({"id": str(n), "frente": it.get("kit") or "Execução", "item": f"kit_{n}",
                       "unidade": it.get("unid") or "un", "descricao": it.get("descricao", ""),
-                      "quantidade": float(it.get("qtd") or 0), **_NEUTROS,
+                      "quantidade": float(it.get("qtd") or 0), **_fatores_opcao(opcao),
                       "custo_material_unit": float(it.get("material") or 0), "categoria_material": "material"})
     return saida
 
