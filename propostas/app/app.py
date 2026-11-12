@@ -19,9 +19,14 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
+import tempfile
+from io import BytesIO
+
+from orcamento import bdi as bdi_calc
 from orcamento import calibracao as cb
 from orcamento import catalogo as ct
-from orcamento import escopos, exportar_docx, exportar_viabilidade, exportar_xlsx, motor
+from orcamento import escopos, exportar_documentos, exportar_docx, exportar_viabilidade, exportar_xlsx, motor
+from orcamento import modelos
 from orcamento import parametros as pm
 from orcamento import viabilidade as vb
 from orcamento import proposta as pp
@@ -241,6 +246,9 @@ with abas[0]:
                                           help="Acima do raio isento, o deslocamento entra como custo direto."))
     cx["area_ref"] = float(c3.number_input("Área de referência (m²)", 0.0, 1e7, float(cx.get("area_ref") or 0),
                                            step=50.0, key=k("area_ref"), help="Só para o indicador R$/m². 0 = não calcular."))
+    if st.button("Duplicar proposta", key=k("duplicar"), help="Cópia com ids novos; número, revisão, data e nome do cliente zerados."):
+        substituir_proposta(modelos.duplicar_proposta(P))
+        st.rerun()
 
 # ----------------------------------------------------------------------------- 2 escopo
 def widget_campo(c, valor, chave):
@@ -572,6 +580,22 @@ with abas[2]:
                     for ref, l in zip(item["referencias"], res_c["linhas"]):
                         ref["fator"] = l["fator"] or 1.0
                     estrutura_mudou()
+
+    with st.container(border=True):
+        st.markdown("**Kits de execução**")
+        try:
+            kits = modelos.carregar_kits()
+        except (OSError, ValueError, KeyError):
+            kits = []
+        if kits:
+            kc1, kc2 = st.columns([3, 1])
+            kit_sel = kc1.selectbox("Aplicar kit", range(len(kits)), format_func=lambda i: kits[i]["nome"], key=k("kit_sel", O["id"]))
+            if kc2.button("Aplicar kit", key=k("kit_ap", O["id"])):
+                modelos.aplicar_kit(O, kits[kit_sel])
+                estrutura_mudou()
+        if O.get("itens_execucao"):
+            st.dataframe(pd.DataFrame(O.get("itens_execucao", [])), hide_index=True, width="stretch")
+        st.caption("Itens de execução (preço entra quando a aba Execução ficar pronta)")
 
 # ----------------------------------------------------------------------------- 4 preço (entradas antes do cálculo)
 with abas[3]:
@@ -908,6 +932,14 @@ with abas[3]:
             nomes_f = {f["id"]: f"{n}. {f['nome']} · {COBRANCAS[f['cobranca']]}" for n, f in enumerate(R["fases"], 1)}
             fsel = st.selectbox("Detalhar a fase", list(nomes_f), format_func=nomes_f.get, key=k("det_fase", O["id"]))
             detalhe_fase(next(f for f in R["fases"] if f["id"] == fsel))
+        if R and isinstance(R.get("arts"), list) and R["arts"] and not erro_calc:
+            with st.container(border=True):
+                st.markdown("**ARTs previstas**")
+                dfa = pd.DataFrame([{c: (", ".join(map(str, a.get(c, []))) if isinstance(a.get(c), (list, tuple)) else a.get(c))
+                                     for c in ("tipo", "modalidade", "atividades", "valor_base", "taxa", "no_preco")}
+                                    for a in R["arts"]])
+                st.dataframe(dfa, hide_index=True, width="stretch")
+                st.caption(f"Total das taxas: {moeda(sum(float(a.get('taxa') or 0) for a in R['arts']))}")
         if RES and len(RES["opcoes"]) > 1 and not erro_calc:
             st.markdown("**Comparativo das opções**")
             st.dataframe(tabela_indicadores(RES["opcoes"]), hide_index=True, width="stretch")
@@ -1007,6 +1039,30 @@ with abas[5]:
                 ok = v["logo"] and v["margem_sup_cm"] == 3.2 and v["margem_esq_cm"] == 3.0
                 st.caption(("✅ padrão KAPTEK conferido (margens 3,2/3,0 e logo)" if ok else "⚠️ template alterado — confira")
                            + (f" · pendências no documento: {', '.join(pend)}" if pend else " · sem pendências"))
+            st.markdown("**Contrato e recibo**")
+            cc1, cc2 = st.columns(2)
+            with cc1:
+                if R and not R.get("interno"):
+                    with tempfile.TemporaryDirectory() as tmp:
+                        cam = os.path.join(tmp, "contrato.docx")
+                        exportar_documentos.gerar_contrato(P, copy.deepcopy(R), cam, 0)
+                        with open(cam, "rb") as fh:
+                            dados_c = fh.read()
+                    st.download_button("Gerar contrato (DOCX)", BytesIO(dados_c), file_name=f"contrato-{exportar_docx.slug(P['numero'])}.docx",
+                                       mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                       key=k("dl_contrato"))
+                else:
+                    st.caption("Contrato indisponível para estimativa interna.")
+            with cc2:
+                valor_r = st.number_input("Valor do recibo (R$)", 0.0, 1e12, float(R["preco"]) if R else 0.0, step=100.0, key=k("rec_valor"))
+                ref_r = st.text_input("Referente a", P.get("objeto", ""), key=k("rec_ref"))
+                with tempfile.TemporaryDirectory() as tmp:
+                    cam = os.path.join(tmp, "recibo.docx")
+                    exportar_documentos.gerar_recibo(P, valor_r, ref_r, cam)
+                    with open(cam, "rb") as fh:
+                        dados_r = fh.read()
+                st.download_button("Gerar recibo (DOCX)", BytesIO(dados_r), file_name=f"recibo-{exportar_docx.slug(P['numero'])}.docx",
+                                   mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document", key=k("dl_recibo"))
             st.info("Ao abrir no Word, aceite a atualização de campos. A proposta só produz efeito acompanhada da ART "
                     "registrada e quitada (Lei 6.496/1977).")
 
@@ -1133,6 +1189,36 @@ with abas[6]:
         if c2.button("Aplicar à proposta aberta"):
             P["parametros"] = copy.deepcopy(PE)
             estrutura_mudou()
+
+    with st.container(border=True):
+        st.subheader("Calculadora de BDI (fórmula TCU)")
+        b1, b2, b3 = st.columns(3)
+        b_ac = b1.number_input("Administração central (%)", 0.0, 100.0, 4.0, step=0.5, key="bdi_ac")
+        b_sg = b2.number_input("Seguro + garantia (%)", 0.0, 100.0, 0.8, step=0.1, key="bdi_sg")
+        b_ri = b3.number_input("Risco (%)", 0.0, 100.0, 1.0, step=0.1, key="bdi_ri")
+        b4, b5, b6 = st.columns(3)
+        b_df = b4.number_input("Despesas financeiras (%)", 0.0, 100.0, 1.0, step=0.1, key="bdi_df")
+        b_lu = b5.number_input("Lucro (%)", 0.0, 100.0, 7.0, step=0.5, key="bdi_lu")
+        b_im = b6.number_input("Impostos (%)", 0.0, 99.9, 8.65, step=0.1, key="bdi_im")
+        try:
+            bdi_val = bdi_calc.bdi(b_ac / 100, b_sg / 100, b_ri / 100, b_df / 100, b_lu / 100, b_im / 100)
+        except ValueError as e:
+            bdi_val = None
+            st.error(str(e))
+        if bdi_val is not None:
+            st.metric("BDI", f"{bdi_val * 100:.2f}%".replace(".", ","))
+            faixa = ss.params.get("bdi_faixa")
+            if isinstance(faixa, dict) and {"min", "max", "fonte"} <= set(faixa):
+                aviso_b = bdi_calc.fora_da_faixa(bdi_val, faixa)
+                if aviso_b:
+                    st.warning(aviso_b)
+            chaves_bdi = list(ss.params.get("bdi_fornecimento", {}))
+            if chaves_bdi:
+                d1, d2 = st.columns([3, 1])
+                alvo_b = d1.selectbox("Usar este BDI em", chaves_bdi, key="bdi_alvo")
+                if d2.button("Usar este BDI em: " + str(alvo_b), key="bdi_usar"):
+                    ss.params["bdi_fornecimento"][alvo_b] = round(bdi_val, 4)
+                    st.success("Aplicado aos parâmetros da empresa; use 'Aplicar à proposta aberta' para valer na proposta.")
 
 # ----------------------------------------------------------------------------- 8 calibração
 with abas[7]:
