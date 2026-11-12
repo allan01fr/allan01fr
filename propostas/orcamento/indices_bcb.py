@@ -45,7 +45,7 @@ def parse_sgs(lista):
 
 
 def _http_get(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
+    req = urllib.request.Request(url, headers={"User-Agent": "propostas-orcamento/1.0", "Accept": "application/json"})
     with urllib.request.urlopen(req, timeout=20) as r:
         return r.read().decode("utf-8")
 
