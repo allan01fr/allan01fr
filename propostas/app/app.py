@@ -927,11 +927,16 @@ with abas[3]:
                                  if d["modulo"] in escopos.MODULOS and escopos.MODULOS[d["modulo"]]["nome"] != d["nome"] else "")
                     for d in R["fases_desligadas"]) + "."))
             st.caption(md(f"{num_br(R['total_h'])} h · {R['prazo_dias_corridos']} dias corridos · ART {moeda(R['art'])} "
-                          f"(uma por fase) · referência: tudo em escopo fechado {moeda(R['preco_fechado'])}."
+                          f"({'plano de ARTs' if O.get('plano_arts') else 'uma por fase'}) · referência: tudo em escopo fechado {moeda(R['preco_fechado'])}."
                           + (f" Referência pelo CUB: {moeda(R['ref_cub'])}." if R.get("ref_cub") else "")))
             nomes_f = {f["id"]: f"{n}. {f['nome']} · {COBRANCAS[f['cobranca']]}" for n, f in enumerate(R["fases"], 1)}
             fsel = st.selectbox("Detalhar a fase", list(nomes_f), format_func=nomes_f.get, key=k("det_fase", O["id"]))
             detalhe_fase(next(f for f in R["fases"] if f["id"] == fsel))
+        plano_arts = st.toggle("Planejar ARTs automaticamente (uma por atividade e modalidade — regras provisórias, "
+                               "confirmar com o CREA-RJ)", value=bool(O.get("plano_arts")), key=k("plano_arts", O["id"]))
+        if plano_arts != bool(O.get("plano_arts")):
+            O["plano_arts"] = plano_arts
+            st.rerun()
         if R and isinstance(R.get("arts"), list) and R["arts"] and not erro_calc:
             with st.container(border=True):
                 st.markdown("**ARTs previstas**")
