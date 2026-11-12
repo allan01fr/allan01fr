@@ -58,3 +58,22 @@ def test_pacote_obra_horas(cat, params):
     pk = fs["Acompanhamento de obra"]["pacote"]
     assert pk["dias_obra"] == dias and pk["horas"] == pytest.approx(dias * 3.0 + 10.0)
     assert pk["honorarios"] == pytest.approx(pk["horas"] * pk["taxa"])
+
+
+def test_obra_pequena_reduz_horas_do_acompanhamento():
+    import json
+    from orcamento import motor, proposta as pp, escopos, modelos, execucao_itens as ei
+    P = pp.padrao(json.load(open("dados/parametros.json")))
+    cat = json.load(open("dados/catalogo.json"))
+    O = P["opcoes"][0]
+    for m in ("projeto", "acompanhamento", "execucao"):
+        escopos.incluir(O, m, cat, P["parametros"])
+    kit = {k["id"]: k for k in modelos.carregar_kits()}["split_12k_padrao"]
+    for _ in range(10):
+        modelos.aplicar_kit(O, kit, ei.config_da_opcao(O)["fase"])
+    ei.config_da_opcao(O)["prazo_alvo_dias"] = 10
+    ei.sincronizar_fornecimentos(O, P["parametros"])
+    antes = motor.precificar(cat, P)["opcoes"][0]["fases"][1]["total_h"]
+    assert escopos.dimensionar_acompanhamento(O, P["parametros"]) == 1
+    depois = motor.precificar(cat, P)["opcoes"][0]["fases"][1]["total_h"]
+    assert depois < antes / 2

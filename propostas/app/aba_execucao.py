@@ -98,6 +98,7 @@ def render(O, params, k, estrutura_mudou):
         if n:
             from orcamento import escopos
             escopos.ligar_acompanhamento_execucao(O)
+            escopos.dimensionar_acompanhamento(O, params)
             estrutura_mudou()          # redesenha os seletores de cobrança com a configuração nova
         st.success(f"{n} itens levados")
         st.rerun()

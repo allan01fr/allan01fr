@@ -125,3 +125,34 @@ def modulos_da_opcao(opcao):
 def ligar_acompanhamento_execucao(opcao):
     """Chamado quando a execução é levada ao preço: acompanhamentos ainda no padrão passam a % sobre a execução."""
     _ligar_acompanhamento_execucao(opcao, None, "execucao")
+
+
+def dimensionar_acompanhamento(opcao, params):
+    """Ajusta o acompanhamento ao tamanho da execução desta opção (obra pequena → poucas visitas).
+
+    Duração em meses = ⌈dias corridos ÷ 30⌉. Obra de até um mês: 1 mês, uma visita a cada 5 dias úteis
+    (mínimo 2: início e entrega), relatório final único. Obras maiores: 4 visitas/mês. Só mexe nos serviços
+    geral.acompanhamento_obra das fases de acompanhamento ativas; devolve quantos itens ajustou."""
+    import math
+    from . import execucao_itens as ei
+    plano = ei.calcular_execucao(opcao, params).get("plano")
+    if not plano:
+        return 0
+    dias_uteis = int(plano.get("prazo_dias_uteis") or 0)
+    dias_corridos = int(plano.get("prazo_dias_corridos") or 0)
+    if dias_uteis <= 0:
+        return 0
+    fases_acomp = {f["id"] for f in opcao["fases"] if f.get("modulo") == "acompanhamento" and f.get("ativa", True)}
+    n = 0
+    for it in opcao.get("itens", []):
+        if it.get("servico") != "geral.acompanhamento_obra" or it.get("fase") not in fases_acomp:
+            continue
+        d = it.setdefault("dados", {})
+        if dias_corridos <= 30:
+            d.update(meses=1, visitas_mes=max(2, math.ceil(dias_uteis / 5)))
+        else:
+            d.update(meses=math.ceil(dias_corridos / 30), visitas_mes=4)
+        d["relatorio"] = True
+        it["dimensionado_pela_execucao"] = {"dias_uteis": dias_uteis, "dias_corridos": dias_corridos}
+        n += 1
+    return n
