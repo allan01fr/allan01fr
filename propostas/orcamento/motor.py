@@ -556,6 +556,10 @@ def situacao_art(fases):
     return "mista" if any(fase_so_fornecimentos(f) for f in fases) else "normal"
 
 
+def _brl(v):
+    return "R$ " + f"{float(v):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
 def avisos(proposta, resultados):
     av = []
     uf = (proposta["cliente"].get("uf") or "").strip().upper()
@@ -603,6 +607,13 @@ def avisos(proposta, resultados):
             if f["cobranca"] == "percentual" and f["base"] <= 0:
                 av.append(f"{nome}: % da obra sem base ({f['base_origem']}) — informe o valor da obra ou vincule a "
                           "estimativa interna.")
+            if (f["cobranca"] == "percentual" and f["base"] > 0 and f.get("preco_minimo_servicos")
+                    and f["preco"] < f["preco_minimo_servicos"]):
+                pct_min = f.get("pct_minimo")
+                av.append(f"{nome}: o % da obra rende {_brl(f['preco'])}, abaixo do mínimo para cobrir as horas "
+                          f"({_brl(f['preco_minimo_servicos'])}"
+                          + (f"; seria preciso {pct_min * 100:.1f}% da base".replace(".", ",") if pct_min else "")
+                          + "). Use o pacote 'Estimado pelas horas da obra' ou 'Parcela fixa + % das medições'.")
             ob = cfg_fases[r["id"]][f["id"]]["obra"]
             if f["cobranca"] in ("percentual", "pacote") and ob.get("base_modo") == "opcao" and ob.get("base_opcao") not in ids_est:
                 av.append(f"{nome}: a base aponta para a opção '{ob.get('base_opcao')}', que não é uma estimativa interna.")

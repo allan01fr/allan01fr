@@ -944,6 +944,9 @@ with abas[4]:
             c2.metric("Parcela fixa", moeda(R["preco_fixo"]))
             c3.metric("Parcela estimada", moeda(R["preco_estimado"]), help="Hora técnica e % sobre as medições da obra")
             c4.metric("Margem efetiva", pct(R["margem_efetiva"]))
+            for av in (RES or {}).get("avisos", []):
+                if av.startswith(f"{R['nome']} / ") and "% da obra rende" in av:
+                    st.warning(av)
             if R["teto_desempenho"]:
                 st.caption(md(f"Taxa de desempenho (variável, fora do preço): potencial {moeda(R['potencial_desempenho'])} "
                               f"no cenário simulado, teto {moeda(R['teto_desempenho'])}."))
