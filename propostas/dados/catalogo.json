@@ -403,6 +403,7 @@
   },
   {
    "id": "hvac.projeto",
+   "art": {"atividade": "projeto", "modalidade": "mecanica"},
    "disciplina": "HVAC-R",
    "tipo": "projeto",
    "nome": "Projeto de climatização (HVAC)",
@@ -1015,6 +1016,7 @@
   },
   {
    "id": "hvac.desempenho",
+   "art": {"atividade": "laudo", "modalidade": "mecanica"},
    "disciplina": "HVAC-R",
    "tipo": "consultoria",
    "nome": "Avaliação de desempenho real × estimativa de projeto",
@@ -1232,6 +1234,7 @@
   },
   {
    "id": "hvac.inspecao_conformidade",
+   "art": {"atividade": "laudo", "modalidade": "mecanica"},
    "disciplina": "HVAC-R",
    "tipo": "laudo",
    "nome": "Inspeção com laudo de conformidade de sistemas HVAC-R",
@@ -5900,6 +5903,7 @@
   },
   {
    "id": "geral.acompanhamento_obra",
+   "art": {"atividade": "fiscalizacao", "modalidade": "mecanica"},
    "disciplina": "Geral",
    "tipo": "obra",
    "nome": "Acompanhamento técnico / fiscalização de obra",

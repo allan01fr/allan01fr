@@ -169,7 +169,7 @@ def _overhead(params, custo_mo, total_h):
     return custo_mo * float(params["overhead"]["pct"])
 
 
-def _custos(cat, proposta, opcao, indices, fornecimentos, garantia=False, com_art=True):
+def _custos(cat, proposta, opcao, indices, fornecimentos, garantia=False, com_art=True, art_fixo=None):
     """Horas, custos diretos e cadeia de preço de um conjunto de serviços (uma fase ou a estimativa)."""
     params = proposta["parametros"]
     perfis = list(cat["perfis"])
@@ -225,13 +225,17 @@ def _custos(cat, proposta, opcao, indices, fornecimentos, garantia=False, com_ar
         return diretos, diretos_total, custo_servicos, contingencia, preco_servicos
 
     # a ART depende do valor do contrato, que depende da ART: duas passadas bastam (faixas monotônicas)
-    art = valor_art(params, 0.0)
-    for _ in range(4):
+    art = valor_art(params, 0.0) if art_fixo is None else float(art_fixo)
+    if art_fixo is not None:    # plano de ARTs (B7): a taxa da fase vem do plano, sem iterar
+        com_art = art > 0
+    for _ in range(0 if art_fixo is not None else 4):
         diretos, diretos_total, custo_servicos, contingencia, preco_servicos = cadeia(art)
         nova = valor_art(params, preco_servicos + preco_fornec)
         if nova == art:
             break
         art = nova
+    if art_fixo is not None:
+        diretos, diretos_total, custo_servicos, contingencia, preco_servicos = cadeia(art)
 
     honorarios_hora = sum(horas_perfil[p] * taxa_h[p] for p in perfis)
     reembolso = diretos_total * (1 + float(params["reembolsaveis_adm"])) / (1 - imp)
@@ -281,7 +285,7 @@ def _ativa(fase):
     return bool(fase.get("ativa", True))
 
 
-def precificar_fase(cat, proposta, opcao, fase, estimativas=None):
+def precificar_fase(cat, proposta, opcao, fase, estimativas=None, art_fixo=None):
     params = proposta["parametros"]
     estimativa = eh_estimativa(opcao)
     cob = "fechado" if estimativa else fase["cobranca"]      # o valor global da obra é sempre um preço fechado
@@ -295,7 +299,7 @@ def precificar_fase(cat, proposta, opcao, fase, estimativas=None):
         idx = [i for i, it in enumerate(opcao["itens"]) if da_fase(it)]
         forn = [f for f in opcao["fornecimentos"] if da_fase(f)]
     r = _custos(cat, proposta, opcao, idx, forn, garantia=estimativa,
-                com_art=bool(idx) or cob in ("percentual", "pacote"))
+                com_art=bool(idx) or cob in ("percentual", "pacote"), art_fixo=art_fixo)
     r.update({"id": fase["id"], "nome": fase["nome"], "cobranca": cob, "servicos": idx,
               "horas_servicos": dict(r["horas_perfil"]), "desempenho": None})
     imp = r["imp_pct"]
@@ -373,7 +377,23 @@ def precificar_opcao(cat, proposta, opcao, estimativas=None):
         raise ValueError(f"A opção {opcao['id']} não tem nenhuma fase incluída na proposta.")
     desligadas = [] if estimativa else [{"id": f["id"], "nome": f["nome"], "modulo": f.get("modulo", "")}
                                         for f in opcao["fases"] if not _ativa(f)]
-    fases = [precificar_fase(cat, proposta, opcao, f, estimativas) for f in fases_cfg]
+    arts = None
+    if opcao.get("plano_arts") and not estimativa:
+        # B7: valor base de cada fase sem ART -> plano de ARTs -> taxa rateada pelas fases de cada ART
+        from . import arts as pa
+        base = [precificar_fase(cat, proposta, opcao, f, estimativas, art_fixo=0.0) for f in fases_cfg]
+        vf = {f["id"]: f["preco"] for f in base}
+        arts = pa.planejar_arts(opcao, cat, params, vf)
+        taxa_fase = {f["id"]: 0.0 for f in fases_cfg}
+        for a in arts:
+            if not a.get("no_preco"):
+                continue
+            for fid in a["fases"]:      # rateio proporcional ao valor base da fase na ART
+                part = vf.get(fid, 0.0) / a["valor_base"] if a["valor_base"] > 0 else 1.0 / len(a["fases"])
+                taxa_fase[fid] = taxa_fase.get(fid, 0.0) + a["taxa"] * part
+        fases = [precificar_fase(cat, proposta, opcao, f, estimativas, art_fixo=taxa_fase[f["id"]]) for f in fases_cfg]
+    else:
+        fases = [precificar_fase(cat, proposta, opcao, f, estimativas) for f in fases_cfg]
     res = {k: sum(f[k] for f in fases) for k in SOMAS}
     # cronograma: as fases correm em sequência
     cron, inicio = [], 1
@@ -409,6 +429,8 @@ def precificar_opcao(cat, proposta, opcao, estimativas=None):
         "rs_m2": res["preco"] / area if area > 0 else None,
         "checklist_turnkey": checklist_turnkey(cat, opcao) if estimativa else [],
     })
+    if arts is not None:
+        res["arts"] = arts
     if estimativa:
         res["valor_obra"] = res["preco_fornec"]
     return res
