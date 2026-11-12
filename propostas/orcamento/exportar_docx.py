@@ -451,6 +451,25 @@ def _texto_objeto(proposta, opcao, res, varias):
 
 
 # ----------------------------------------------------------------------------- API
+def _inserir_arts(par, arts):
+    """Seção curta "ARTs previstas" logo após o parágrafo da ART; sem plano de ARTs, não muda nada."""
+    if not arts:
+        return
+    linhas = ["ARTs previstas:"]
+    for a in arts:
+        quem = "inclusa no preço" if a.get("no_preco") else "do subcontratado"
+        ativ = a.get("atividades")
+        ativ = ", ".join(str(x) for x in ativ) if isinstance(ativ, (list, tuple, set)) else (ativ or "")
+        desc = " — ".join(x for x in (a.get("modalidade"), ativ) if x)
+        linhas.append(f"• ART {desc or a.get('tipo', '')} ({quem})")
+    ref = par
+    for texto in linhas:
+        novo = copy.deepcopy(par._p)
+        ref._p.addnext(novo)
+        ref = type(par)(novo, par._parent)
+        _definir(ref, texto)
+
+
 def gerar_opcao(cat, proposta, opcao, res, varias=False):
     """Preenche o template para uma opção. Devolve (bytes, nome_arquivo, pendencias)."""
     params = proposta["parametros"]
@@ -475,17 +494,21 @@ def gerar_opcao(cat, proposta, opcao, res, varias=False):
     }
     if any(d["descricao"] == "Deslocamento" for d in res["diretos"]):
         campos[FRASE_DESLOCAMENTO] = "Estão inclusos os deslocamentos previstos para as atividades de campo desta proposta."
+    par_art = None
     for par in list(_todos_paragrafos(doc)):
         for de, para in campos.items():
             substituir(par, de, para)
         if par.text.startswith("[Descreva o serviço contratado"):
             _definir(par, _texto_objeto(proposta, opcao, res, varias))
         elif par.text.startswith("Os serviços serão acompanhados da devida Anotação"):
+            par_art = par
             situacao = motor.situacao_art(res["fases"])
             if situacao == "sem_art":
                 _definir(par, TEXTO_ART_NEUTRO)
             elif situacao == "mista":
                 _definir(par, par.text + " " + FRASE_ART_MISTA)
+    if par_art is not None:
+        _inserir_arts(par_art, res.get("arts"))
 
     rev = _tabela(doc, "Rev.")
     _definir(rev.rows[1].cells[0].paragraphs[0], proposta.get("revisao", "00"))

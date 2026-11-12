@@ -22,6 +22,7 @@ from openpyxl.formatting.rule import FormulaRule
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter as L
 
+from . import curva_abc as cabc
 from . import motor
 from . import parametros as pm
 
@@ -891,6 +892,75 @@ def _data_br(iso):
 
 
 # ----------------------------------------------------------------------------- API
+def _aba_arts(wb, proposta, resultados):
+    """Aba "ARTs": só existe se alguma opção trouxe o plano de ARTs (res["arts"])."""
+    blocos = [(o, r["arts"]) for o, r in zip(proposta["opcoes"], resultados) if r.get("arts")]
+    if not blocos:
+        return
+    ws = wb.create_sheet("ARTs")
+    f = Folha(ws)
+    cab = ["Opção", "Tipo", "Modalidade", "Atividades", "Fases", "Valor base", "Taxa", "No preço", "Motivo"]
+    f.titulo(1, "ARTs previstas", len(cab))
+    for j, t in enumerate(cab, 1):
+        f.c(3, j, t, negrito=True, fundo=FUNDO_CAB)
+    lin = 4
+    primeira = lin
+    for o, arts in blocos:
+        for a in arts:
+            def lst(v):
+                return ", ".join(str(x) for x in v) if isinstance(v, (list, tuple, set)) else (v or "")
+            f.c(lin, 1, o.get("nome") or o.get("id"))
+            f.c(lin, 2, a.get("tipo"))
+            f.c(lin, 3, a.get("modalidade"))
+            f.c(lin, 4, lst(a.get("atividades")), quebra=True)
+            f.c(lin, 5, lst(a.get("fases")))
+            f.c(lin, 6, a.get("valor_base", 0), MOEDA)
+            f.c(lin, 7, a.get("taxa", 0), MOEDA)
+            f.c(lin, 8, "sim" if a.get("no_preco") else "não", alinhar="center")
+            f.c(lin, 9, a.get("motivo", ""), quebra=True)
+            lin += 1
+    f.c(lin, 1, "Total das taxas no preço", negrito=True, fundo=FUNDO_CAB)
+    for j in range(2, 10):
+        f.c(lin, j, None, fundo=FUNDO_CAB)
+    f.c(lin, 7, f'=SUMIF(H{primeira}:H{lin - 1},"sim",G{primeira}:G{lin - 1})', MOEDA, negrito=True,
+        fundo=FUNDO_CAB)
+    for col, w in zip("ABCDEFGHI", (24, 16, 18, 30, 14, 16, 14, 11, 40)):
+        ws.column_dimensions[col].width = w
+    _impressao(ws)
+
+
+def _aba_curva_abc(wb, proposta, resultados):
+    """Aba "Curva ABC" dos itens de execução com custo; sem itens com custo, não cria a aba."""
+    itens = []
+    for o, r in zip(proposta["opcoes"], resultados):
+        for it in list(o.get("itens_execucao") or []) + list(r.get("itens_execucao") or []):
+            custo = it.get("custo")
+            if isinstance(custo, (int, float)) and custo > 0:
+                itens.append({"descricao": it.get("descricao") or it.get("nome") or "Item", "custo": float(custo),
+                              "fase": it.get("fase", ""), "opcao": o.get("id", "")})
+    if not itens:
+        return
+    curva = cabc.curva_abc(itens)
+    ws = wb.create_sheet("Curva ABC")
+    f = Folha(ws)
+    cab = ["#", "Descrição", "Fase", "Custo", "Participação", "Acumulado", "Classe"]
+    f.titulo(1, "Curva ABC — itens de execução", len(cab))
+    for j, t in enumerate(cab, 1):
+        f.c(3, j, t, negrito=True, fundo=FUNDO_CAB)
+    for i, it in enumerate(curva, 1):
+        lin = 3 + i
+        f.c(lin, 1, i, INT)
+        f.c(lin, 2, it["descricao"], quebra=True)
+        f.c(lin, 3, it.get("fase", ""))
+        f.c(lin, 4, it["custo"], MOEDA)
+        f.c(lin, 5, it["participacao"], PCT)
+        f.c(lin, 6, it["acumulado"], PCT)
+        f.c(lin, 7, it["classe"], alinhar="center")
+    for col, w in zip("ABCDEFG", (6, 46, 12, 16, 14, 14, 9)):
+        ws.column_dimensions[col].width = w
+    _impressao(ws)
+
+
 def gerar(cat, proposta, resultado):
     """Bytes do .xlsx com todas as opções da proposta."""
     resultados = resultado["opcoes"]
@@ -908,6 +978,8 @@ def gerar(cat, proposta, resultado):
     _aba_cronograma(wb, cat, proposta, resultados, celulas, ref)
     _aba_pagamento(wb, proposta, resultados, celulas)
     _aba_resumo(resumo, cat, proposta, resultados, celulas)
+    _aba_arts(wb, proposta, resultados)
+    _aba_curva_abc(wb, proposta, resultados)
     ordem = ["Resumo"] + [celulas[o["id"]]["aba"] for o in proposta["opcoes"]]
     wb._sheets.sort(key=lambda ws: (ordem.index(ws.title) if ws.title in ordem else len(ordem)))
     wb.move_sheet("Parametros", offset=len(wb.sheetnames))
