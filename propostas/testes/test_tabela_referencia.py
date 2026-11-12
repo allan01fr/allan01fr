@@ -35,3 +35,20 @@ def test_unidades():
     assert round(un.kw_para_tr(3.517), 6) == 1
     assert un.capacidade_de_area(100, 20) == {"valor": 5, "estimado": True,
                                               "premissa": un.capacidade_de_area(100, 20)["premissa"]}
+
+
+def test_listar_tabelas_e_cehop():
+    ts = tr.listar_tabelas()
+    assert len(ts) == 5 and {t["tipo"] for t in ts} == {"honorario_por_faixa", "custo_unitario", "indice_m2"}
+    assert tr.calcular(tr.carregar("cehop_se_2023"), "clim_projeto_basico", 800)["valor"] == round(800 * 4.11, 2)
+
+
+def test_calcular_custo():
+    r = tr.calcular_custo(tr.carregar("emop_rj"), "EX-002", 20, fator_indice=1.1)
+    assert r["valor"] == 220.0 and r["provisorio"]
+
+
+def test_referencia_cub():
+    t = tr.carregar("sinduscon_rio_cub")
+    assert tr.referencia_cub(t, "R8-N", 100)["valor"] == 101000.0
+    assert tr.referencia_cub(t, "CSL-8", 100, mes="2024-01")["valor"] == 90000.0

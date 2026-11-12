@@ -1,0 +1,32 @@
+{
+  "nota": "estrutura de exemplo — substituir pelos dados oficiais (fonte, data-base)",
+  "fonte_url": "",
+  "provisorio": true,
+  "fonte": "ABRAVA - honorários de projeto [estrutura de exemplo; complementa orcamento/honorario_abrava.py]",
+  "tipo": "honorario_por_faixa",
+  "data_base": "2024-01",
+  "indice_sugerido": "INCC",
+  "deslocamento_rs_km": 0,
+  "itens": [
+    {
+      "id": "ex_projeto_climatizacao",
+      "descricao": "Projeto de climatização (EXEMPLO FICTÍCIO)",
+      "unidade": "m2",
+      "modo": "cheia",
+      "faixas": [
+        {
+          "ate": 500,
+          "valor": 1.0
+        },
+        {
+          "ate": null,
+          "valor": 0.8
+        }
+      ],
+      "minimo": 100.0
+    }
+  ],
+  "acrescimos": {
+    "reforma": 0.1
+  }
+}

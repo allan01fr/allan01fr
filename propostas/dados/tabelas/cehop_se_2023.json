@@ -1,6 +1,8 @@
 {
   "fonte": "CEHOP-SE - tabela de honorários de projetos (valores máximos)",
   "data_base": "2023-01",
+  "tipo": "honorario_por_faixa",
+  "fonte_url": "",
   "provisorio": true,
   "nota": "valores a conferir com o PDF oficial; apenas 4,83 e 4,11 (projeto básico) são exemplo confirmado",
   "indice_sugerido": "INCC",
