@@ -247,7 +247,18 @@ def conectar(caminho=None):
     con = sqlite3.connect(caminho or os.environ.get("KAPTEK_REFERENCIAS") or CAMINHO_DB, check_same_thread=False)
     con.row_factory = sqlite3.Row
     con.executescript(ESQUEMA)
+    _migrar(con)
     return con
+
+
+def _migrar(con):
+    """Adiciona colunas novas a bancos antigos (comparavel/motivo em itens), sem perder dados."""
+    cols = {r["name"] for r in con.execute("PRAGMA table_info(itens)")}
+    if "comparavel" not in cols:
+        con.execute("ALTER TABLE itens ADD COLUMN comparavel INTEGER DEFAULT 1")
+    if "motivo" not in cols:
+        con.execute("ALTER TABLE itens ADD COLUMN motivo TEXT DEFAULT ''")
+    con.commit()
 
 
 def _agora():
@@ -364,14 +375,19 @@ def cesta(referencias, criterio="mediana", faixa_alerta=0.25, minimo_fontes=3, c
     quando há índice; valores fora de ±faixa da mediana ficam marcados. O critério escolhe o valor
     adotado entre os não marcados (mediana, média ou menor)."""
     linhas = []
+    fora_comparacao = []
     for r in referencias:
         v = converter_valor(r.get("valor"))
         if v is None:
             continue
+        if r.get("comparavel", True) in (False, 0, "0"):
+            fora_comparacao.append({**r, "valor": v, "comparavel": False, "motivo": r.get("motivo", "") or ""})
+            continue
         v_at, fator = atualizar(con, v, r.get("data_base", ""), data_alvo, indice) if con else (v, None)
         linhas.append({**r, "valor": v, "valor_atualizado": v_at, "fator": fator})
     if not linhas:
-        return {"valor": None, "linhas": [], "avisos": ["Nenhuma referência com valor."]}
+        avisos = ["Nenhuma referência com valor."] if not fora_comparacao else ["Nenhuma referência comparável."]
+        return {"valor": None, "linhas": [], "avisos": avisos, "fora": fora_comparacao, "n_fora_faixa": 0}
     med = statistics.median(l["valor_atualizado"] for l in linhas)
     for l in linhas:
         l["desvio"] = l["valor_atualizado"] / med - 1 if med else 0.0
@@ -387,7 +403,11 @@ def cesta(referencias, criterio="mediana", faixa_alerta=0.25, minimo_fontes=3, c
     sem_atualizar = [l["fonte"] for l in linhas if indice and l.get("data_base") and l["data_base"] != data_alvo and l["fator"] is None]
     if sem_atualizar:
         avisos.append(f"Sem índice {indice} para atualizar: {', '.join(sem_atualizar)}.")
+    if fora_comparacao:
+        avisos.append("Não comparáveis (fora da cesta): " + "; ".join(
+            f"{l.get('fonte', '')}" + (f" ({l['motivo']})" if l["motivo"] else "") for l in fora_comparacao) + ".")
     return {"valor": adotado, "criterio": criterio, "mediana": med,
+            "fora": fora_comparacao, "n_fora_faixa": sum(1 for l in linhas if l["fora_da_faixa"]),
             "media": statistics.mean(l["valor_atualizado"] for l in linhas),
             "menor": min(l["valor_atualizado"] for l in linhas), "n": len(linhas), "n_validos": len(validos),
             "linhas": linhas, "avisos": avisos}
