@@ -38,7 +38,7 @@ def render(O, params, k, estrutura_mudou):
             sel = c1.selectbox("Aplicar kit", range(len(kits)), format_func=lambda i: kits[i]["nome"],
                                key=k("kit_sel", O["id"]))
             if c2.button("Aplicar kit", key=k("kit_ap", O["id"])):
-                modelos.aplicar_kit(O, kits[sel])
+                modelos.aplicar_kit(O, kits[sel], fase_id=ei.config_da_opcao(O)["fase"])
                 estrutura_mudou()
 
     st.markdown("**Itens de execução**")
@@ -51,6 +51,13 @@ def render(O, params, k, estrutura_mudou):
 
     cfg = ei.config_da_opcao(O)
     st.markdown("**Configuração**")
+    ativas = [f for f in O.get("fases", []) if f.get("ativa", True)]
+    ids = [f["id"] for f in ativas]
+    if ids:
+        nomes = {f["id"]: f["nome"] for f in ativas}
+        cfg["fase"] = st.selectbox("Fase que recebe a execução no preço", ids, format_func=nomes.get,
+                                   index=ids.index(cfg["fase"]) if cfg.get("fase") in ids else 0,
+                                   key=k("exec_fase", O["id"]))
     pad = cfg.setdefault("fator_padrao", {})
     cols = st.columns(4)
     for col, nome in zip(cols, FATORES_PADRAO):

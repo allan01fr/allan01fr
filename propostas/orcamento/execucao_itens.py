@@ -60,7 +60,9 @@ def config_da_opcao(opcao):
     """Configuração de execução da opção; cria o padrão (primeira fase ativa) quando ausente."""
     if not isinstance(opcao.get("execucao"), dict):
         fases = opcao.get("fases") or []
-        fase = next((f["id"] for f in fases if f.get("ativa", True)), fases[0]["id"] if fases else "F1")
+        ativas = [f for f in fases if f.get("ativa", True)]
+        fase = next((f["id"] for f in ativas if f.get("modulo") == "execucao"),      # a fase do módulo Execução
+                    ativas[0]["id"] if ativas else (fases[0]["id"] if fases else "F1"))
         opcao["execucao"] = ex.config_padrao(fase)
     return opcao["execucao"]
 
