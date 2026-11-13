@@ -25,8 +25,10 @@ from io import BytesIO
 from orcamento import bdi as bdi_calc
 from orcamento import calibracao as cb
 from orcamento import catalogo as ct
-from orcamento import escopos, exportar_documentos, exportar_docx, exportar_viabilidade, exportar_xlsx, motor
+from orcamento import escopos, exportar_documentos, exportar_docx, exportar_viabilidade, exportar_viabilidade_docx, exportar_xlsx, motor
 from orcamento import modelos
+from orcamento import pdf as pdf_conv
+import zipfile
 import aba_execucao
 from orcamento import parametros as pm
 from orcamento import viabilidade as vb
@@ -1062,6 +1064,30 @@ with abas[5]:
     else:
         st.info("Adicione serviços na aba Escopo para ver o cronograma.")
 
+
+def _chave_pdf(nome, dados):
+    return nome + ":" + hashlib.md5(bytes(dados)).hexdigest()
+
+
+def _pdf_gerado(nome, dados):
+    return (ss.get("pdfs") or {}).get(_chave_pdf(nome, dados))
+
+
+def _gerar_pdfs(docs):
+    """Converte (nome, bytes) em PDF, guardando em ss.pdfs. Falhas viram aviso."""
+    ss.setdefault("pdfs", {})
+    for nome, dados in docs:
+        try:
+            ss["pdfs"][_chave_pdf(nome, dados)] = pdf_conv.bytes_docx_para_pdf(bytes(dados), nome)
+        except Exception as e:
+            st.warning(f"Falha ao converter {nome} em PDF: {e}")
+
+
+def _botao_pdf(nome, dados, chave):
+    pdf = _pdf_gerado(nome, dados)
+    if pdf:
+        st.download_button("PDF", pdf, file_name=nome.rsplit(".", 1)[0] + ".pdf", mime="application/pdf", key=k(chave))
+
 # ----------------------------------------------------------------------------- 6 exportar
 with abas[6]:
     st.subheader("Exportar")
@@ -1090,12 +1116,14 @@ with abas[6]:
             for conteudo, nome, pend in arquivos["docx"]:
                 st.download_button(f"📄 {nome}", conteudo, file_name=nome,
                                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+                _botao_pdf(nome, conteudo, "pdf_" + nome)
                 v = exportar_docx.verificar(conteudo)
                 ok = v["logo"] and v["margem_sup_cm"] == 3.2 and v["margem_esq_cm"] == 3.0
                 st.caption(("✅ padrão KAPTEK conferido (margens 3,2/3,0 e logo)" if ok else "⚠️ template alterado — confira")
                            + (f" · pendências no documento: {', '.join(pend)}" if pend else " · sem pendências"))
             st.markdown("**Contrato e recibo**")
             cc1, cc2 = st.columns(2)
+            dados_c = dados_r = None
             with cc1:
                 if R and not R.get("interno"):
                     with tempfile.TemporaryDirectory() as tmp:
@@ -1106,6 +1134,7 @@ with abas[6]:
                     st.download_button("Gerar contrato (DOCX)", BytesIO(dados_c), file_name=f"contrato-{exportar_docx.slug(P['numero'])}.docx",
                                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                                        key=k("dl_contrato"))
+                    _botao_pdf("contrato.docx", dados_c, "pdf_contrato")
                 else:
                     st.caption("Contrato indisponível para estimativa interna.")
             with cc2:
@@ -1118,6 +1147,33 @@ with abas[6]:
                         dados_r = fh.read()
                 st.download_button("Gerar recibo (DOCX)", BytesIO(dados_r), file_name=f"recibo-{exportar_docx.slug(P['numero'])}.docx",
                                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document", key=k("dl_recibo"))
+                _botao_pdf("recibo.docx", dados_r, "pdf_recibo")
+            todos = [(n, c) for c, n, _ in arquivos["docx"]]
+            if dados_c:
+                todos.append((f"contrato-{exportar_docx.slug(P['numero'])}.docx", dados_c))
+            todos.append((f"recibo-{exportar_docx.slug(P['numero'])}.docx", dados_r))
+            if pdf_conv.disponivel():
+                if st.button("Gerar PDFs", key=k("gerar_pdfs")):
+                    with st.spinner("Convertendo para PDF (pode levar alguns segundos)..."):
+                        _gerar_pdfs([("contrato.docx" if n.startswith("contrato-") else "recibo.docx" if n.startswith("recibo-") else n, d)
+                                     for n, d in todos])
+                    st.rerun()
+            else:
+                st.caption("PDF indisponível: instale o LibreOffice")
+            buf = BytesIO()
+            with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+                zf.writestr(nome_x, xlsx)
+                for n, d in todos:
+                    zf.writestr(n, bytes(d))
+                    nk = "contrato.docx" if n.startswith("contrato-") else "recibo.docx" if n.startswith("recibo-") else n
+                    pdf_b = _pdf_gerado(nk, d)
+                    if pdf_b:
+                        zf.writestr(n.rsplit(".", 1)[0] + ".pdf", pdf_b)
+                if ss.get("relatorio_viab"):
+                    zf.writestr(ss.relatorio_viab[1], ss.relatorio_viab[0])
+            st.download_button("Baixar todos os documentos (.zip)", buf.getvalue(),
+                               file_name=f"KAPTEK-documentos-{exportar_docx.slug(P['numero'])}-rev{P.get('revisao', '00')}.zip",
+                               mime="application/zip", key=k("dl_zip"))
             st.info("Ao abrir no Word, aceite a atualização de campos. A proposta só produz efeito acompanhada da ART "
                     "registrada e quitada (Lei 6.496/1977).")
 
@@ -1425,6 +1481,27 @@ with abas[9]:
             st.download_button("📈 Baixar estudo de viabilidade", ss.arquivo_viab[0],
                                file_name=f"KAPTEK-viabilidade-{exportar_docx.slug(P['cliente'].get('razao'))}-{exportar_docx.slug(P['numero'])}.xlsx",
                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        _docx_t = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        _nome_rel = f"KAPTEK-relatorio-viabilidade-{exportar_docx.slug(P['cliente'].get('razao'))}-{exportar_docx.slug(P['numero'])}.docx"
+        if st.button("Gerar relatório para o cliente", key=k("v_rel_gerar")):
+            with tempfile.TemporaryDirectory() as tmp:
+                cam = os.path.join(tmp, "relatorio.docx")
+                exportar_viabilidade_docx.gerar_relatorio_viabilidade(
+                    VB, cam, cliente=P["cliente"].get("razao") or None,
+                    precos_opcoes={r["id"]: r["preco"] for r in RES["opcoes"]} if RES else None)
+                with open(cam, "rb") as fh:
+                    ss.relatorio_viab = (fh.read(), _nome_rel, assinatura([P, CAT]))
+        if ss.get("relatorio_viab") and ss.relatorio_viab[2] == assinatura([P, CAT]):
+            st.download_button("Relatório para o cliente (DOCX)", ss.relatorio_viab[0], file_name=_nome_rel,
+                               mime=_docx_t, key=k("v_rel_dl"))
+            if pdf_conv.disponivel():
+                if st.button("Gerar PDF do relatório", key=k("v_rel_pdf")):
+                    with st.spinner("Convertendo para PDF..."):
+                        _gerar_pdfs([(_nome_rel, ss.relatorio_viab[0])])
+                    st.rerun()
+                _botao_pdf(_nome_rel, ss.relatorio_viab[0], "v_rel_pdf_dl")
+            else:
+                st.caption("PDF indisponível: instale o LibreOffice")
     else:
         st.info("Adicione alternativas na tabela acima (nome, CAPEX ou opção vinculada, redução de consumo, manutenção).")
 
