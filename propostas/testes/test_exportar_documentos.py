@@ -44,3 +44,34 @@ def test_recibo(caso, tmp_path):
     ed.gerar_recibo(p, res["preco"], "sinal", c, data="2026-11-12", numero="001")
     t = _texto(c)
     assert p["cliente"]["razao"] in t and ed.moeda(res["preco"]) in t and "12/11/2026" in t
+
+
+def test_modelo_preenche_tudo(caso, tmp_path):
+    p, res = caso
+    c, r = str(tmp_path / "c.docx"), str(tmp_path / "r.docx")
+    assert os.path.exists(ed.MODELO_CONTRATO) and "fases" in ed.listar_placeholders(ed.MODELO_CONTRATO)
+    ed.gerar_contrato(p, res, c, revisao=1)
+    ed.gerar_recibo(p, res["preco"], "sinal", r, data="2026-11-12", numero="001")
+    for caminho in (c, r):
+        assert "{{" not in _texto(caminho)
+    t = _texto(c)
+    assert ed.AVISO in t and "Rev. 01" in t and "escopo fechado" in t and "sobre o valor da execução" in t
+
+
+def test_modelo_proprio(caso, tmp_path):
+    p, res = caso
+    m = Document()
+    m.add_paragraph("Ola {{cliente_nome}} — total {{valor_t")  # run partido
+    m.paragraphs[0].add_run("otal}} / {{valor_extenso}}")
+    m.add_paragraph("{{fases}}", style="List Bullet")
+    m.save(tmp_path / "m.docx")
+    assert ed.listar_placeholders(str(tmp_path / "m.docx")) == {"cliente_nome", "valor_total", "valor_extenso", "fases"}
+    c = str(tmp_path / "c.docx")
+    ed.gerar_contrato(p, res, c, modelo=str(tmp_path / "m.docx"))
+    t = _texto(c)
+    assert "{{" not in t and p["cliente"]["razao"] in t and ed.moeda(res["preco"]) in t
+    assert t.count("Fase ") == len(res["fases"])
+
+
+def test_extenso_inalterado():
+    assert ed.extenso(2_500_000.5) == "dois milhões e quinhentos mil reais e cinquenta centavos"
