@@ -10,12 +10,16 @@ investimento descontado pela TMA. Os rótulos pedidos para a tabela são mantido
 """
 
 import io
+import os
 
 from docx import Document
-from docx.shared import Cm, Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
+from docx.oxml import parse_xml
+from docx.oxml.ns import nsdecls, qn
+from docx.shared import Cm, Pt, RGBColor
 
 from . import viabilidade as vb
-from .exportar_docx import moeda, pct_br
+from .exportar_docx import RAIZ, moeda, pct_br
 
 try:
     import matplotlib
@@ -24,6 +28,8 @@ try:
 except ImportError:          # pragma: no cover
     plt = None
 
+MODELO = os.path.join(RAIZ, "modelos", "proposta.docx")
+AZUL, CINZA = "1B3A5C", "3E4448"
 CORES = ["#1f4e79", "#c0504d", "#4f9a3f", "#e08a1e", "#7a4fa3", "#2a9d9d"]
 
 
@@ -104,9 +110,12 @@ def grafico_sensibilidade(res):
 
 def conclusao(res):
     """Texto neutro, gerado dos números."""
-    alts = res["alternativas"]
-    if not alts:
+    todas = res["alternativas"]
+    alts = [a for a in todas if not a.get("sem_preco")]
+    if not todas:
         return "Nenhuma alternativa foi avaliada neste estudo."
+    if not alts:
+        return ("Nenhuma alternativa pôde ser avaliada: falta informar o investimento (preço da opção) de todas elas.")
     n = len(alts)
     pos = [a for a in alts if a["vpl"] > 0]
     partes = [f"Foram comparadas {n} alternativa{'s' if n > 1 else ''} em horizonte de {res['horizonte']} anos, "
@@ -124,38 +133,128 @@ def conclusao(res):
     fragil = [a["nome"] for a in alts if a["vpl"] > 0 and a["sensibilidade"]["economia"].get(-0.3, 1) < 0]
     if fragil:
         partes.append("Com economia 30% menor que a prevista, o VPL fica negativo em: " + "; ".join(fragil) + ".")
+    if len(alts) < len(todas):
+        partes.append("As alternativas sem investimento informado ficaram fora desta conclusão.")
     partes.append("Os resultados dependem das premissas informadas e devem ser revistos se elas mudarem.")
     return " ".join(partes)
 
 
-def _tabela(doc, cabecalho, linhas):
+def _fmt(run, tam, negrito=False, cor=CINZA):
+    run.font.name = "Arial"
+    run._r.get_or_add_rPr().rFonts.set(qn("w:eastAsia"), "Arial")
+    run.font.size, run.bold = Pt(tam), negrito
+    run.font.color.rgb = RGBColor.from_string(cor)
+
+
+def _par(doc, texto, tam=9.5, negrito=False, cor=CINZA, depois=7, italico=False):
+    p = doc.add_paragraph()
+    p.paragraph_format.space_after, p.paragraph_format.space_before = Pt(depois), Pt(0)
+    p.paragraph_format.line_spacing = 1.15
+    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    r = p.add_run(texto)
+    _fmt(r, tam, negrito, cor)
+    r.italic = italico
+    return p
+
+
+def _titulo(doc, texto):
+    p = doc.add_paragraph()
+    p._p.get_or_add_pPr().get_or_add_pStyle().val = "Heading1"      # estilo de seção da proposta
+    p.paragraph_format.keep_with_next = True
+    _fmt(p.add_run(texto), 12, True, AZUL)
+    return p
+
+
+def _celula(c, texto, larg_cm, tam, cabecalho=False, dir_=False):
+    tcPr = c._tc.get_or_add_tcPr()
+    for el in list(tcPr):
+        tcPr.remove(el)
+    ns = nsdecls("w")
+    tcPr.append(parse_xml(f'<w:tcW {ns} w:type="dxa" w:w="{int(larg_cm * 567)}"/>'))
+    tcPr.append(parse_xml(f'<w:tcBorders {ns}>' + "".join(
+        f'<w:{l} w:val="single" w:color="D8D8D8" w:sz="4"/>' for l in ("top", "left", "bottom", "right"))
+        + '</w:tcBorders>'))
+    tcPr.append(parse_xml(f'<w:shd {ns} w:val="clear" w:color="auto" w:fill="{AZUL if cabecalho else "FFFFFF"}"/>'))
+    tcPr.append(parse_xml(f'<w:tcMar {ns}><w:top w:type="dxa" w:w="60"/><w:left w:type="dxa" w:w="45"/>'
+                          f'<w:bottom w:type="dxa" w:w="60"/><w:right w:type="dxa" w:w="45"/></w:tcMar>'))
+    p = c.paragraphs[0]
+    p.paragraph_format.space_after = p.paragraph_format.space_before = Pt(0)
+    if dir_:
+        p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    _fmt(p.add_run(str(texto).replace("R$ ", "R$\u00a0")), tam, cabecalho, "FFFFFF" if cabecalho else CINZA)
+
+
+def _tabela(doc, cabecalho, linhas, larguras, tam=9, dir_cols=()):
+    """Tabela no padrão da proposta: cabeçalho azul-marinho, bordas cinza claras, larguras fixas (cm)."""
     t = doc.add_table(rows=1, cols=len(cabecalho))
-    t.style = "Table Grid"
-    for c, txt in zip(t.rows[0].cells, cabecalho):
-        c.text = ""
-        c.paragraphs[0].add_run(txt).bold = True
+    t.autofit = False
+    tblPr = t._tbl.tblPr
+    for el in tblPr.findall(qn("w:tblStyle")):
+        tblPr.remove(el)
+    tblPr.append(parse_xml(f'<w:tblLayout {nsdecls("w")} w:type="fixed"/>'))
+    for g, w in zip(t._tbl.tblGrid.findall(qn("w:gridCol")), larguras):
+        g.set(qn("w:w"), str(int(w * 567)))
+    for j, (c, txt) in enumerate(zip(t.rows[0].cells, cabecalho)):
+        _celula(c, txt, larguras[j], tam, cabecalho=True, dir_=j in dir_cols)
+    t.rows[0]._tr.get_or_add_trPr().append(parse_xml(f'<w:tblHeader {nsdecls("w")}/>'))
     for ln in linhas:
-        for c, txt in zip(t.add_row().cells, ln):
-            c.text = str(txt)
-    for row in t.rows:
-        for c in row.cells:
-            for p in c.paragraphs:
-                for r in p.runs:
-                    r.font.size = Pt(9)
+        for j, (c, txt) in enumerate(zip(t.add_row().cells, ln)):
+            _celula(c, txt, larguras[j], tam, dir_=j in dir_cols)
     return t
+
+
+def _base_kaptek():
+    """Abre modelos/proposta.docx (cabeçalho, rodapé, estilos) e esvazia o corpo, preservando sectPr."""
+    doc = Document(MODELO) if os.path.exists(MODELO) else Document()
+    corpo = doc.element.body
+    logo = corpo[0] if corpo[0].xpath(".//w:drawing") else None      # logo da capa (a 1ª página não tem cabeçalho)
+    for el in list(corpo):
+        if el.tag != qn("w:sectPr") and el is not logo:
+            corpo.remove(el)
+    if logo is not None:
+        for ext in logo.xpath(".//wp:extent | .//a:ext"):
+            ext.set("cx", str(int(ext.get("cx")) * 55 // 100))
+            ext.set("cy", str(int(ext.get("cy")) * 55 // 100))
+        sp = logo.xpath("./w:pPr/w:spacing")[0]
+        sp.set(qn("w:before"), "0")
+        sp.set(qn("w:line"), "240")
+        sp.set(qn("w:lineRule"), "auto")                              # espaçamento simples: não corta o topo do logo
+    return doc
+
+
+def _imagem(doc, buf):
+    doc.add_picture(buf, width=Cm(15.5))
+    p = doc.paragraphs[-1]
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE   # evita corte do topo no LibreOffice
+
+
+def _marcar_sem_preco(dados, res, precos_opcoes):
+    """Marca em res as alternativas cujo CAPEX vem de uma opção sem preço informado."""
+    for alt, a in zip(dados.get("alternativas", []), res["alternativas"]):
+        oid = alt.get("capex_opcao") or ""
+        if oid and not (precos_opcoes and oid in precos_opcoes) and not float(alt.get("capex") or 0):
+            a["sem_preco"] = oid
 
 
 def gerar_relatorio_viabilidade(dados_viabilidade, caminho, cliente=None, precos_opcoes=None):
     """Grava o relatório DOCX em `caminho` e devolve o caminho."""
     v = vb.completar(dados_viabilidade)
     res = vb.calcular(v, precos_opcoes)
+    _marcar_sem_preco(v, res, precos_opcoes)
     b, fin = v["base"], v["financeiro"]
-    doc = Document()
-    doc.add_heading(res["titulo"], level=0)
+    todas = res["alternativas"]
+    ok = [a for a in todas if not a.get("sem_preco")]
+    res_ok = dict(res, alternativas=ok)
+    doc = _base_kaptek()
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before, p.paragraph_format.space_after = Pt(16), Pt(4)
+    p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+    _fmt(p.add_run(res["titulo"]), 20, True, AZUL)
     if cliente:
-        doc.add_paragraph(f"Cliente: {cliente}")
+        _par(doc, f"Cliente: {cliente}")
 
-    doc.add_heading("Premissas", level=1)
+    _titulo(doc, "Premissas")
     premissas = [
         ("Consumo anual do sistema atual", f"{res['consumo_base']:,.0f} kWh".replace(",", ".")),
         ("Tarifa de energia", f"{moeda(res['tarifa'])}/kWh"),
@@ -167,26 +266,37 @@ def gerar_relatorio_viabilidade(dados_viabilidade, caminho, cliente=None, precos
     ]
     if res["paliativos"]:
         premissas.append(("Paliativos (comuns a todas as alternativas)", moeda(res["paliativos"])))
-    _tabela(doc, ["Premissa", "Valor"], premissas)
+    _tabela(doc, ["Premissa", "Valor"], premissas, [9.5, 6.5], dir_cols=(1,))
 
-    doc.add_heading("Comparativo das alternativas", level=1)
-    linhas = [[a["nome"], moeda(a["capex"]), moeda(a["vpl"]), _pct(a["tir"]), _anos(a["breakeven"]),
-               _anos(a["payback"]), moeda(a["lcc"]), a["classificacao"]] for a in res["alternativas"]]
-    _tabela(doc, ["Alternativa", "Investimento", "VPL", "TIR", "Payback simples", "Breakeven descontado",
-                  "LCC", "Classificação"], linhas)
-    doc.add_paragraph(f"LCC do sistema atual (manter como está): {moeda(res['lcc_base'])}. "
-                      "Payback simples: economia acumulada sem desconto iguala o investimento. "
-                      "Breakeven descontado: o mesmo, com a economia descontada pela TMA.")
-
-    if res["alternativas"]:
-        if plt is not None:
-            doc.add_heading("Gráficos", level=1)
-            doc.add_picture(grafico_custo_acumulado(v, res), width=Cm(16))
-            doc.add_picture(grafico_sensibilidade(res), width=Cm(16))
+    _titulo(doc, "Comparativo das alternativas")
+    linhas = []
+    for a in todas:
+        if a.get("sem_preco"):
+            linhas.append([a["nome"], "—", "—", "—", "—", "—", "—", "Investimento não informado"])
         else:
-            doc.add_paragraph("Gráficos indisponíveis: matplotlib não está instalado.")
+            linhas.append([a["nome"], moeda(a["capex"]), moeda(a["vpl"]), _pct(a["tir"]), _anos(a["breakeven"]),
+                           _anos(a["payback"]), moeda(a["lcc"]), a["classificacao"]])
+    _tabela(doc, ["Alternativa", "Investimento", "VPL", "TIR", "Payback simples", "Breakeven descontado",
+                  "LCC", "Classificação"], linhas, [2.6, 2.2, 2.2, 1.0, 1.45, 1.95, 2.2, 2.4], tam=7.5,
+            dir_cols=(1, 2, 3, 4, 5, 6))
+    _par(doc, f"LCC do sistema atual (manter como está): {moeda(res['lcc_base'])}. "
+              "Payback simples: economia acumulada sem desconto iguala o investimento. "
+              "Breakeven descontado: o mesmo, com a economia descontada pela TMA.", 8.5, depois=4).paragraph_format.space_before = Pt(6)
+    faltam = [a for a in todas if a.get("sem_preco")]
+    if faltam:
+        _par(doc, "Investimento não informado: " + "; ".join(
+            f"\"{a['nome']}\" (vincule o preço da opção {a['sem_preco']})" for a in faltam)
+            + ". Essas alternativas não entram na conclusão nem nos gráficos.", 8.5, True, AZUL)
 
-    doc.add_heading("Conclusão", level=1)
-    doc.add_paragraph(conclusao(res))
+    if ok:
+        if plt is not None:
+            _titulo(doc, "Gráficos")
+            _imagem(doc, grafico_custo_acumulado(v, res_ok))
+            _imagem(doc, grafico_sensibilidade(res_ok))
+        else:
+            _par(doc, "Gráficos indisponíveis: matplotlib não está instalado.")
+
+    _titulo(doc, "Conclusão")
+    _par(doc, conclusao(res))
     doc.save(caminho)
     return caminho

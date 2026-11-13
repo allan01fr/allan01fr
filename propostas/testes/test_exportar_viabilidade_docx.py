@@ -23,7 +23,7 @@ def test_relatorio_tem_tabelas_graficos_e_conclusao(tmp_path):
     assert len(d.tables[1].rows) == 1 + len(_dados()["alternativas"])
     assert "VPL" in [c.text for c in d.tables[1].rows[0].cells]
     if ev.plt is not None:
-        assert len(d.inline_shapes) == 2
+        assert len(d.inline_shapes) == 3   # logo da capa + 2 gráficos
     assert any(p.text.startswith("Foram comparadas") for p in d.paragraphs)
     assert any("Cliente Teste" in p.text for p in d.paragraphs)
 
@@ -41,3 +41,13 @@ def test_sem_alternativas_nao_quebra(tmp_path):
     out = tmp_path / "v.docx"
     ev.gerar_relatorio_viabilidade({"ativo": True}, str(out))
     assert "Nenhuma alternativa" in " ".join(p.text for p in Document(str(out)).paragraphs)
+
+
+def test_alternativa_sem_preco_da_opcao_vira_traco_e_nota(tmp_path):
+    dados = _dados()
+    dados["alternativas"][0]["capex_opcao"], dados["alternativas"][0]["capex"] = "ZZ", 0
+    out = tmp_path / "v.docx"
+    ev.gerar_relatorio_viabilidade(dados, str(out))
+    d = Document(str(out))
+    assert [c.text for c in d.tables[1].rows[1].cells][1:7] == ["—"] * 6
+    assert any("vincule o preço da opção ZZ" in p.text for p in d.paragraphs)
