@@ -470,6 +470,65 @@ def _inserir_arts(par, arts):
         _definir(ref, texto)
 
 
+def _num_br(v):
+    return f"{v:,.1f}".replace(",", "X").replace(".", ",").replace("X", ".").replace(",0", "") if v != int(v) else f"{int(v):,}".replace(",", ".")
+
+
+def _textos_acompanhamento(res, opcao):
+    """Frases voltadas ao cliente sobre a cobrança do acompanhamento de obra (pacote "obra" ou % sobre a execução)."""
+    cfg = {f["id"]: f for f in opcao["fases"]}
+    saida = []
+    for fr in res["fases"]:
+        ob = (cfg.get(fr["id"], {}).get("obra") or {})
+        if cfg.get(fr["id"], {}).get("modulo") != "acompanhamento":
+            continue
+        if fr["cobranca"] == "pacote" and (fr.get("pacote") or {}).get("forma") == "obra":
+            pk = fr["pacote"]
+            saida.append(f"{fr['nome']}: acompanhamento estimado em {_h(pk['horas'])} ({_num_br(pk['dias_obra'])} dias úteis de obra "
+                         f"× {_num_br(pk['horas_dia_obra'])} h/dia + {_h(pk['horas_fixas'])} de mobilização e relatório); "
+                         f"horas excedentes a {moeda(pk['taxa_excedente'])}/h.")
+        elif fr["cobranca"] == "percentual" and ob.get("base_modo") == "execucao":
+            saida.append(f"{fr['nome']}: {pct_br(fr['percentual']['pct'])} sobre o valor da execução.")
+    return saida
+
+
+def _textos_execucao(res, opcao, params):
+    """Seção voltada ao cliente sobre a fase de execução: itens (sem HH nem custos), prazo, equipe e inclusões."""
+    from . import execucao_itens as ei
+    fases = [fr["id"] for fr in res["fases"] if any(f["id"] == fr["id"] and f.get("modulo") == "execucao" for f in opcao["fases"])]
+    itens = {}
+    for it in opcao.get("itens_execucao") or []:
+        if not isinstance(it, dict) or it.get("fase") not in fases:
+            continue
+        qtd = float(it.get("qtd") or 0)
+        if qtd > 0:
+            chave = (it.get("descricao") or "Item de execução", it.get("unid") or "un")
+            itens[chave] = itens.get(chave, 0.0) + qtd
+    if not itens:
+        return []
+    linhas = ["Itens de execução:"]
+    linhas += [f"• {d} — {_num_br(q)} {u}" for (d, u), q in itens.items()]
+    plano = ei.calcular_execucao(opcao, params).get("plano") or {}
+    if plano.get("prazo_dias_uteis"):
+        linhas.append(f"Prazo de execução estimado: {int(plano['prazo_dias_uteis'])} dias úteis "
+                      f"({int(plano.get('prazo_dias_corridos') or 0)} dias corridos).")
+    if plano.get("equipe"):
+        nomes = ei.ex.FUNCOES_PADRAO
+        eq = "; ".join(f"{nomes.get(f, f)} × {int(n)}" for f, n in plano["equipe"].items() if n)
+        linhas.append(f"Equipe prevista: {eq}.")
+    linhas.append("Os materiais e equipamentos listados acima estão incluídos no preço da execução.")
+    return linhas
+
+
+def _inserir_apos(par, textos):
+    ref = par
+    for texto in textos:
+        novo = copy.deepcopy(par._p)
+        ref._p.addnext(novo)
+        ref = type(par)(novo, par._parent)
+        _definir(ref, texto)
+
+
 def gerar_opcao(cat, proposta, opcao, res, varias=False):
     """Preenche o template para uma opção. Devolve (bytes, nome_arquivo, pendencias)."""
     params = proposta["parametros"]
@@ -520,6 +579,12 @@ def gerar_opcao(cat, proposta, opcao, res, varias=False):
     hon = _tabela(doc, "Descrição", "Qtd.")
     _preencher_linhas(hon, _linhas_honorarios(cat, params, opcao, res), manter_ultima=True)
     _definir(hon.rows[-1].cells[-1].paragraphs[0], _total_texto(res))
+
+    extras = _textos_acompanhamento(res, opcao) + _textos_execucao(res, opcao, params)
+    if extras:
+        nota = next((p for p in _todos_paragrafos(doc) if p.text.startswith("Valores expressos em reais")), None)
+        if nota is not None:
+            _inserir_apos(nota, extras)
 
     secoes = _listas_por_secao(doc)
     _ajustar_lista(_lista(secoes, "EXCLUS"), _exclusoes(cat, opcao, res))
