@@ -403,6 +403,7 @@
   },
   {
    "id": "hvac.projeto",
+   "art": {"atividade": "projeto", "modalidade": "mecanica"},
    "disciplina": "HVAC-R",
    "tipo": "projeto",
    "nome": "Projeto de climatização (HVAC)",
@@ -1015,6 +1016,7 @@
   },
   {
    "id": "hvac.desempenho",
+   "art": {"atividade": "laudo", "modalidade": "mecanica"},
    "disciplina": "HVAC-R",
    "tipo": "consultoria",
    "nome": "Avaliação de desempenho real × estimativa de projeto",
@@ -1228,6 +1230,193 @@
     "ABNT NBR 16401-1",
     "ASHRAE Guideline 14",
     "ASHRAE 90.1"
+   ]
+  },
+  {
+   "id": "hvac.inspecao_conformidade",
+   "art": {"atividade": "laudo", "modalidade": "mecanica"},
+   "disciplina": "HVAC-R",
+   "tipo": "laudo",
+   "nome": "Inspeção com laudo de conformidade de sistemas HVAC-R",
+   "descricao": "Vistoria das instalações de climatização, ventilação e exaustão, verificação contra os requisitos de norma e de projeto, e laudo com não conformidades e recomendações.",
+   "dados": [
+    {
+     "id": "area",
+     "rotulo": "Área construída",
+     "tipo": "float",
+     "padrao": 1000.0,
+     "unidade": "m²",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "sistemas",
+     "rotulo": "Sistemas inspecionados",
+     "tipo": "int",
+     "padrao": 6,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "ambientes",
+     "rotulo": "Ambientes vistoriados",
+     "tipo": "int",
+     "padrao": 20,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "normas",
+     "rotulo": "Normas e requisitos verificados",
+     "tipo": "int",
+     "padrao": 3,
+     "unidade": "",
+     "ajuda": "",
+     "min": 0
+    },
+    {
+     "id": "medicoes",
+     "rotulo": "Inclui medições pontuais (vazão, temperatura, pressão)",
+     "tipo": "bool",
+     "padrao": false,
+     "ajuda": ""
+    }
+   ],
+   "atividades": [
+    {
+     "id": "mob",
+     "nome": "Análise documental (projeto, PMOC e relatórios anteriores)",
+     "entregavel": "Base documental",
+     "etapa": "mobilizacao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "SR": 2,
+      "PL": 3
+     },
+     "unid": {},
+     "fatores": [
+      "documentacao"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "vistoria",
+     "nome": "Vistoria em campo com registro fotográfico",
+     "entregavel": "Registros de vistoria e fotográficos",
+     "etapa": "campo",
+     "driver": "area/500+sistemas+ambientes/10",
+     "b": 0.9,
+     "fixo": {},
+     "unid": {
+      "SR": 0.5,
+      "TC": 0.75
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "medicoes_pontuais",
+     "nome": "Medições pontuais de vazão, temperatura e pressão",
+     "entregavel": "Planilha de medições",
+     "etapa": "campo",
+     "driver": "medicoes*sistemas",
+     "b": 0.9,
+     "fixo": {},
+     "unid": {
+      "TC": 1.5,
+      "PL": 0.75
+     },
+     "fatores": [
+      "complexidade",
+      "acesso",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "conformidade",
+     "nome": "Análise de conformidade item a item contra norma e projeto",
+     "entregavel": "Quadro de conformidade",
+     "etapa": "calculo",
+     "driver": "sistemas*normas",
+     "b": 0.8,
+     "fixo": {
+      "PL": 2
+     },
+     "unid": {
+      "PL": 0.6,
+      "SR": 0.3
+     },
+     "fatores": [
+      "complexidade",
+      "documentacao",
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    },
+    {
+     "id": "laudo",
+     "nome": "Emissão do laudo com não conformidades, criticidade e recomendações",
+     "entregavel": "Laudo de conformidade com ART",
+     "etapa": "emissao",
+     "driver": null,
+     "b": 1.0,
+     "fixo": {
+      "RT": 3,
+      "SR": 4,
+      "PL": 4,
+      "ES": 2
+     },
+     "unid": {},
+     "fatores": [
+      "urgencia"
+     ],
+     "calibracao": 1.0
+    }
+   ],
+   "diretos": [
+    {
+     "id": "instrumentos",
+     "nome": "Locação de instrumentos para medições pontuais",
+     "qtd": "medicoes*ceil(sistemas/4)",
+     "valor_unit": 180.0,
+     "unid": "dia"
+    }
+   ],
+   "exclusoes": [
+    "Correção das não conformidades identificadas, troca de componentes e serviços de manutenção.",
+    "Ensaios destrutivos.",
+    {
+     "texto": "Análises laboratoriais de qualidade do ar, salvo item próprio.",
+     "exceto_se": [
+      "hvac.qai"
+     ]
+    },
+    {
+     "texto": "Projeto de adequação das instalações, salvo item próprio.",
+     "exceto_se": [
+      "hvac.projeto"
+     ]
+    }
+   ],
+   "premissas": [
+    "O acesso aos ambientes e equipamentos será franqueado em data previamente agendada, com acompanhamento de preposto do contratante.",
+    "O contratante disponibilizará a documentação técnica existente (projetos, memoriais, manuais) em até 5 dias do aceite."
+   ],
+   "normas": [
+    "ABNT NBR 16401",
+    "ABNT NBR 17037",
+    "ABNT NBR 13971",
+    "ABNT NBR 14679",
+    "Portaria MS 3.523/1998",
+    "Lei 13.589/2018"
    ]
   },
   {
@@ -1915,7 +2104,7 @@
    "disciplina": "HVAC-R",
    "tipo": "ensaio",
    "nome": "Avaliação da qualidade do ar interior",
-   "descricao": "Coleta de amostras e medições conforme a Resolução ANVISA RE 09/2003, com relatório e ART.",
+   "descricao": "Coleta de amostras e medições conforme a ABNT NBR 17037, com relatório e ART.",
    "dados": [
     {
      "id": "pontos",
@@ -1923,7 +2112,7 @@
      "tipo": "int",
      "padrao": 3,
      "unidade": "pontos",
-     "ajuda": "Defina pela área climatizada, conforme a tabela da Resolução ANVISA RE 09/2003.",
+     "ajuda": "Defina pela área climatizada, conforme o critério de amostragem da ABNT NBR 17037.",
      "min": 0
     },
     {
@@ -2048,7 +2237,7 @@
     "Os sistemas estarão em operação normal durante as medições."
    ],
    "normas": [
-    "Resolução ANVISA RE 09/2003",
+    "ABNT NBR 17037",
     "Lei 13.589/2018"
    ]
   },
@@ -5714,6 +5903,7 @@
   },
   {
    "id": "geral.acompanhamento_obra",
+   "art": {"atividade": "fiscalizacao", "modalidade": "mecanica"},
    "disciplina": "Geral",
    "tipo": "obra",
    "nome": "Acompanhamento técnico / fiscalização de obra",

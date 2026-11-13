@@ -37,7 +37,7 @@ CATEGORIAS_FORNECIMENTO = ("material", "equipamento", "mo_execucao", "subcontrat
 MODALIDADES = ("fases", "estimativa")
 COBRANCAS = ("fechado", "hora", "percentual", "pacote")
 FORMAS_PERCENTUAL = ("medicoes", "fixo_global", "fixo_mais_medicoes")
-FORMAS_PACOTE = ("mensal", "total")
+FORMAS_PACOTE = ("mensal", "total", "obra")
 
 
 def nova_fase(fid, params, nome=None, cobranca="fechado"):
@@ -48,6 +48,8 @@ def nova_fase(fid, params, nome=None, cobranca="fechado"):
         "id": fid,
         "nome": nome or f"Fase {fid.lstrip('F')}",
         "cobranca": cobranca,
+        "ativa": True,          # desligada: sai do preço, do cronograma e da proposta, mas continua no arquivo
+        "modulo": "",           # id do módulo de escopo que criou a fase; vazio = fase feita à mão
         # obra acompanhada: base do % e da taxa de desempenho, duração e curva das medições.
         # base_modo: valor informado, estimativa interna de outra opção (parte "obra" = fornecimentos e
         # execução com BDI, ou "global") ou custo dos fornecimentos da própria fase
@@ -59,6 +61,8 @@ def nova_fase(fid, params, nome=None, cobranca="fechado"):
             "forma": "mensal", "horas_mes": 0.0, "meses": int(pk.get("meses", 6)), "acumula_saldo": False,
             "horas": 0.0, "validade_meses": int(pk.get("validade_meses", 12)), "parcelas": int(pk.get("parcelas", 3)),
             "desconto": float(pk.get("desconto", 0.10)), "excedente_pct": float(pk.get("excedente_pct", 0.0)),
+            "horas_dia_obra": float(pk.get("horas_dia_obra", 2.0)), "horas_fixas": float(pk.get("horas_fixas", 8.0)),
+            "dias_obra": 0.0,       # fallback da forma "obra" quando a opção não tem plano de execução
         },
         "desempenho": {
             "ativo": False,

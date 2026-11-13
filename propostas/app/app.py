@@ -19,13 +19,23 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
+import tempfile
+from io import BytesIO
+
+from orcamento import bdi as bdi_calc
 from orcamento import calibracao as cb
 from orcamento import catalogo as ct
-from orcamento import exportar_docx, exportar_viabilidade, exportar_xlsx, motor
+from orcamento import escopos, exportar_documentos, exportar_docx, exportar_viabilidade, exportar_viabilidade_docx, exportar_xlsx, motor
+from orcamento import modelos
+from orcamento import pdf as pdf_conv
+import zipfile
+import aba_execucao
 from orcamento import parametros as pm
 from orcamento import viabilidade as vb
 from orcamento import proposta as pp
 from orcamento import referencias as rf
+from orcamento import indices_bcb as ibcb
+from orcamento import tabela_referencia as tref
 
 st.set_page_config(page_title="Propostas KAPTEK", page_icon="📐", layout="wide")
 
@@ -46,9 +56,17 @@ CATEGORIAS = {"material": "Material", "equipamento": "Equipamento", "mo_execucao
 moeda = exportar_docx.moeda
 
 
+_MD_ESPECIAIS = "\\$~*_[]`"
+
+
+# nome do botão do módulo quando o nome completo (escopos.MODULOS) é longo demais para o botão; o completo vai no help
+ROTULO_BOTAO_MODULO = {"inspecao_laudo": "Inspeção com laudo"}
+
+
 def md(texto):
-    """Escapa o $ para o markdown do Streamlit não ler 'R$ ... R$' como fórmula LaTeX."""
-    return str(texto).replace("$", "\\$")
+    """Escapa o que o markdown do Streamlit leria como formatação ($ vira fórmula LaTeX; ~ * _ [ ] ` formatam),
+    para um nome digitado pelo usuário aparecer como foi escrito, inclusive dentro de ~~riscado~~."""
+    return "".join("\\" + c if c in _MD_ESPECIAIS else c for c in str(texto))
 
 # ----------------------------------------------------------------------------- estado
 ss = st.session_state
@@ -108,7 +126,78 @@ def num_br(v, casas=1):
     return f"{v:,.{casas}f}".replace(",", "§").replace(".", ",").replace("§", ".")
 
 
+def fase_ativa(fz):
+    return bool(fz.get("ativa", True))
+
+
+def sincronizar_fases(o):
+    """Traz para o dado o estado dos botões 'Incluir nesta proposta' (os widgets rodam depois do cálculo de quem os lê)."""
+    mexeu = False
+    for fz in o["fases"]:
+        chave = k("fz_ativa", o["id"], fz["id"])
+        if chave in ss:
+            mexeu = mexeu or fase_ativa(fz) != bool(ss[chave])
+            fz["ativa"] = bool(ss[chave])
+    if mexeu and o["fases"] and not any(fase_ativa(f) for f in o["fases"]):      # dois botões desligados na mesma execução
+        o["fases"][0]["ativa"] = True
+        ss[k("fz_ativa", o["id"], o["fases"][0]["id"])] = True
+
+
+def assinatura_fases(o):
+    """Muda quando uma fase é ligada, desligada ou renomeada. Entra na chave dos seletores de fase para que o
+    navegador redesenhe os rótulos ('Fase N'); sem isso ele mantém o texto antigo da opção já escolhida."""
+    return "".join(("1" if fase_ativa(f) else "0") + f["nome"] for f in o["fases"])
+
+
+def rotulos_fases(o):
+    """Rótulo de cada fase: 'Fase N — nome' com N entre as fases ATIVAS (a mesma numeração do preço e dos documentos);
+    a desligada não tem número."""
+    rot, n = {}, 0
+    for fz in o["fases"]:
+        if fase_ativa(fz):
+            n += 1
+            rot[fz["id"]] = f"Fase {n} — {fz['nome']}"
+        else:
+            rot[fz["id"]] = f"{fz['nome']} (desligada)"
+    return rot
+
+
 # ----------------------------------------------------------------------------- barra lateral
+
+TIPOS_PROPOSTA = {
+    "Só projeto": ["projeto"],
+    "Projeto + acompanhamento de obra": ["projeto", "acompanhamento"],
+    "Projeto + acompanhamento + execução": ["projeto", "acompanhamento", "execucao"],
+    "Só execução (obra)": ["execucao"],
+    "Inspeção com laudo de conformidade": ["inspecao_laudo"],
+    "Avaliação de desempenho": ["desempenho"],
+    "Escolher módulos…": None,
+    "Em branco": [],
+}
+
+
+@st.dialog("Nova proposta")
+def dialogo_nova_proposta():
+    """Pergunta o tipo de proposta e já cria as fases dos módulos escolhidos."""
+    tipo = st.radio("Que tipo de proposta?", list(TIPOS_PROPOSTA), key="nova_tipo")
+    mods = TIPOS_PROPOSTA[tipo]
+    if mods is None:
+        mods = st.multiselect("Módulos", list(escopos.MODULOS), format_func=lambda m: escopos.MODULOS[m]["nome"],
+                              default=["projeto"], key="nova_mods")
+    if mods:
+        st.caption("Fases: " + " → ".join(escopos.MODULOS[m]["nome"] for m in mods)
+                   + ". Dá para incluir ou desligar módulos depois, na aba 2.")
+    c1, c2 = st.columns(2)
+    if c1.button("Criar", type="primary", width="stretch", key="nova_criar"):
+        novo = pp.padrao(ss.params)
+        for m in mods:
+            escopos.incluir(novo["opcoes"][0], m, CAT, novo["parametros"])
+        substituir_proposta(novo)
+        st.rerun()
+    if c2.button("Cancelar", width="stretch", key="nova_cancelar"):
+        st.rerun()
+
+
 with st.sidebar:
     if os.path.exists(LOGO):
         st.image(LOGO, width=190)
@@ -138,15 +227,14 @@ with st.sidebar:
         with open(os.path.join(PASTA_EXEMPLOS, ex), encoding="utf-8") as f:
             substituir_proposta(pp.carregar_json(f.read()))
         st.rerun()
-    if st.button("Nova proposta em branco", width="stretch"):
-        substituir_proposta(pp.padrao(ss.params))
-        st.rerun()
+    if st.button("Nova proposta", width="stretch", type="primary"):
+        dialogo_nova_proposta()
     st.divider()
     st.caption("Fluxo: 1 Dados gerais → 2 Escopo e fases → 3 Fornecimentos → 4 Preço e cobrança por fase → "
                "5 Prazo e pagamento → 6 Exportar")
 
 O = P["opcoes"][ss.op_idx]
-abas = st.tabs(["1 · Dados gerais", "2 · Escopo", "3 · Fornecimentos e subcontratações", "4 · Preço",
+abas = st.tabs(["1 · Dados gerais", "2 · Escopo", "3 · Fornecimentos e subcontratações", "3b · Execução", "4 · Preço",
                 "5 · Prazo e pagamento", "6 · Exportar", "7 · Catálogo e parâmetros", "8 · Calibração",
                 "9 · Viabilidade", "10 · Bases de referência"])
 
@@ -197,6 +285,9 @@ with abas[0]:
                                           help="Acima do raio isento, o deslocamento entra como custo direto."))
     cx["area_ref"] = float(c3.number_input("Área de referência (m²)", 0.0, 1e7, float(cx.get("area_ref") or 0),
                                            step=50.0, key=k("area_ref"), help="Só para o indicador R$/m². 0 = não calcular."))
+    if st.button("Duplicar proposta", key=k("duplicar"), help="Cópia com ids novos; número, revisão, data e nome do cliente zerados."):
+        substituir_proposta(modelos.duplicar_proposta(P))
+        st.rerun()
 
 # ----------------------------------------------------------------------------- 2 escopo
 def widget_campo(c, valor, chave):
@@ -238,8 +329,8 @@ with abas[1]:
                                     "cobrança. Estimativa interna: valor global da obra (equipamentos, execução, BDI, "
                                     "garantia), base do % da assessoria e do CAPEX da viabilidade; não gera proposta.")
     estimativa = O["modalidade"] == "estimativa"
+    sincronizar_fases(O)
     ids_fases = [f["id"] for f in O["fases"]]
-    nome_fase = {f["id"]: f"Fase {n} — {f['nome']}" for n, f in enumerate(O["fases"], 1)}
     if estimativa:
         with st.container(border=True):
             st.markdown("**Etapas da obra consideradas no valor global**")
@@ -260,23 +351,55 @@ with abas[1]:
             st.markdown("**Fases da proposta**")
             st.caption("Cada fase é precificada sozinha (pode ser contratada separadamente) e tem a sua forma de cobrança. "
                        "Configure % da obra, pacote de horas e taxa de desempenho na aba Preço.")
+            st.markdown("**Incluir módulo**")
+            st.caption("Cada módulo cria uma fase própria, já com os serviços do escopo; depois é só ligar ou desligar "
+                       "a fase abaixo.")
+            mods = list(escopos.MODULOS.items())
+            colunas_mod = st.columns(3) + st.columns(3)       # duas linhas: o nome do botão cabe inteiro
+            for col, (mid, mod) in zip(colunas_mod, mods):
+                if col.button(ROTULO_BOTAO_MODULO.get(mid, mod["nome"]), key=k("mod", O["id"], mid),
+                              help=f"{mod['nome']}. {mod['descricao']}", width="stretch"):
+                    try:
+                        escopos.incluir(O, mid, CAT, P["parametros"])
+                    except (KeyError, ValueError) as e:
+                        st.error(f"Não foi possível incluir o módulo: {e}")
+                    else:
+                        estrutura_mudou()
+            n_ativas = sum(fase_ativa(f) for f in O["fases"])
+            pos = 0
             for n, fz in enumerate(O["fases"]):
-                c1, c2, c3, c4, c5 = st.columns([0.5, 3, 1.6, 0.5, 0.9])
-                c1.markdown(f"**{n + 1}**")
+                ativa = fase_ativa(fz)
+                pos += ativa
+                c1, c2, c3, c4, c5, c6 = st.columns([0.5, 3, 1.6, 1.5, 0.5, 0.9])
+                c1.markdown(f"**{pos}**" if ativa else "—")
                 fz["nome"] = c2.text_input("Nome da fase", fz["nome"], key=k("fz_nome", O["id"], fz["id"]),
                                            label_visibility="collapsed")
+                mod_nome = escopos.MODULOS.get(fz.get("modulo"), {}).get("nome")
+                legenda = [x for x in ((f"Módulo: {mod_nome}" if mod_nome and mod_nome != fz["nome"] else ""),
+                                       "" if ativa else "desligada") if x]
+                if legenda:
+                    c2.caption(" · ".join(legenda))
                 fz["cobranca"] = c3.selectbox("Cobrança", list(COBRANCAS), index=list(COBRANCAS).index(fz["cobranca"]),
                                               format_func=COBRANCAS.get, key=k("fz_cob", O["id"], fz["id"]),
                                               label_visibility="collapsed")
-                if c4.button("⬆", key=k("fz_sobe", O["id"], fz["id"]), disabled=n == 0, help="Subir a fase"):
+                ultima = ativa and n_ativas == 1
+                fz["ativa"] = bool(c4.toggle(
+                    "Incluir", value=ativa, key=k("fz_ativa", O["id"], fz["id"]), disabled=ultima,
+                    help="A proposta precisa de pelo menos uma fase incluída." if ultima else
+                         "Incluir esta fase na proposta. Desligada, a fase sai do preço, do cronograma e da proposta, "
+                         "mas continua guardada."))
+                if c5.button("⬆", key=k("fz_sobe", O["id"], fz["id"]), disabled=n == 0, help="Subir a fase"):
                     O["fases"][n - 1], O["fases"][n] = O["fases"][n], O["fases"][n - 1]
                     estrutura_mudou()
-                if c5.button("🗑", key=k("fz_rm", O["id"], fz["id"]), disabled=len(O["fases"]) == 1,
-                             help="Remover a fase (os serviços vão para a primeira fase restante)"):
+                if c6.button("🗑", key=k("fz_rm", O["id"], fz["id"]), disabled=len(O["fases"]) == 1,
+                             help="Remover a fase (os serviços vão para a primeira fase incluída)"):
                     O["fases"].pop(n)
+                    if not any(fase_ativa(f) for f in O["fases"]):      # a proposta nunca fica sem fase incluída
+                        O["fases"][0]["ativa"] = True
+                    destino = next(f for f in O["fases"] if fase_ativa(f))["id"]
                     for x in O["itens"] + O["fornecimentos"]:
                         if x.get("fase") == fz["id"]:
-                            x["fase"] = O["fases"][0]["id"]
+                            x["fase"] = destino
                     estrutura_mudou()
             if st.button("➕ Nova fase", key=k("fz_nova", O["id"])):
                 O["fases"].append(pp.nova_fase(pp.proxima_fase(O), P["parametros"]))
@@ -295,8 +418,8 @@ with abas[1]:
             st.caption(ct.servico(CAT, sid)["descricao"])
             fase_nova = ids_fases[0]
             if not estimativa and len(ids_fases) > 1:
-                fase_nova = st.selectbox("Na fase", ids_fases, index=len(ids_fases) - 1, format_func=nome_fase.get,
-                                         key=k("f_fase"))
+                fase_nova = st.selectbox("Na fase", ids_fases, index=len(ids_fases) - 1, format_func=rotulos_fases(O).get,
+                                         key=k("f_fase", assinatura_fases(O)))
             if st.button("Adicionar à opção", type="primary"):
                 O["itens"].append(pp.novo_item(ct.servico(CAT, sid), fase_nova))
                 ss.aberto = len(O["itens"]) - 1
@@ -316,14 +439,15 @@ with abas[1]:
         serv = ct.servico(CAT, it["servico"])
         if not estimativa and len(ids_fases) > 1 and it.get("fase") != fase_atual:
             fase_atual = it.get("fase")
-            st.markdown(f"**{nome_fase.get(fase_atual, nome_fase[ids_fases[0]])}**")
+            rot_fases = rotulos_fases(O)
+            st.markdown(f"**{rot_fases.get(fase_atual, rot_fases[ids_fases[0]])}**")
         titulo = f"{i + 1}. {it.get('descricao') or serv['nome']}  ·  {serv['disciplina']}"
         with st.expander(titulo, expanded=(ss.get("aberto") == i)):
             st.caption(serv["descricao"])
             if not estimativa and len(ids_fases) > 1:
                 atual_f = it.get("fase") if it.get("fase") in ids_fases else ids_fases[0]
-                nova_f = st.selectbox("Fase", ids_fases, index=ids_fases.index(atual_f), format_func=nome_fase.get,
-                                      key=k("it_fase", O["id"], i))
+                nova_f = st.selectbox("Fase", ids_fases, index=ids_fases.index(atual_f), format_func=rotulos_fases(O).get,
+                                      key=k("it_fase", O["id"], i, assinatura_fases(O)))
                 if nova_f != it.get("fase"):
                     it["fase"] = nova_f
                     estrutura_mudou()
@@ -353,10 +477,10 @@ with abas[1]:
                                     "Total (h)": round(l["total_h"], 1)} for l in linhas])
                 st.dataframe(df, hide_index=True, width="stretch")
                 tot = sum(l["total_h"] for l in linhas)
-                txt = f"**{num_br(tot)} h** neste serviço"
+                txt = f" neste serviço"
                 if diretos:
                     txt += " · custos diretos: " + "; ".join(f"{d['descricao']} {moeda(d['valor'])}" for d in diretos)
-                st.markdown(md(txt))
+                st.markdown(f"**{num_br(tot)} h**" + md(txt))      # md() escapa o texto livre, não o negrito
             except Exception as e:  # noqa: BLE001
                 st.error(f"Erro ao calcular este serviço: {e}")
             c1, c2, c3, _ = st.columns([1, 1, 1, 4])
@@ -392,6 +516,7 @@ with abas[2]:
                "fornece (ex.: locação de instrumentos). Cada categoria recebe o seu BDI (aba Preço → parâmetros). Busque "
                "preços nas bases (EMOP, SCO-Rio, SINAPI, cotações...) na aba 10.")
     ids_fases = [f["id"] for f in O["fases"]]
+    desligadas = {f["id"] for f in O["fases"] if not fase_ativa(f)}
     com_fase = O["modalidade"] == "fases" and len(ids_fases) > 1
     colunas_f = ["uid", "descricao", "categoria", "unid", "qtd", "custo_unit", "fonte", "codigo", "data_base", "fase"]
     base = pd.DataFrame([{c: f.get(c, "") for c in colunas_f} for f in O["fornecimentos"]], columns=colunas_f)
@@ -410,7 +535,9 @@ with abas[2]:
             "fonte": st.column_config.TextColumn("Fonte"),
             "codigo": st.column_config.TextColumn("Código"),
             "data_base": st.column_config.TextColumn("Data-base (AAAA-MM)"),
-            "fase": st.column_config.SelectboxColumn("Fase", options=ids_fases, default=ids_fases[0]),
+            "fase": st.column_config.SelectboxColumn(
+                "Fase", options=ids_fases, default=ids_fases[0],
+                format_func=lambda i: f"{i} (desligada)" if i in desligadas else i),
         })
     antigos = {f["uid"]: f for f in O["fornecimentos"]}
     novos = []
@@ -493,13 +620,19 @@ with abas[2]:
                         ref["fator"] = l["fator"] or 1.0
                     estrutura_mudou()
 
-# ----------------------------------------------------------------------------- 4 preço (entradas antes do cálculo)
+# ----------------------------------------------------------------------------- 3b execução
 with abas[3]:
+    aba_execucao.render(O, ss.params, k, estrutura_mudou)
+
+# ----------------------------------------------------------------------------- 4 preço (entradas antes do cálculo)
+with abas[4]:
     topo_preco = st.container()
+    AO_CALCULAR = []        # (tipo, id da fase, espaço): preenchidos depois do cálculo, que vem mais abaixo
     if O["modalidade"] == "fases":
         st.markdown("**Cobrança de cada fase**")
         ests = {o["id"]: o["nome"] for o in P["opcoes"] if o.get("modalidade") == "estimativa"}
-        for n, fz in enumerate(O["fases"], 1):
+        ligadas = [f for f in O["fases"] if fase_ativa(f)]
+        for n, fz in enumerate(ligadas, 1):                      # mesma ordem e numeração de R["fases"]
             cob = fz["cobranca"]
             with st.expander(f"Fase {n} — {fz['nome']} · {COBRANCAS[cob]}", expanded=cob in ("percentual", "pacote")):
                 if cob in ("fechado", "hora"):
@@ -518,7 +651,8 @@ with abas[3]:
                                                              float(pc.get("parcela_fixa") or 0), step=500.0, key=kf("fixa"))
                 st.markdown("Valor global da obra (base do % e da taxa de desempenho)")
                 c1, c2, c3 = st.columns(3)
-                modos = {"opcao": "Estimativa interna", "informado": "Valor informado", "fornecimentos": "Custo dos fornecimentos da fase"}
+                modos = {"opcao": "Estimativa interna", "informado": "Valor informado", "fornecimentos": "Custo dos fornecimentos da fase",
+                         "execucao": "Valor da execução desta opção"}
                 ob["base_modo"] = c1.selectbox("Base", list(modos), index=list(modos).index(ob.get("base_modo", "informado")),
                                                format_func=modos.get, key=kf("bmodo"))
                 if ob["base_modo"] == "opcao":
@@ -531,6 +665,11 @@ with abas[3]:
                                                         index=list(partes).index(ob.get("base_parte", "obra")))
                     else:
                         c2.warning("Crie uma opção 'Estimativa interna' (aba Escopo → Nova opção → Modalidade).")
+                elif ob["base_modo"] == "execucao":
+                    AO_CALCULAR.append(("base", fz["id"], c2.empty()))
+                    partes = {"obra": "Fornecimentos e execução (com BDI)", "global": "Preço total das fases de execução"}
+                    ob["base_parte"] = c3.selectbox("Parte", list(partes), format_func=partes.get, key=kf("bparte"),
+                                                    index=list(partes).index(ob.get("base_parte", "obra")))
                 elif ob["base_modo"] == "informado":
                     ob["base_valor"] = c2.number_input("Valor global da obra (R$)", 0.0, 1e11, float(ob.get("base_valor") or 0),
                                                        step=10000.0, key=kf("bval"))
@@ -543,7 +682,8 @@ with abas[3]:
                                                index=list(curvas).index(ob.get("curva", "s")))
                 if cob == "pacote":
                     st.markdown("Pacote de horas")
-                    formas = {"mensal": "Mensal (h/mês × meses)", "total": "Total sob demanda"}
+                    formas = {"mensal": "Mensal (h/mês × meses)", "total": "Total sob demanda",
+                              "obra": "Estimado pelas horas da obra"}
                     c1, c2, c3, c4 = st.columns(4)
                     pk["forma"] = c1.selectbox("Forma", list(formas), format_func=formas.get, key=kf("pkf"),
                                                index=list(formas).index(pk.get("forma", "mensal")))
@@ -552,6 +692,12 @@ with abas[3]:
                                                           float(pk.get("horas_mes") or 0), step=4.0, key=kf("pkh"))
                         pk["meses"] = int(c3.number_input("Meses", 1, 120, int(pk.get("meses") or 1), key=kf("pkm")))
                         pk["acumula_saldo"] = c4.checkbox("Saldo do mês acumula", bool(pk.get("acumula_saldo")), key=kf("pks"))
+                    elif pk["forma"] == "obra":
+                        pk["horas_dia_obra"] = c2.number_input("Horas de acompanhamento por dia útil", 0.0, 24.0,
+                                                               float(pk.get("horas_dia_obra", 2.0)), step=0.5, key=kf("pkhd"))
+                        pk["horas_fixas"] = c3.number_input("Horas fixas (mobilização e relatório)", 0.0, 2000.0,
+                                                            float(pk.get("horas_fixas", 8.0)), step=2.0, key=kf("pkhf"))
+                        AO_CALCULAR.append(("horas", fz["id"], st.empty()))
                     else:
                         pk["horas"] = c2.number_input("Horas do pacote (0 = pelos serviços da fase)", 0.0, 20000.0,
                                                       float(pk.get("horas") or 0), step=8.0, key=kf("pkt"))
@@ -586,6 +732,18 @@ with abas[3]:
                                                                   int(cen["dias_antecipados"]), key=kf("dcd")))
                     cen["retrabalho_ok"] = c3.checkbox("Simulação: retrabalho na meta", bool(cen["retrabalho_ok"]),
                                                        key=kf("dcr"))
+        desligadas_p = [f for f in O["fases"] if not fase_ativa(f)]
+        if desligadas_p:
+            st.caption("Fases desligadas (fora desta proposta)")
+            for fz in desligadas_p:
+                c1, c2 = st.columns([4, 1.5])
+                mod = escopos.MODULOS.get(fz.get("modulo"), {}).get("nome")
+                c1.markdown("~~" + md(fz["nome"]) + "~~" + (f" · {md(mod)}" if mod and mod != fz["nome"] else "")
+                            + " · desligada")
+                if c2.toggle("Incluir", value=False, key=k("fz_religa", O["id"], fz["id"]),
+                             help="Incluir esta fase na proposta"):
+                    fz["ativa"] = True
+                    estrutura_mudou()
     with st.expander("Parâmetros comerciais da proposta", expanded=False):
         st.divider()
         PR = P["parametros"]
@@ -685,6 +843,14 @@ except Exception as e:  # noqa: BLE001
     RES, erro_calc = None, e
 ASSINATURA = assinatura([P, CAT])
 R = RES["opcoes"][ss.op_idx] if RES else None
+for _tipo, _fid, _ph in AO_CALCULAR:
+    _rf = next((x for x in R["fases"] if x["id"] == _fid), None) if R else None
+    if _tipo == "base":
+        _ph.metric("Valor da execução", moeda(_rf["base"]) if _rf and _rf.get("base") is not None else "—")
+    elif _rf and (_rf.get("pacote") or {}).get("forma") == "obra":
+        _pr = _rf["pacote"]
+        _ph.caption(f"≈ {_pr['dias_obra']:.0f} dias úteis de obra × {_pr['horas_dia_obra']:g} h/dia + "
+                    f"{_pr['horas_fixas']:g} fixas = {_pr['horas']:.0f} h")
 
 
 def tabela_indicadores(resultados):
@@ -757,13 +923,13 @@ def detalhe_fase(fr):
                      hide_index=True, width="stretch")
 
 
-with abas[3]:
+with abas[4]:
     with topo_preco:
-        tem_escopo = R and (R["linhas"] or any(f["cobranca"] == "pacote" for f in R["fases"]))
+        tem_escopo = R and motor.opcao_tem_preco(R)
         if erro_calc:
             st.error(f"Não foi possível calcular: {erro_calc}")
         elif not tem_escopo:
-            st.info("Adicione serviços na aba Escopo para ver o preço.")
+            st.info("Adicione serviços na aba Escopo (ou materiais e mão de obra na aba Fornecimentos) para ver o preço.")
         elif R["interno"]:
             st.subheader(f"Estimativa interna — {O['nome']}")
             c1, c2, c3 = st.columns(3)
@@ -780,21 +946,57 @@ with abas[3]:
             c2.metric("Parcela fixa", moeda(R["preco_fixo"]))
             c3.metric("Parcela estimada", moeda(R["preco_estimado"]), help="Hora técnica e % sobre as medições da obra")
             c4.metric("Margem efetiva", pct(R["margem_efetiva"]))
+            for av in (RES or {}).get("avisos", []):
+                if av.startswith(f"{R['nome']} / ") and "% da obra rende" in av:
+                    st.warning(av)
             if R["teto_desempenho"]:
                 st.caption(md(f"Taxa de desempenho (variável, fora do preço): potencial {moeda(R['potencial_desempenho'])} "
                               f"no cenário simulado, teto {moeda(R['teto_desempenho'])}."))
-            st.dataframe(pd.DataFrame([{
-                "Fase": f"{n}. {f['nome']}", "Cobrança": COBRANCAS[f["cobranca"]], "Preço": moeda(f["preco"]),
-                "Fixo": moeda(f["preco_fixo"]), "Estimado": moeda(f["preco_estimado"]), "Custo": moeda(f["custo_servicos"]),
-                "Margem efetiva": pct(f["margem_efetiva"]), "Horas": num_br(f["total_h"]), "Prazo (dias)": sum(
+            def modulo_nome(fid):
+                return escopos.MODULOS.get(next((x.get("modulo") for x in O["fases"] if x["id"] == fid), ""), {}).get("nome", "—")
+            linhas_f = [{
+                "Nº": str(n), "Fase": f["nome"], "Módulo": modulo_nome(f["id"]), "Cobrança": COBRANCAS[f["cobranca"]],
+                "Preço": moeda(f["preco"]), "Fixo": moeda(f["preco_fixo"]), "Estimado": moeda(f["preco_estimado"]),
+                "Custo": moeda(f["custo_servicos"]), "Margem efetiva": pct(f["margem_efetiva"]),
+                "Horas": num_br(f["total_h"]), "Prazo (dias)": sum(
                     e["dias_corridos"] for e in R["cronograma"] if e["fase"] == f["id"])}
-                for n, f in enumerate(R["fases"], 1)]), hide_index=True, width="stretch")
+                for n, f in enumerate(R["fases"], 1)]
+            linhas_f.append({"Nº": "", "Fase": "Total", "Módulo": "", "Cobrança": "", "Preço": moeda(R["preco"]),
+                             "Fixo": moeda(R["preco_fixo"]), "Estimado": moeda(R["preco_estimado"]),
+                             "Custo": moeda(R["custo_servicos"]), "Margem efetiva": pct(R["margem_efetiva"]),
+                             "Horas": num_br(R["total_h"]), "Prazo (dias)": R["prazo_dias_corridos"]})
+            df_f = pd.DataFrame(linhas_f)
+            if all(f["nome"] == modulo_nome(f["id"]) for f in R["fases"]):      # o módulo só repetiria o nome da fase
+                df_f = df_f.drop(columns=["Módulo"])
+            st.dataframe(df_f, hide_index=True, width="stretch", column_config={
+                "Nº": st.column_config.TextColumn("Nº", width="small"),
+                "Fase": st.column_config.TextColumn("Fase", width="large"),
+                "Módulo": st.column_config.TextColumn("Módulo", width="large"),
+                "Cobrança": st.column_config.TextColumn("Cobrança", width="medium")})
+            if R["fases_desligadas"]:
+                st.caption(md("Fora desta proposta: " + "; ".join(
+                    d["nome"] + (f" ({escopos.MODULOS[d['modulo']]['nome']})"
+                                 if d["modulo"] in escopos.MODULOS and escopos.MODULOS[d["modulo"]]["nome"] != d["nome"] else "")
+                    for d in R["fases_desligadas"]) + "."))
             st.caption(md(f"{num_br(R['total_h'])} h · {R['prazo_dias_corridos']} dias corridos · ART {moeda(R['art'])} "
-                          f"(uma por fase) · referência: tudo em escopo fechado {moeda(R['preco_fechado'])}."
+                          f"({'plano de ARTs' if O.get('plano_arts') else 'uma por fase'}) · referência: tudo em escopo fechado {moeda(R['preco_fechado'])}."
                           + (f" Referência pelo CUB: {moeda(R['ref_cub'])}." if R.get("ref_cub") else "")))
             nomes_f = {f["id"]: f"{n}. {f['nome']} · {COBRANCAS[f['cobranca']]}" for n, f in enumerate(R["fases"], 1)}
             fsel = st.selectbox("Detalhar a fase", list(nomes_f), format_func=nomes_f.get, key=k("det_fase", O["id"]))
             detalhe_fase(next(f for f in R["fases"] if f["id"] == fsel))
+        plano_arts = st.toggle("Planejar ARTs automaticamente (uma por atividade e modalidade — regras provisórias, "
+                               "confirmar com o CREA-RJ)", value=bool(O.get("plano_arts")), key=k("plano_arts", O["id"]))
+        if plano_arts != bool(O.get("plano_arts")):
+            O["plano_arts"] = plano_arts
+            st.rerun()
+        if R and isinstance(R.get("arts"), list) and R["arts"] and not erro_calc:
+            with st.container(border=True):
+                st.markdown("**ARTs previstas**")
+                dfa = pd.DataFrame([{c: (", ".join(map(str, a.get(c, []))) if isinstance(a.get(c), (list, tuple)) else a.get(c))
+                                     for c in ("tipo", "modalidade", "atividades", "valor_base", "taxa", "no_preco")}
+                                    for a in R["arts"]])
+                st.dataframe(dfa, hide_index=True, width="stretch")
+                st.caption(f"Total das taxas: {moeda(sum(float(a.get('taxa') or 0) for a in R['arts']))}")
         if RES and len(RES["opcoes"]) > 1 and not erro_calc:
             st.markdown("**Comparativo das opções**")
             st.dataframe(tabela_indicadores(RES["opcoes"]), hide_index=True, width="stretch")
@@ -808,23 +1010,26 @@ with abas[3]:
                     tooltip=["Opção", "Fase", alt.Tooltip("Preço:Q", format=",.2f")]).properties(height=280), width="stretch")
 
 # ----------------------------------------------------------------------------- 5 prazo e pagamento
-with abas[4]:
-    if R and (R["linhas"] or any(f["cobranca"] == "pacote" for f in R["fases"])):
+with abas[5]:
+    if R and motor.opcao_tem_preco(R):
         st.subheader(f"Cronograma — {O['nome']}")
         varias_f = len(R["fases"]) > 1
         num_f = {f["id"]: n for n, f in enumerate(R["fases"], 1)}
-        dfg = pd.DataFrame([{"Etapa": (f"F{num_f[e['fase']]} · " if varias_f else "") + e["rotulo"],
-                             "Início": e["inicio"], "Fim": e["fim"] + 1, "Horas": round(e["horas"], 1),
-                             "Dias úteis": e["dias_uteis"], "Dias corridos": e["dias_corridos"], "Marco": e["marco"]}
-                            for e in R["cronograma"]])
-        graf = alt.Chart(dfg).mark_bar(color=AZUL, cornerRadius=2).encode(
-            x=alt.X("Início:Q", title="Dia útil"), x2="Fim:Q",
-            y=alt.Y("Etapa:N", sort=None, title=None, axis=alt.Axis(labelLimit=360)),
-            tooltip=["Etapa", "Dias úteis", "Horas", "Marco"]).properties(height=36 * len(dfg) + 40)
-        st.altair_chart(graf, width="stretch")
-        st.dataframe(dfg.drop(columns=["Fim"]), hide_index=True, width="stretch")
-        st.caption(f"Prazo total: {R['prazo_dias_uteis']} dias úteis ≈ {R['prazo_dias_corridos']} dias corridos. Fases em "
-                   "sequência; dias úteis = horas da etapa ÷ (8 h × equipe); fases de obra duram os meses da obra.")
+        if not R["cronograma"]:
+            st.info("Sem serviços com horas, o cronograma depende do prazo de execução: informe-o na aba Fornecimentos.")
+        if R["cronograma"]:
+            dfg = pd.DataFrame([{"Etapa": (f"F{num_f[e['fase']]} · " if varias_f else "") + e["rotulo"],
+                                 "Início": e["inicio"], "Fim": e["fim"] + 1, "Horas": round(e["horas"], 1),
+                                 "Dias úteis": e["dias_uteis"], "Dias corridos": e["dias_corridos"], "Marco": e["marco"]}
+                                for e in R["cronograma"]])
+            graf = alt.Chart(dfg).mark_bar(color=AZUL, cornerRadius=2).encode(
+                x=alt.X("Início:Q", title="Dia útil"), x2="Fim:Q",
+                y=alt.Y("Etapa:N", sort=None, title=None, axis=alt.Axis(labelLimit=360)),
+                tooltip=["Etapa", "Dias úteis", "Horas", "Marco"]).properties(height=36 * len(dfg) + 40)
+            st.altair_chart(graf, width="stretch")
+            st.dataframe(dfg.drop(columns=["Fim"]), hide_index=True, width="stretch")
+            st.caption(f"Prazo total: {R['prazo_dias_uteis']} dias úteis ≈ {R['prazo_dias_corridos']} dias corridos. Fases em "
+                       "sequência; dias úteis = horas da etapa ÷ (8 h × equipe); fases de obra duram os meses da obra.")
         if R["interno"]:
             st.info("Estimativa interna: não tem forma de pagamento (não gera proposta).")
         else:
@@ -859,15 +1064,39 @@ with abas[4]:
     else:
         st.info("Adicione serviços na aba Escopo para ver o cronograma.")
 
+
+def _chave_pdf(nome, dados):
+    return nome + ":" + hashlib.md5(bytes(dados)).hexdigest()
+
+
+def _pdf_gerado(nome, dados):
+    return (ss.get("pdfs") or {}).get(_chave_pdf(nome, dados))
+
+
+def _gerar_pdfs(docs):
+    """Converte (nome, bytes) em PDF, guardando em ss.pdfs. Falhas viram aviso."""
+    ss.setdefault("pdfs", {})
+    for nome, dados in docs:
+        try:
+            ss["pdfs"][_chave_pdf(nome, dados)] = pdf_conv.bytes_docx_para_pdf(bytes(dados), nome)
+        except Exception as e:
+            st.warning(f"Falha ao converter {nome} em PDF: {e}")
+
+
+def _botao_pdf(nome, dados, chave):
+    pdf = _pdf_gerado(nome, dados)
+    if pdf:
+        st.download_button("PDF", pdf, file_name=nome.rsplit(".", 1)[0] + ".pdf", mime="application/pdf", key=k(chave))
+
 # ----------------------------------------------------------------------------- 6 exportar
-with abas[5]:
+with abas[6]:
     st.subheader("Exportar")
     if RES:
         for av in RES["avisos"]:
             st.warning(av)
-    pronto = RES and any(r["linhas"] or any(f["cobranca"] == "pacote" for f in r["fases"]) for r in RES["opcoes"])
+    pronto = RES and any(motor.opcao_tem_preco(r) for r in RES["opcoes"])
     if not pronto:
-        st.info("Adicione serviços para exportar.")
+        st.info("Adicione serviços (ou materiais e mão de obra de execução) para exportar.")
     else:
         arquivos = ss.get("arquivos")
         if arquivos and arquivos["assinatura"] != ASSINATURA:
@@ -887,15 +1116,69 @@ with abas[5]:
             for conteudo, nome, pend in arquivos["docx"]:
                 st.download_button(f"📄 {nome}", conteudo, file_name=nome,
                                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+                _botao_pdf(nome, conteudo, "pdf_" + nome)
                 v = exportar_docx.verificar(conteudo)
                 ok = v["logo"] and v["margem_sup_cm"] == 3.2 and v["margem_esq_cm"] == 3.0
                 st.caption(("✅ padrão KAPTEK conferido (margens 3,2/3,0 e logo)" if ok else "⚠️ template alterado — confira")
                            + (f" · pendências no documento: {', '.join(pend)}" if pend else " · sem pendências"))
+            st.markdown("**Contrato e recibo**")
+            cc1, cc2 = st.columns(2)
+            dados_c = dados_r = None
+            with cc1:
+                if R and not R.get("interno"):
+                    with tempfile.TemporaryDirectory() as tmp:
+                        cam = os.path.join(tmp, "contrato.docx")
+                        exportar_documentos.gerar_contrato(P, copy.deepcopy(R), cam, 0)
+                        with open(cam, "rb") as fh:
+                            dados_c = fh.read()
+                    st.download_button("Gerar contrato (DOCX)", BytesIO(dados_c), file_name=f"contrato-{exportar_docx.slug(P['numero'])}.docx",
+                                       mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                       key=k("dl_contrato"))
+                    _botao_pdf("contrato.docx", dados_c, "pdf_contrato")
+                else:
+                    st.caption("Contrato indisponível para estimativa interna.")
+            with cc2:
+                valor_r = st.number_input("Valor do recibo (R$)", 0.0, 1e12, float(R["preco"]) if R else 0.0, step=100.0, key=k("rec_valor"))
+                ref_r = st.text_input("Referente a", P.get("objeto", ""), key=k("rec_ref"))
+                with tempfile.TemporaryDirectory() as tmp:
+                    cam = os.path.join(tmp, "recibo.docx")
+                    exportar_documentos.gerar_recibo(P, valor_r, ref_r, cam)
+                    with open(cam, "rb") as fh:
+                        dados_r = fh.read()
+                st.download_button("Gerar recibo (DOCX)", BytesIO(dados_r), file_name=f"recibo-{exportar_docx.slug(P['numero'])}.docx",
+                                   mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document", key=k("dl_recibo"))
+                _botao_pdf("recibo.docx", dados_r, "pdf_recibo")
+            todos = [(n, c) for c, n, _ in arquivos["docx"]]
+            if dados_c:
+                todos.append((f"contrato-{exportar_docx.slug(P['numero'])}.docx", dados_c))
+            todos.append((f"recibo-{exportar_docx.slug(P['numero'])}.docx", dados_r))
+            if pdf_conv.disponivel():
+                if st.button("Gerar PDFs", key=k("gerar_pdfs")):
+                    with st.spinner("Convertendo para PDF (pode levar alguns segundos)..."):
+                        _gerar_pdfs([("contrato.docx" if n.startswith("contrato-") else "recibo.docx" if n.startswith("recibo-") else n, d)
+                                     for n, d in todos])
+                    st.rerun()
+            else:
+                st.caption("PDF indisponível aqui: instale o LibreOffice (ou, no Windows com Word, pip install docx2pdf). O DOCX também pode ser salvo como PDF no Word ou no seu leitor de PDF.")
+            buf = BytesIO()
+            with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+                zf.writestr(nome_x, xlsx)
+                for n, d in todos:
+                    zf.writestr(n, bytes(d))
+                    nk = "contrato.docx" if n.startswith("contrato-") else "recibo.docx" if n.startswith("recibo-") else n
+                    pdf_b = _pdf_gerado(nk, d)
+                    if pdf_b:
+                        zf.writestr(n.rsplit(".", 1)[0] + ".pdf", pdf_b)
+                if ss.get("relatorio_viab"):
+                    zf.writestr(ss.relatorio_viab[1], ss.relatorio_viab[0])
+            st.download_button("Baixar todos os documentos (.zip)", buf.getvalue(),
+                               file_name=f"KAPTEK-documentos-{exportar_docx.slug(P['numero'])}-rev{P.get('revisao', '00')}.zip",
+                               mime="application/zip", key=k("dl_zip"))
             st.info("Ao abrir no Word, aceite a atualização de campos. A proposta só produz efeito acompanhada da ART "
                     "registrada e quitada (Lei 6.496/1977).")
 
 # ----------------------------------------------------------------------------- 7 catálogo e parâmetros
-with abas[6]:
+with abas[7]:
     sub = st.tabs(["Serviços do catálogo", "Parâmetros da empresa"])
     with sub[0]:
         st.caption(CAT.get("nota", ""))
@@ -1018,8 +1301,38 @@ with abas[6]:
             P["parametros"] = copy.deepcopy(PE)
             estrutura_mudou()
 
+    with st.container(border=True):
+        st.subheader("Calculadora de BDI (fórmula TCU)")
+        b1, b2, b3 = st.columns(3)
+        b_ac = b1.number_input("Administração central (%)", 0.0, 100.0, 4.0, step=0.5, key="bdi_ac")
+        b_sg = b2.number_input("Seguro + garantia (%)", 0.0, 100.0, 0.8, step=0.1, key="bdi_sg")
+        b_ri = b3.number_input("Risco (%)", 0.0, 100.0, 1.0, step=0.1, key="bdi_ri")
+        b4, b5, b6 = st.columns(3)
+        b_df = b4.number_input("Despesas financeiras (%)", 0.0, 100.0, 1.0, step=0.1, key="bdi_df")
+        b_lu = b5.number_input("Lucro (%)", 0.0, 100.0, 7.0, step=0.5, key="bdi_lu")
+        b_im = b6.number_input("Impostos (%)", 0.0, 99.9, 8.65, step=0.1, key="bdi_im")
+        try:
+            bdi_val = bdi_calc.bdi(b_ac / 100, b_sg / 100, b_ri / 100, b_df / 100, b_lu / 100, b_im / 100)
+        except ValueError as e:
+            bdi_val = None
+            st.error(str(e))
+        if bdi_val is not None:
+            st.metric("BDI", f"{bdi_val * 100:.2f}%".replace(".", ","))
+            faixa = ss.params.get("bdi_faixa")
+            if isinstance(faixa, dict) and {"min", "max", "fonte"} <= set(faixa):
+                aviso_b = bdi_calc.fora_da_faixa(bdi_val, faixa)
+                if aviso_b:
+                    st.warning(aviso_b)
+            chaves_bdi = list(ss.params.get("bdi_fornecimento", {}))
+            if chaves_bdi:
+                d1, d2 = st.columns([3, 1])
+                alvo_b = d1.selectbox("Usar este BDI em", chaves_bdi, key="bdi_alvo")
+                if d2.button("Usar este BDI em: " + str(alvo_b), key="bdi_usar"):
+                    ss.params["bdi_fornecimento"][alvo_b] = round(bdi_val, 4)
+                    st.success("Aplicado aos parâmetros da empresa; use 'Aplicar à proposta aberta' para valer na proposta.")
+
 # ----------------------------------------------------------------------------- 8 calibração
-with abas[7]:
+with abas[8]:
     st.subheader("Calibração com horas realizadas")
     st.caption("Ao encerrar um projeto, registre as horas reais de cada atividade. O fator sugerido é a mediana de "
                "realizado ÷ estimado; aplicar grava o fator no catálogo e as próximas propostas já saem calibradas.")
@@ -1057,7 +1370,7 @@ def anos_meses_txt(anos, meses):
     return anos_txt(anos) + (f" ({meses} meses)" if meses else "")
 
 
-with abas[8]:
+with abas[9]:
     VB = P["viabilidade"]
     st.subheader("Estudo de viabilidade — breakeven, payback, VPL e TIR")
     st.caption("Compara alternativas de intervenção com o sistema atual e com o projeto original. O CAPEX de uma "
@@ -1168,6 +1481,27 @@ with abas[8]:
             st.download_button("📈 Baixar estudo de viabilidade", ss.arquivo_viab[0],
                                file_name=f"KAPTEK-viabilidade-{exportar_docx.slug(P['cliente'].get('razao'))}-{exportar_docx.slug(P['numero'])}.xlsx",
                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        _docx_t = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        _nome_rel = f"KAPTEK-relatorio-viabilidade-{exportar_docx.slug(P['cliente'].get('razao'))}-{exportar_docx.slug(P['numero'])}.docx"
+        if st.button("Gerar relatório para o cliente", key=k("v_rel_gerar")):
+            with tempfile.TemporaryDirectory() as tmp:
+                cam = os.path.join(tmp, "relatorio.docx")
+                exportar_viabilidade_docx.gerar_relatorio_viabilidade(
+                    VB, cam, cliente=P["cliente"].get("razao") or None,
+                    precos_opcoes={r["id"]: r["preco"] for r in RES["opcoes"]} if RES else None)
+                with open(cam, "rb") as fh:
+                    ss.relatorio_viab = (fh.read(), _nome_rel, assinatura([P, CAT]))
+        if ss.get("relatorio_viab") and ss.relatorio_viab[2] == assinatura([P, CAT]):
+            st.download_button("Relatório para o cliente (DOCX)", ss.relatorio_viab[0], file_name=_nome_rel,
+                               mime=_docx_t, key=k("v_rel_dl"))
+            if pdf_conv.disponivel():
+                if st.button("Gerar PDF do relatório", key=k("v_rel_pdf")):
+                    with st.spinner("Convertendo para PDF..."):
+                        _gerar_pdfs([(_nome_rel, ss.relatorio_viab[0])])
+                    st.rerun()
+                _botao_pdf(_nome_rel, ss.relatorio_viab[0], "v_rel_pdf_dl")
+            else:
+                st.caption("PDF indisponível aqui: instale o LibreOffice (ou, no Windows com Word, pip install docx2pdf). O DOCX também pode ser salvo como PDF no Word ou no seu leitor de PDF.")
     else:
         st.info("Adicione alternativas na tabela acima (nome, CAPEX ou opção vinculada, redução de consumo, manutenção).")
 
@@ -1181,7 +1515,7 @@ TIPOS_IMPORT = {
     "indices": ("Índice de reajuste (INCC, IPCA, IGP-M)", {"codigo": "Mês", "valor": "Número-índice ou variação (%)"}),
 }
 
-with abas[9]:
+with abas[10]:
     con = base_referencias()
     registro = rf.carregar_fontes()
     st.subheader("Bases de referência e convenções coletivas")
@@ -1205,6 +1539,20 @@ with abas[9]:
                                         "importado_em": "Importado em"})
         else:
             st.caption("Nenhuma base importada ainda.")
+        with st.container(border=True):
+            st.markdown("**Tabelas de referência (JSON)**")
+            try:
+                tabs_json = tref.listar_tabelas()
+            except OSError:
+                tabs_json = []
+            if tabs_json:
+                st.dataframe(pd.DataFrame(tabs_json)[["fonte", "tipo", "data_base", "provisorio"]], hide_index=True, width="stretch",
+                             column_config={"fonte": "Fonte", "tipo": "Tipo", "data_base": "Data-base",
+                                            "provisorio": st.column_config.CheckboxColumn("Provisório")})
+            else:
+                st.caption("Nenhuma tabela JSON encontrada.")
+            st.caption("Para usar a sua tabela, importe uma planilha XLSX/CSV na aba Importar (vale para qualquer estado ou entidade) "
+                       "ou coloque um arquivo JSON em dados/tabelas.")
 
     with sub[1]:
         tipo_imp = st.radio("O que importar", list(TIPOS_IMPORT), format_func=lambda t: TIPOS_IMPORT[t][0], key="imp_tipo")
@@ -1332,8 +1680,36 @@ with abas[9]:
                 st.caption("Prioridade das fontes para " + uf_b + ": " + " → ".join(ordem))
             if termo:
                 achados = rf.buscar(con, termo, uf_b, fontes_b or None, P["parametros"]["hierarquia_fontes"])
-                dfb = pd.DataFrame([{"fonte": a["fonte"], "codigo": a["codigo"], "descricao": a["descricao"], "unidade": a["unidade"],
-                                     "valor": a["valor"], "data_base": a["data_base"], "uf": a["uf"]} for a in achados])
+                with st.container(border=True):
+                    st.markdown("**Correção da data-base**")
+                    disp_c = {i["nome"]: i for i in rf.indices_disponiveis(con)}
+                    cc = st.columns(2)
+                    idx_c = cc[0].selectbox("Corrigir por índice", ["Nenhum"] + list(disp_c), key="busca_idx",
+                                            help="Leva o valor da data-base de cada item para a data-alvo.")
+                    alvo_c = None
+                    if idx_c != "Nenhum":
+                        alvo_c = cc[1].text_input("Data-alvo (AAAA-MM)", disp_c[idx_c]["ate"], key=f"busca_alvo_mes|{idx_c}")
+                    st.caption("Tabelas antigas são trazidas para o dinheiro de hoje pela variação do índice escolhido "
+                               "entre a data-base do item e a data-alvo. Sem o mês no índice, o valor fica sem correção.")
+                hoje_m = dt.date.today().year * 12 + dt.date.today().month
+
+                def _velha(db):
+                    try:
+                        a_, m_ = str(db)[:7].split("-")
+                        return hoje_m - (int(a_) * 12 + int(m_)) > 12
+                    except ValueError:
+                        return False
+                linhas_b = []
+                for a in achados:
+                    lin = {"fonte": a["fonte"], "codigo": a["codigo"], "descricao": a["descricao"], "unidade": a["unidade"],
+                           "valor": a["valor"], "data_base": a["data_base"], "uf": a["uf"]}
+                    if alvo_c:
+                        v_c, f_c = rf.atualizar(con, a["valor"], str(a["data_base"])[:7], alvo_c, idx_c)
+                        lin["fator"] = f_c
+                        lin["valor_corrigido"] = v_c if f_c is not None else None
+                    lin["aviso"] = "⚠ data-base > 12 meses" if _velha(a["data_base"]) else ""
+                    linhas_b.append(lin)
+                dfb = pd.DataFrame(linhas_b)
                 if dfb.empty:
                     st.info("Nada encontrado.")
                 else:
@@ -1341,7 +1717,9 @@ with abas[9]:
                                        key="busca_res", column_config={
                                            "fonte": "Fonte", "codigo": "Código", "descricao": "Descrição", "unidade": "Unid.",
                                            "valor": st.column_config.NumberColumn("Valor (R$)", format="%.2f"),
-                                           "data_base": "Data-base", "uf": "UF"})
+                                           "data_base": "Data-base", "uf": "UF", "aviso": "Aviso",
+                                           "fator": st.column_config.NumberColumn("Fator", format="%.4f"),
+                                           "valor_corrigido": st.column_config.NumberColumn("Valor corrigido (R$)", format="%.2f")})
                     linhas_sel = [achados[i] for i in sel.selection.rows] if sel and sel.selection else []
                     c = st.columns([2, 1, 1])
                     alvos = {"__novo__": "Criar novo fornecimento"} | {f["uid"]: f["descricao"] for f in O["fornecimentos"]}
@@ -1472,6 +1850,17 @@ with abas[9]:
             st.success("Tabela de ART salva.")
 
     with sub[6]:
+        with st.container(border=True):
+            st.markdown("**Índices de correção**")
+            sel_idx = st.multiselect("Índices", list(ibcb.SERIES), default=["INPC", "IGP-M"], key="bcb_sel")
+            if st.button("Baixar/atualizar do Banco Central", key="bcb_baixar", disabled=not sel_idx):
+                for nome_i in sel_idx:
+                    try:
+                        n_i = ibcb.atualizar_banco(con, nome_i)
+                        st.success(f"{nome_i}: {n_i} meses atualizados.")
+                    except RuntimeError as e:
+                        st.error(str(e))
+            st.caption("Se o download falhar, importe a série em CSV (aba Importar → Índice de reajuste) ou informe o mês abaixo.")
         idx = rf.indices_disponiveis(con)
         if idx:
             st.dataframe(pd.DataFrame(idx), hide_index=True, width="stretch")

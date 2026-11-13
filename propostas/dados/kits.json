@@ -1,0 +1,39 @@
+{
+ "versao": 1,
+ "nota": "Valores FICTÍCIOS e provisórios, apenas para teste da estrutura. Ajustar com dados da empresa antes de usar em proposta.",
+ "kits": [
+  {
+   "id": "split_12k_padrao",
+   "nome": "Instalação split 12.000 BTU/h (padrão)",
+   "fonte": "provisório — ajustar com dados da empresa",
+   "itens": [
+    {"descricao": "Instalação e comissionamento de evaporadora split 12.000 BTU/h", "unid": "un", "qtd": 1, "hh_unid": 2.5, "funcao": "TC", "material": 0.0, "base": "provisório"},
+    {"descricao": "Tubulação frigorífica de cobre 1/4\" + 1/2\", isolada", "unid": "m", "qtd": 3, "hh_unid": 0.25, "funcao": "TC", "material": 38.0, "base": "provisório"},
+    {"descricao": "Tubo de dreno PVC 3/4\" com isolamento", "unid": "m", "qtd": 3, "hh_unid": 0.15, "funcao": "ES", "material": 9.0, "base": "provisório"},
+    {"descricao": "Suporte de fixação da condensadora", "unid": "un", "qtd": 1, "hh_unid": 0.5, "funcao": "ES", "material": 65.0, "base": "provisório"}
+   ]
+  },
+  {
+   "id": "split_24k_padrao",
+   "nome": "Instalação split 24.000 BTU/h (padrão)",
+   "fonte": "provisório — ajustar com dados da empresa",
+   "itens": [
+    {"descricao": "Instalação e comissionamento de evaporadora split 24.000 BTU/h", "unid": "un", "qtd": 1, "hh_unid": 4.0, "funcao": "TC", "material": 0.0, "base": "provisório"},
+    {"descricao": "Tubulação frigorífica de cobre 3/8\" + 5/8\", isolada", "unid": "m", "qtd": 4, "hh_unid": 0.3, "funcao": "TC", "material": 62.0, "base": "provisório"},
+    {"descricao": "Tubo de dreno PVC 3/4\" com isolamento", "unid": "m", "qtd": 4, "hh_unid": 0.15, "funcao": "ES", "material": 9.0, "base": "provisório"},
+    {"descricao": "Suporte de fixação da condensadora (reforçado)", "unid": "un", "qtd": 1, "hh_unid": 0.75, "funcao": "ES", "material": 110.0, "base": "provisório"}
+   ]
+  },
+  {
+   "id": "pmoc_visita_mensal",
+   "nome": "Visita mensal de manutenção PMOC",
+   "fonte": "provisório — ajustar com dados da empresa",
+   "itens": [
+    {"descricao": "Visita técnica de manutenção preventiva (por equipamento)", "unid": "un", "qtd": 1, "hh_unid": 2.0, "funcao": "TC", "material": 0.0, "base": "provisório"},
+    {"descricao": "Limpeza de filtros e serpentina (insumos inclusos)", "unid": "un", "qtd": 1, "hh_unid": 0.75, "funcao": "ES", "material": 12.0, "base": "provisório"},
+    {"descricao": "Medição de pressões, temperaturas e corrente", "unid": "un", "qtd": 1, "hh_unid": 0.5, "funcao": "TC", "material": 0.0, "base": "provisório"},
+    {"descricao": "Relatório PMOC mensal (ART não incluída)", "unid": "un", "qtd": 1, "hh_unid": 1.0, "funcao": "PL", "material": 0.0, "base": "provisório"}
+   ]
+  }
+ ]
+}

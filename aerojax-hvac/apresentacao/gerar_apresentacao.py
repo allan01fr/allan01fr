@@ -73,7 +73,7 @@ class Slide:
             altura_linha = {TITULO: 1.25, CORPO: 1.35, CODIGO: 1.2}[ff]
             th = (txt.count("\n") + 1) * fs * altura_linha
             ty = y + 26 if valign == "top" else y + (h - th) / 2
-            t = self.texto(x + 30, ty, txt, fs=fs, ff=ff, cor=tcor or "#1e1e1e")
+            self.texto(x + 30, ty, txt, fs=fs, ff=ff, cor=tcor or "#1e1e1e")
             self.els[-1]["groupIds"] = [grupo]
         return i
 
@@ -168,7 +168,7 @@ voce = s.caixa(60, 380, 170, 90, "👷 Você", "neutro", fs=26)
 app = s.caixa(330, 250, 260, 110, "Interface\napp.py (Streamlit)", "interface")
 dxf = s.caixa(330, 520, 260, 110, "Planta / corte DXF\n(AutoCAD)", "neutro")
 imp = s.caixa(660, 520, 260, 110, "importar_dxf.py\n(ezdxf)", "projeto")
-proj = s.caixa(660, 250, 260, 110, "projeto.py\ncargas · validação", "projeto")
+proj = s.caixa(660, 250, 260, 110, "documento · cargas\nmontagem · relatório", "projeto")
 cfd = s.caixa(990, 250, 260, 110, "sala2d.py\nsimulação CFD", "fisica")
 psi_ = s.caixa(930, 470, 190, 80, "psicrometria.py", "fisica", fs=20)
 conf = s.caixa(1140, 470, 170, 80, "conforto.py", "fisica", fs=20)

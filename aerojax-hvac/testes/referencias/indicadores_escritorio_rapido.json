@@ -1,0 +1,19 @@
+{
+  "T_ocupada": 22.582599639892578,
+  "UR_ocupada": 0.5451534390449524,
+  "vel_media_ocupada": 0.06242389976978302,
+  "vel_max_ocupada": 0.25854766368865967,
+  "PMV_medio": -0.9272235631942749,
+  "PMV_desvio": 0.23149283230304718,
+  "PPD_medio": 24.105167388916016,
+  "DR_medio": 4.061631202697754,
+  "DR_max": 32.697166442871094,
+  "dT_vertical": 0.9276363253593445,
+  "T_retorno": 25.20553970336914,
+  "W_retorno": 0.00931820273399353,
+  "UR_retorno": 0.46619686484336853,
+  "capacidade_total_W": 1261.2626953125,
+  "capacidade_sensivel_W": 1127.8345947265625,
+  "capacidade_latente_W": 112.360107421875,
+  "eficacia_remocao_calor": 1.8794142007827759
+}

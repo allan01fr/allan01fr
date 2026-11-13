@@ -1,0 +1,33 @@
+<!doctype html><html lang="pt-br"><head><meta charset="utf-8">
+<title>Estudo de climatização - Escritório - exemplo rápido</title>
+<style>body{font-family:Arial,sans-serif;max-width:1000px;margin:24px auto;padding:0 16px;color:#222}
+table{border-collapse:collapse;margin:8px 0 16px}td,th{border:1px solid #bbb;padding:4px 8px;font-size:14px}
+th{background:#eef}h1{font-size:24px}h2{font-size:18px;border-bottom:1px solid #ccc;margin-top:28px}
+.aviso{background:#fff6e0;border-left:4px solid #e0a000;padding:8px 12px}</style></head><body>
+<h1>Estudo de distribuição de ar e conforto térmico</h1>
+<p><b>Projeto:</b> Escritório - exemplo rápido<br><b>Responsável:</b> -<br>
+<b>Data:</b> DATA</p>
+<h2>1. Dados de entrada</h2>
+<table><tr><th>Item</th><th>Valor</th></tr><tr><td>Dimensões do corte (L x H)</td><td>5.0 x 2.8 m</td></tr><tr><td>Profundidade</td><td>4.0 m</td></tr><tr><td>Condição de projeto</td><td>24.0 °C / 50 % UR</td></tr><tr><td>Atividade / vestimenta</td><td>1.1 met / 0.5 clo</td></tr><tr><td>Vazão de insuflamento</td><td>600 m³/h</td></tr><tr><td>Temperatura de insuflamento</td><td>19.6 °C (64 % UR)</td></tr><tr><td>Ângulo do jato</td><td>30°</td></tr></table>
+<h2>2. Cargas térmicas do ambiente [W]</h2><table><tr><th>Parcela</th><th>Sensível</th><th>Latente</th></tr><tr><td>2 pessoas</td><td>150</td><td>110</td></tr><tr><td>Computador</td><td>100</td><td>0</td></tr><tr><td>Superfície direita</td><td>448</td><td>0</td></tr><tr><td>Superfície teto</td><td>200</td><td>0</td></tr><tr><td><b>Total</b></td><td><b>898</b></td><td><b>110</b></td></tr></table>
+<h2>3. Verificação de conformidade (zona ocupada)</h2><table><tr><th>Critério</th><th>Resultado</th><th>Limite</th><th>Situação</th><th>Referência</th></tr><tr><td>PMV médio na zona ocupada</td><td>-0.93</td><td>entre -0.5 e +0.5</td><td>✘ não atende</td><td>ISO 7730 / NBR 16401-2</td></tr><tr><td>PPD médio [%]</td><td>24.11</td><td>≤ 10.0</td><td>✘ não atende</td><td>ISO 7730</td></tr><tr><td>Risco de corrente de ar DR máximo [%]</td><td>32.7</td><td>≤ 20.0</td><td>✘ não atende</td><td>ISO 7730</td></tr><tr><td>Estratificação 0,1-1,1 m [K]</td><td>0.93</td><td>≤ 3.0</td><td>✔ atende</td><td>ISO 7730</td></tr><tr><td>Umidade relativa média [%]</td><td>54.52</td><td>35 a 65</td><td>✔ atende</td><td>NBR 16401-2</td></tr><tr><td>Velocidade máxima do ar [m/s]</td><td>0.26</td><td>≤ 0.25</td><td>✘ não atende</td><td>critério de projeto</td></tr></table>
+<h2>4. Resultados</h2>
+<table><tr><th>Indicador</th><th>Valor</th></tr><tr><td>Temperatura média na zona ocupada</td><td>22.58 °C</td></tr><tr><td>Umidade relativa média</td><td>54.5 %</td></tr><tr><td>Velocidade média / máxima</td><td>0.06 / 0.26 m/s</td></tr><tr><td>PMV médio (desvio)</td><td>-0.93 (0.23)</td></tr><tr><td>PPD médio</td><td>24.1 %</td></tr><tr><td>Ar de retorno</td><td>25.21 °C / 47 % UR</td></tr><tr><td>Eficácia de remoção de calor</td><td>1.88</td></tr></table>
+<img src="data:image/png;base64,IMAGEM" style="width:100%">
+<h2>5. Controle de qualidade numérica</h2>
+<table><tr><th>Verificação</th><th>Valor</th></tr><tr><td>Balanço de calor sensível (retirado x cargas)</td><td>+25.6 %</td></tr><tr><td>Balanço de calor latente (retirado x cargas)</td><td>+2.1 %</td></tr><tr><td>Malha</td><td>50 x 28 células (10.0 cm)</td></tr><tr><td>Tempo simulado / média</td><td>5 min / 2 min</td></tr><tr><td>Viscosidade turbulenta efetiva</td><td>1.5e-03 m²/s</td></tr></table>
+<p>Balanços acima de ±5 % indicam que a simulação ainda não atingiu regime permanente
+(aumente o tempo simulado) ou que a malha não resolve as aberturas.</p>
+
+<h2>6. Hipóteses e limitações</h2>
+<div class="aviso"><ul>
+<li>Modelo bidimensional (corte): o difusor é tratado como linear, ocupando toda a profundidade.
+A vazão e os balanços de energia e umidade são preservados; o alcance de jatos de saídas
+concentradas (splits) tende a ser subestimado.</li>
+<li>Turbulência representada por viscosidade efetiva constante (parâmetro de calibração).</li>
+<li>Temperatura radiante média igual à temperatura do ar local; paredes adiabáticas exceto
+os fluxos de calor informados.</li>
+<li>Estudo de caráter comparativo e de pré-projeto. Não substitui o cálculo de cargas conforme
+ABNT NBR 16401-1 nem simulação 3D validada quando exigida.</li></ul></div>
+<p style="font-size:12px;color:#777">Gerado por Clima2D (pacote clima2d).</p>
+</body></html>

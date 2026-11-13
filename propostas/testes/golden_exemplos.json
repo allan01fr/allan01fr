@@ -1,0 +1,66 @@
+{
+ "hvac_consultoria_2d_3d_bim.json": {
+  "precos": [
+   [
+    "A",
+    55672.134006
+   ],
+   [
+    "B",
+    96243.165434
+   ],
+   [
+    "C",
+    140048.495316
+   ]
+  ],
+  "avisos": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "xlsx": "b20aa9561ad008e54f82dcdb52544a1274037de0a4de6e6cf7040c1908be4aa6",
+  "docx": "61fd95d79113217bb5f46531ee3da921ec94398b97e8ab0b43140f7ac3752ded"
+ },
+ "hvac_retrofit_fases.json": {
+  "precos": [
+   [
+    "A",
+    138637.747165
+   ],
+   [
+    "B",
+    125937.619421
+   ],
+   [
+    "E",
+    1163417.611375
+   ]
+  ],
+  "avisos": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "xlsx": "c4ac2480abb923555492545d434fa69ccd51a2c33736ce21a6e4d4ca3cda342d",
+  "docx": "46a4aac139711c0ee113884352e04fb6242a0c6a97fad213393dccee05709f9d"
+ },
+ "nr13_inspecao.json": {
+  "precos": [
+   [
+    "A",
+    29069.380473
+   ]
+  ],
+  "avisos": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "xlsx": "b3a778a08741e8737a7f90381ee4c2ee1fd4332660279be6cd50fe51247327a2",
+  "docx": "3cdb5b4893136500a759e5575fae210110d1cd47e1edd4b791440e456d7f31c7"
+ },
+ "spci_projeto.json": {
+  "precos": [
+   [
+    "A",
+    21622.492082
+   ],
+   [
+    "B",
+    32069.626413
+   ]
+  ],
+  "avisos": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "xlsx": "3fe81b473f191d11285fd4b928c2a406bbe0bb04726897b3e76c960ca1e42ceb",
+  "docx": "0dfe65a3a90d70fbe9731fba0d8ab7377bb88916cd221e995944b73f0d68dfbc"
+ }
+}

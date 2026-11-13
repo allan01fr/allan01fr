@@ -1,0 +1,31 @@
+{
+  "nota": "estrutura de exemplo — substituir pelos dados oficiais (fonte, data-base)",
+  "fonte_url": "",
+  "provisorio": true,
+  "fonte": "EMOP-RJ - custos de obras (composições/custo unitário) [estrutura de exemplo]",
+  "tipo": "custo_unitario",
+  "data_base": "2024-01",
+  "itens": [
+    {
+      "codigo": "EX-001",
+      "descricao": "Instalação de split (EXEMPLO FICTÍCIO)",
+      "unidade": "un",
+      "custo_unitario": 100.0,
+      "data_base": "2024-01"
+    },
+    {
+      "codigo": "EX-002",
+      "descricao": "Rede frigorígena (EXEMPLO FICTÍCIO)",
+      "unidade": "m",
+      "custo_unitario": 10.0,
+      "data_base": "2024-01"
+    },
+    {
+      "codigo": "EX-003",
+      "descricao": "Dreno (EXEMPLO FICTÍCIO)",
+      "unidade": "m",
+      "custo_unitario": 5.0,
+      "data_base": "2024-01"
+    }
+  ]
+}

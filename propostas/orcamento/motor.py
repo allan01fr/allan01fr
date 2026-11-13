@@ -169,7 +169,7 @@ def _overhead(params, custo_mo, total_h):
     return custo_mo * float(params["overhead"]["pct"])
 
 
-def _custos(cat, proposta, opcao, indices, fornecimentos, garantia=False, com_art=True):
+def _custos(cat, proposta, opcao, indices, fornecimentos, garantia=False, com_art=True, art_fixo=None):
     """Horas, custos diretos e cadeia de preço de um conjunto de serviços (uma fase ou a estimativa)."""
     params = proposta["parametros"]
     perfis = list(cat["perfis"])
@@ -225,13 +225,17 @@ def _custos(cat, proposta, opcao, indices, fornecimentos, garantia=False, com_ar
         return diretos, diretos_total, custo_servicos, contingencia, preco_servicos
 
     # a ART depende do valor do contrato, que depende da ART: duas passadas bastam (faixas monotônicas)
-    art = valor_art(params, 0.0)
-    for _ in range(4):
+    art = valor_art(params, 0.0) if art_fixo is None else float(art_fixo)
+    if art_fixo is not None:    # plano de ARTs (B7): a taxa da fase vem do plano, sem iterar
+        com_art = art > 0
+    for _ in range(0 if art_fixo is not None else 4):
         diretos, diretos_total, custo_servicos, contingencia, preco_servicos = cadeia(art)
         nova = valor_art(params, preco_servicos + preco_fornec)
         if nova == art:
             break
         art = nova
+    if art_fixo is not None:
+        diretos, diretos_total, custo_servicos, contingencia, preco_servicos = cadeia(art)
 
     honorarios_hora = sum(horas_perfil[p] * taxa_h[p] for p in perfis)
     reembolso = diretos_total * (1 + float(params["reembolsaveis_adm"])) / (1 - imp)
@@ -256,6 +260,20 @@ def _margem_efetiva(honorarios, custo, imp):
     return (honorarios * (1 - imp) - custo) / honorarios if honorarios > 0 else None
 
 
+CHAVE_EXECUCAO = "__execucao__"     # reservada em `estimativas`: valor da execução da opção, calculado antes das demais fases
+
+
+def valor_execucao(cat, proposta, opcao, fases_cfg, estimativas=None):
+    """Fornecimentos com BDI ("obra") e preço total ("global") das fases ativas do módulo Execução da opção."""
+    v = {"obra": 0.0, "global": 0.0}
+    for f in fases_cfg:
+        if f.get("modulo") == "execucao":
+            r = precificar_fase(cat, proposta, opcao, f, estimativas)
+            v["obra"] += r["preco_fornec"]
+            v["global"] += r["preco"]
+    return v
+
+
 def base_obra(fase, res_fase, estimativas):
     """Valor global da obra que serve de base ao % e à taxa de desempenho. Devolve (valor, origem)."""
     ob = fase["obra"]
@@ -266,32 +284,48 @@ def base_obra(fase, res_fase, estimativas):
         if ob.get("base_parte") == "global":
             return e["preco_fechado"], f"preço global da estimativa {e['id']}"
         return e["preco_fornec"], f"fornecimentos e execução da estimativa {e['id']}"
+    if ob.get("base_modo") == "execucao":
+        v = ((estimativas or {}).get(CHAVE_EXECUCAO) or {}).get("global" if ob.get("base_parte") == "global" else "obra", 0.0)
+        return v, ("valor da execução desta opção" if v > 0
+                   else "valor da execução desta opção: nenhuma fase de execução ativa com valor")
     if ob.get("base_modo") == "fornecimentos":
         return res_fase["custo_fornec"], "custo dos fornecimentos da fase"
     return float(ob.get("base_valor") or 0), "valor informado"
 
 
+def _dias_uteis_execucao(opcao, params):
+    """Dias úteis de obra do plano de execução da opção; None sem plano."""
+    from . import execucao_itens as ei      # import tardio: evita ciclo
+    plano = ei.calcular_execucao(opcao, params).get("plano")
+    dias = float((plano or {}).get("prazo_dias_uteis") or 0)
+    return dias if dias > 0 else None
+
+
 def _etapa_obra(fase, meses):
-    return [{"etapa": "obra", "rotulo": f"{fase['nome']} — durante a obra ({meses} meses)",
+    return [{"etapa": "obra", "rotulo": f"{fase['nome']} — durante a obra ({meses} {'mês' if meses == 1 else 'meses'})",
              "marco": "Conclusão da obra e relatório final", "campo": True, "horas": 0.0, "meses": meses,
              "dias_uteis": 21 * meses, "dias_corridos": 30 * meses, "inicio": 1, "fim": 21 * meses}]
 
 
-def precificar_fase(cat, proposta, opcao, fase, estimativas=None):
+def _ativa(fase):
+    return bool(fase.get("ativa", True))
+
+
+def precificar_fase(cat, proposta, opcao, fase, estimativas=None, art_fixo=None):
     params = proposta["parametros"]
     estimativa = eh_estimativa(opcao)
     cob = "fechado" if estimativa else fase["cobranca"]      # o valor global da obra é sempre um preço fechado
     if estimativa:   # a estimativa considera todos os serviços e fornecimentos da opção
         idx, forn = list(range(len(opcao["itens"]))), opcao["fornecimentos"]
     else:   # sem fase válida (arquivo feito à mão), o serviço ou fornecimento fica na primeira fase
-        ids = [f["id"] for f in opcao["fases"]]
+        ids = [f["id"] for f in opcao["fases"]]     # TODAS as fases: o que é de fase desligada não migra
 
         def da_fase(x):
             return (x.get("fase") if x.get("fase") in ids else ids[0]) == fase["id"]
         idx = [i for i, it in enumerate(opcao["itens"]) if da_fase(it)]
         forn = [f for f in opcao["fornecimentos"] if da_fase(f)]
     r = _custos(cat, proposta, opcao, idx, forn, garantia=estimativa,
-                com_art=bool(idx) or cob in ("percentual", "pacote"))
+                com_art=bool(idx) or cob in ("percentual", "pacote"), art_fixo=art_fixo)
     r.update({"id": fase["id"], "nome": fase["nome"], "cobranca": cob, "servicos": idx,
               "horas_servicos": dict(r["horas_perfil"]), "desempenho": None})
     imp = r["imp_pct"]
@@ -309,8 +343,13 @@ def precificar_fase(cat, proposta, opcao, fase, estimativas=None):
                  pct_minimo=r["preco_minimo_servicos"] / base if base > 0 else None,
                  pct_equivalente_fechado=r["preco_servicos"] / base if base > 0 else None)
     elif cob == "pacote":
+        dias_obra = None
+        if fase["pacote"].get("forma") == "obra":
+            dias_obra = _dias_uteis_execucao(opcao, params)
+            if dias_obra is None:
+                dias_obra = float(fase["pacote"].get("dias_obra") or 0)
         pk = cb.pacote(fase["pacote"], r["horas_servicos"], params["cobranca"]["pacote"]["mix_padrao"],
-                       r["custo_h"], r["taxa_h"])
+                       r["custo_h"], r["taxa_h"], dias_obra=dias_obra)
         meses = pk["meses"]
         # o custo do pacote é o das horas vendidas, não o das horas estimadas para os serviços
         custo_mo = sum(pk["horas_perfil"][p] * r["custo_h"][p] for p in pk["horas_perfil"])
@@ -364,8 +403,31 @@ def precificar_opcao(cat, proposta, opcao, estimativas=None):
     params = proposta["parametros"]
     perfis = list(cat["perfis"])
     estimativa = eh_estimativa(opcao)
-    fases_cfg = opcao["fases"][:1] if estimativa else opcao["fases"]
-    fases = [precificar_fase(cat, proposta, opcao, f, estimativas) for f in fases_cfg]
+    fases_cfg = opcao["fases"][:1] if estimativa else [f for f in opcao["fases"] if _ativa(f)]
+    if not fases_cfg:
+        raise ValueError(f"A opção {opcao['id']} não tem nenhuma fase incluída na proposta.")
+    desligadas = [] if estimativa else [{"id": f["id"], "nome": f["nome"], "modulo": f.get("modulo", "")}
+                                        for f in opcao["fases"] if not _ativa(f)]
+    if not estimativa and any(f["cobranca"] in ("percentual", "pacote") and (f.get("obra") or {}).get("base_modo") == "execucao"
+                              for f in fases_cfg):
+        estimativas = {**(estimativas or {}), CHAVE_EXECUCAO: valor_execucao(cat, proposta, opcao, fases_cfg, estimativas)}
+    arts = None
+    if opcao.get("plano_arts") and not estimativa:
+        # B7: valor base de cada fase sem ART -> plano de ARTs -> taxa rateada pelas fases de cada ART
+        from . import arts as pa
+        base = [precificar_fase(cat, proposta, opcao, f, estimativas, art_fixo=0.0) for f in fases_cfg]
+        vf = {f["id"]: f["preco"] for f in base}
+        arts = pa.planejar_arts(opcao, cat, params, vf)
+        taxa_fase = {f["id"]: 0.0 for f in fases_cfg}
+        for a in arts:
+            if not a.get("no_preco"):
+                continue
+            for fid in a["fases"]:      # rateio proporcional ao valor base da fase na ART
+                part = vf.get(fid, 0.0) / a["valor_base"] if a["valor_base"] > 0 else 1.0 / len(a["fases"])
+                taxa_fase[fid] = taxa_fase.get(fid, 0.0) + a["taxa"] * part
+        fases = [precificar_fase(cat, proposta, opcao, f, estimativas, art_fixo=taxa_fase[f["id"]]) for f in fases_cfg]
+    else:
+        fases = [precificar_fase(cat, proposta, opcao, f, estimativas) for f in fases_cfg]
     res = {k: sum(f[k] for f in fases) for k in SOMAS}
     # cronograma: as fases correm em sequência
     cron, inicio = [], 1
@@ -383,7 +445,7 @@ def precificar_opcao(cat, proposta, opcao, estimativas=None):
     res.update({
         "id": opcao["id"], "nome": opcao["nome"],
         "modalidade": "estimativa" if estimativa else "fases", "interno": estimativa,
-        "fases": fases,
+        "fases": fases, "fases_desligadas": desligadas,
         "linhas": [l for f in fases for l in f["linhas"]],
         "diretos": [d for f in fases for d in f["diretos"]],
         "fornecimentos": [x for f in fases for x in f["fornecimentos"]],
@@ -401,6 +463,8 @@ def precificar_opcao(cat, proposta, opcao, estimativas=None):
         "rs_m2": res["preco"] / area if area > 0 else None,
         "checklist_turnkey": checklist_turnkey(cat, opcao) if estimativa else [],
     })
+    if arts is not None:
+        res["arts"] = arts
     if estimativa:
         res["valor_obra"] = res["preco_fornec"]
     return res
@@ -456,7 +520,8 @@ def pagamento_padrao(proposta, etapas, res):
     if res["preco_fornec"] > 0:   # há fornecimento: ele pesa na parcela de execução
         meio = (1 - sinal) * (res["preco_fornec"] + res["preco_servicos"] * h_campo / h_total) / res["preco_fechado"]
     meio = _arredonda_5(meio)
-    texto_meio = "na conclusão da execução e do comissionamento" if tem_obra else "na conclusão das atividades de campo"
+    execucao = tem_obra or (h_campo == 0 and res["preco_fornec"] > 0)      # só fornecimentos: paga na execução
+    texto_meio = "na conclusão da execução e do comissionamento" if execucao else "na conclusão das atividades de campo"
     marcos = [{"marco": "na assinatura do instrumento contratual ou no aceite formal desta proposta", "pct": sinal}]
     if meio > 0:
         marcos.append({"marco": texto_meio, "pct": meio})
@@ -470,6 +535,31 @@ ROTULO_COBRANCA = {"fechado": "escopo fechado", "hora": "hora técnica", "percen
                    "pacote": "pacote de horas"}
 
 
+def fase_tem_preco(fase):
+    """Fase com o que cobrar: serviços com horas, pacote de horas ou fornecimentos (a execução só os tem)."""
+    return bool(fase["linhas"]) or fase["cobranca"] == "pacote" or fase["preco_fornec"] > 0
+
+
+def opcao_tem_preco(r):
+    return any(fase_tem_preco(f) for f in r["fases"])
+
+
+def fase_so_fornecimentos(fase):
+    """Fase de execução: sem serviços do catálogo, só fornecimentos com preço, e sem ART no preço."""
+    return not fase["servicos"] and fase["preco_fornec"] > 0 and fase["art"] <= 0
+
+
+def situacao_art(fases):
+    """'sem_art' (nenhuma fase leva ART no preço), 'mista' (há fases com ART e fases só de fornecimentos) ou 'normal'."""
+    if fases and not any(f["art"] > 0 for f in fases):
+        return "sem_art"
+    return "mista" if any(fase_so_fornecimentos(f) for f in fases) else "normal"
+
+
+def _brl(v):
+    return "R$ " + f"{float(v):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
 def avisos(proposta, resultados):
     av = []
     uf = (proposta["cliente"].get("uf") or "").strip().upper()
@@ -479,6 +569,20 @@ def avisos(proposta, resultados):
     if resultados and len(ids_est) == len(resultados):
         av.append("Todas as opções são estimativas internas: nenhuma proposta será gerada para o cliente.")
     cfg_fases = {o["id"]: {f["id"]: f for f in o["fases"]} for o in proposta["opcoes"]}
+    for o in proposta["opcoes"]:
+        if o.get("modalidade") == "estimativa":
+            continue
+        ids = [f["id"] for f in o["fases"]]
+        off = {f["id"] for f in o["fases"] if not f.get("ativa", True)}
+        if not off:
+            continue
+
+        def desligada(x):       # sem fase válida o item cai na primeira fase
+            return (x.get("fase") if x.get("fase") in ids else ids[0]) in off
+        n_it, n_fo = sum(map(desligada, o["itens"])), sum(map(desligada, o["fornecimentos"]))
+        if n_it or n_fo:
+            av.append(f"Opção {o['id']}: {n_it} serviço(s) e {n_fo} fornecimento(s) estão em fases desligadas e "
+                      "ficaram fora do preço.")
     for r in resultados:
         if r["interno"]:
             faltando = [e["rotulo"] for e in r["checklist_turnkey"] if e["status"] == "faltando"]
@@ -486,18 +590,30 @@ def avisos(proposta, resultados):
                 av.append(f"{r['nome']} (estimativa): faltam as etapas {', '.join(faltando)} — inclua ou marque como "
                           "fora da estimativa.")
             continue
-        if not r["linhas"] and not any(f["cobranca"] == "pacote" for f in r["fases"]):
+        if not opcao_tem_preco(r):
             av.append(f"{r['nome']}: nenhum serviço com horas — adicione serviços na aba Escopo.")
         for f in r["fases"]:
             nome = f"{r['nome']} / {f['nome']}"
             soma = sum(m["pct"] for m in f["pagamento"])
             if f["pagamento"] and abs(soma - 1) > 0.001:
                 av.append(f"{nome}: as parcelas de pagamento somam {soma:.0%}, não 100%.")
-            if not f["linhas"] and f["cobranca"] in ("fechado", "hora"):
-                av.append(f"{nome}: fase sem serviços.")
+            if not fase_tem_preco(f) and f["cobranca"] in ("fechado", "hora"):
+                if cfg_fases[r["id"]][f["id"]].get("modulo") == "execucao":
+                    av.append(f"{nome}: fase sem itens — lance materiais e mão de obra na aba Fornecimentos.")
+                else:
+                    av.append(f"{nome}: fase sem serviços.")
+            if fase_so_fornecimentos(f):
+                av.append(f"{nome}: fase sem ART no preço — confirme se a execução exige ART própria.")
             if f["cobranca"] == "percentual" and f["base"] <= 0:
                 av.append(f"{nome}: % da obra sem base ({f['base_origem']}) — informe o valor da obra ou vincule a "
                           "estimativa interna.")
+            if (f["cobranca"] == "percentual" and f["base"] > 0 and f.get("preco_minimo_servicos")
+                    and f["preco"] < f["preco_minimo_servicos"]):
+                pct_min = f.get("pct_minimo")
+                av.append(f"{nome}: o % da obra rende {_brl(f['preco'])}, abaixo do mínimo para cobrir as horas "
+                          f"({_brl(f['preco_minimo_servicos'])}"
+                          + (f"; seria preciso {pct_min * 100:.1f}% da base".replace(".", ",") if pct_min else "")
+                          + "). Use o pacote 'Estimado pelas horas da obra' ou 'Parcela fixa + % das medições'.")
             ob = cfg_fases[r["id"]][f["id"]]["obra"]
             if f["cobranca"] in ("percentual", "pacote") and ob.get("base_modo") == "opcao" and ob.get("base_opcao") not in ids_est:
                 av.append(f"{nome}: a base aponta para a opção '{ob.get('base_opcao')}', que não é uma estimativa interna.")
