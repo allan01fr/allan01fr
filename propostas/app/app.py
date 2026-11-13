@@ -475,10 +475,10 @@ with abas[1]:
                                     "Total (h)": round(l["total_h"], 1)} for l in linhas])
                 st.dataframe(df, hide_index=True, width="stretch")
                 tot = sum(l["total_h"] for l in linhas)
-                txt = f"**{num_br(tot)} h** neste serviço"
+                txt = f" neste serviço"
                 if diretos:
                     txt += " · custos diretos: " + "; ".join(f"{d['descricao']} {moeda(d['valor'])}" for d in diretos)
-                st.markdown(md(txt))
+                st.markdown(f"**{num_br(tot)} h**" + md(txt))      # md() escapa o texto livre, não o negrito
             except Exception as e:  # noqa: BLE001
                 st.error(f"Erro ao calcular este serviço: {e}")
             c1, c2, c3, _ = st.columns([1, 1, 1, 4])
