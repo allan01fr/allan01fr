@@ -117,7 +117,7 @@ def marcos_pacote(pk):
         return [{"marco": f"em {pk['meses']} parcelas mensais iguais (pacote de {pk['horas_mes']:.0f} h/mês), contra "
                           "apresentação de nota fiscal e do relatório de horas do mês", "pct": 1.0}]
     return [{"marco": f"em {pk['parcelas']} parcelas mensais iguais a partir da assinatura (pacote de {pk['horas']:.0f} h "
-                      f"válido por {pk['meses']} meses), contra apresentação de nota fiscal", "pct": 1.0}]
+                      f"válido por {pk['meses']} {'mês' if int(pk['meses']) == 1 else 'meses'}), contra apresentação de nota fiscal", "pct": 1.0}]
 
 
 # ----------------------------------------------------------------------------- taxa de desempenho

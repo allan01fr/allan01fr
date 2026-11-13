@@ -302,7 +302,7 @@ def _dias_uteis_execucao(opcao, params):
 
 
 def _etapa_obra(fase, meses):
-    return [{"etapa": "obra", "rotulo": f"{fase['nome']} — durante a obra ({meses} meses)",
+    return [{"etapa": "obra", "rotulo": f"{fase['nome']} — durante a obra ({meses} {'mês' if meses == 1 else 'meses'})",
              "marco": "Conclusão da obra e relatório final", "campo": True, "horas": 0.0, "meses": meses,
              "dias_uteis": 21 * meses, "dias_corridos": 30 * meses, "inicio": 1, "fim": 21 * meses}]
 

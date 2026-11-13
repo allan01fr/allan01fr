@@ -10,7 +10,7 @@ from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Pt
 
-from .exportar_docx import RAIZ, _data_br, _linhas_escopo, _linhas_prazos, _pagamento, moeda, pct_br
+from .exportar_docx import _meses, RAIZ, _data_br, _linhas_escopo, _linhas_prazos, _pagamento, moeda, pct_br
 
 AVISO = "Modelo — revisar com assessoria jurídica."
 _UN = ["zero", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove", "dez", "onze", "doze",
@@ -179,7 +179,7 @@ def _forma_cobranca(fr):
                 f"honorários estimados em {moeda(fr['preco'])}")
     if cob == "pacote":
         pk = fr["pacote"]
-        return (f"pacote de {pk['horas']:.0f} horas, estimado pelas horas da obra ({pk['meses']} meses), "
+        return (f"pacote de {pk['horas']:.0f} horas, estimado pelas horas da obra ({_meses(pk['meses'])}), "
                 f"{moeda(fr['preco'] - fr.get('preco_fornec', 0))}")
     return f"escopo fechado, {moeda(fr['preco'])}"
 
@@ -196,7 +196,7 @@ def _prazo_execucao(proposta, res):
         return None
     meses = next((e["meses"] for e in etapas if e.get("meses")), None)
     dias = sum(e["dias_corridos"] for e in etapas)
-    return f"Prazo de execução da obra: {f'{meses} meses ({dias} dias corridos)' if meses else f'{dias} dias corridos'}."
+    return f"Prazo de execução da obra: {f'{_meses(meses)} ({dias} dias corridos)' if meses else f'{dias} dias corridos'}."
 
 
 def _linhas_arts(res):
@@ -210,7 +210,8 @@ def _linhas_arts(res):
 def _contexto_contrato(proposta, res, revisao):
     org, cl = _org(), proposta.get("cliente", {})
     escopo = [f"{num} — {t}" + (f" Entregáveis: {e}." if e else "") for num, t, e in _linhas_escopo(res)]
-    prazo = [f"{rot}: {dur} ({marco})." for rot, dur, marco in _linhas_prazos(res)]
+    opcao = next((o for o in proposta.get("opcoes", []) if o.get("id") == res.get("id")), None)
+    prazo = [f"{rot}: {dur} ({marco})." for rot, dur, marco in _linhas_prazos(res, opcao, proposta.get("parametros"))]
     pe = _prazo_execucao(proposta, res)
     if pe:
         prazo.append(pe)

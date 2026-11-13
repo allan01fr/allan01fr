@@ -41,6 +41,20 @@ PREMISSAS_FINAIS = [
 
 
 # ----------------------------------------------------------------------------- texto
+
+
+def _logo_sem_corte(doc):
+    """Parágrafos com imagem em espaçamento simples: herdando 1,15 (line=276) o LibreOffice corta o topo do logo da capa."""
+    from docx.enum.text import WD_LINE_SPACING
+    for p in doc.paragraphs:
+        if p._p.xpath(".//w:drawing"):
+            p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+
+def _meses(n):
+    """'1 mês' / '3 meses'."""
+    n = int(n or 0)
+    return f"{n} mês" if n == 1 else f"{n} meses"
+
 def substituir(par, de, para):
     """Troca texto no parágrafo preservando a formatação (de kaptek-doc/scripts/preencher.py).
     Se o trecho estiver fragmentado entre runs, consolida no primeiro run."""
@@ -218,9 +232,9 @@ def _linhas_percentual(fr, prefixo):
 def _linhas_pacote(fr, prefixo):
     pk = fr["pacote"]
     if pk["forma"] == "mensal":
-        desc = f"{prefixo}pacote de {pk['horas_mes']:.0f} h/mês × {pk['meses']} meses ({_h(pk['horas'])})"
+        desc = f"{prefixo}pacote de {pk['horas_mes']:.0f} h/mês × {_meses(pk['meses'])} ({_h(pk['horas'])})"
     else:
-        desc = f"{prefixo}pacote de {_h(pk['horas'])}, a consumir em até {pk['meses']} meses"
+        desc = f"{prefixo}pacote de {_h(pk['horas'])}, a consumir em até {_meses(pk['meses'])}"
     total = fr["preco"] - fr["preco_fornec"]
     return [(desc, _h(pk["horas"]), moeda(total / pk["horas"]) if pk["horas"] else "—", moeda(total)),
             ("Hora excedente ao pacote (sob demanda, mediante autorização prévia)", "1 h", moeda(pk["taxa_excedente"]),
@@ -344,7 +358,7 @@ def _premissas_fases(res):
                 textos.append(f"{nome}: pacote mensal de {pk['horas_mes']:.0f} horas, apontadas em relatório mensal de horas e "
                               f"atividades; o saldo não utilizado {saldo}.")
             else:
-                textos.append(f"{nome}: pacote de {pk['horas']:.0f} horas, consumidas sob demanda em até {pk['meses']} meses "
+                textos.append(f"{nome}: pacote de {pk['horas']:.0f} horas, consumidas sob demanda em até {_meses(pk['meses'])} "
                               "e apontadas em relatório mensal de horas e atividades.")
             textos.append(f"{nome}: horas excedentes, mediante autorização prévia, são cobradas a "
                           f"{moeda(pk['taxa_excedente'])} por hora.")
@@ -449,7 +463,7 @@ def _linhas_prazos(res, opcao=None, params=None):
             etapas = [e for e in res["cronograma"] if e["fase"] == fr["id"]]
             meses = next((e["meses"] for e in etapas if e.get("meses")), None)
             dias = sum(e["dias_corridos"] for e in etapas)
-            texto = f"durante a obra ({meses} meses)" if meses else (f"{dias} dias" if etapas else "a definir")
+            texto = f"durante a obra ({_meses(meses)})" if meses else (f"{dias} dias" if etapas else "a definir")
             marco = etapas[-1]["marco"] if etapas else "Conclusão da fase"
             if pe and fr["id"] == pe[0]:
                 texto, marco = f"{pe[1]} dias úteis ({pe[2]} dias corridos)", "Conclusão da execução"
@@ -588,6 +602,7 @@ def gerar_opcao(cat, proposta, opcao, res, varias=False):
     for fr in res["fases"]:
         fr["_cfg_desempenho"] = cfg_fases.get(fr["id"], {}).get("desempenho", {})
     doc = Document(TEMPLATE)
+    _logo_sem_corte(doc)
     cl = proposta["cliente"]
     numero = proposta["numero"] + (f"-{opcao['id']}" if varias else "")
     campos = {
