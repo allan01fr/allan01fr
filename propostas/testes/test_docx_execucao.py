@@ -38,6 +38,8 @@ def test_secao_execucao(textos):
     assert "Itens de execução:" in textos and "Prazo de execução estimado:" in textos and "dias úteis" in textos
     assert "Equipe prevista:" in textos and "materiais e equipamentos listados" in textos
     assert "Tubulação frigorífica de cobre" in textos
+    assert "6 dias úteis (9 dias corridos) | Conclusão da execução" in textos or "6 dias úteis (9 dias corridos)" in textos
+    assert "a definir" not in textos and "sem Execução" not in textos
 
 
 def test_acompanhamento_pacote_obra(textos):

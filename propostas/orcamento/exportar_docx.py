@@ -404,8 +404,22 @@ def _linhas_escopo(res):
     return saida
 
 
-def _linhas_prazos(res):
+def _prazo_execucao(res, opcao, params):
+    """(fase_id, dias úteis, dias corridos) da execução por itens de kit; None se a opção não tem plano."""
+    if not opcao or not opcao.get("itens_execucao"):
+        return None
+    from . import execucao_itens as ei
+    plano = ei.calcular_execucao(opcao, params).get("plano") or {}
+    ids = [f["id"] for f in opcao["fases"] if f.get("modulo") == "execucao"]
+    fr = next((f for f in res["fases"] if f["id"] in ids and not any(e["fase"] == f["id"] for e in res["cronograma"])), None)
+    if fr is None or not plano.get("prazo_dias_corridos"):
+        return None
+    return fr["id"], int(plano["prazo_dias_uteis"]), int(plano["prazo_dias_corridos"])
+
+
+def _linhas_prazos(res, opcao=None, params=None):
     fases = res["fases"]
+    pe = _prazo_execucao(res, opcao, params)
     if len(fases) == 1:
         prazos = [(e["rotulo"], f"{e['dias_corridos']} dias", e["marco"]) for e in res["cronograma"]]
     else:
@@ -415,16 +429,28 @@ def _linhas_prazos(res):
             meses = next((e["meses"] for e in etapas if e.get("meses")), None)
             dias = sum(e["dias_corridos"] for e in etapas)
             texto = f"durante a obra ({meses} meses)" if meses else (f"{dias} dias" if etapas else "a definir")
-            prazos.append((f"Fase {n} — {fr['nome']}", texto, etapas[-1]["marco"] if etapas else "Conclusão da fase"))
-    sem_prazo = [fr["nome"] for fr in fases if not any(e["fase"] == fr["id"] for e in res["cronograma"])]
-    if not res["cronograma"]:
+            marco = etapas[-1]["marco"] if etapas else "Conclusão da fase"
+            if pe and fr["id"] == pe[0]:
+                texto, marco = f"{pe[1]} dias úteis ({pe[2]} dias corridos)", "Conclusão da execução"
+            prazos.append((f"Fase {n} — {fr['nome']}", texto, marco))
+    sem_prazo = [fr["nome"] for fr in fases if not any(e["fase"] == fr["id"] for e in res["cronograma"])
+                 and not (pe and fr["id"] == pe[0])]
+    if pe:
+        if sem_prazo:
+            total = f"{res['prazo_dias_corridos'] + pe[2]} dias, sem {', '.join(sem_prazo)} (prazo a definir)"
+        else:
+            total = f"{res['prazo_dias_corridos'] + pe[2]} dias"
+    elif not res["cronograma"]:
         total = "a definir"
     elif sem_prazo:
         total = f"{res['prazo_dias_corridos']} dias, sem {', '.join(sem_prazo)} (prazo a definir)"
     else:
         total = f"{res['prazo_dias_corridos']} dias"
     if len(fases) == 1 and not res["cronograma"]:
-        prazos.append((fases[0]["nome"], "a definir", "Conclusão da fase"))
+        if pe:
+            prazos.append((fases[0]["nome"], f"{pe[1]} dias úteis ({pe[2]} dias corridos)", "Conclusão da execução"))
+        else:
+            prazos.append((fases[0]["nome"], "a definir", "Conclusão da fase"))
     prazos.append(("Prazo total estimado", total, "Conclusão dos serviços"))
     return prazos
 
@@ -574,7 +600,7 @@ def gerar_opcao(cat, proposta, opcao, res, varias=False):
     _definir(rev.rows[1].cells[1].paragraphs[0], _data_br(proposta["data"]))
 
     _preencher_linhas(_tabela(doc, "#", "Serviço"), _linhas_escopo(res))
-    _preencher_linhas(_tabela(doc, "Etapa", "Prazo"), _linhas_prazos(res))
+    _preencher_linhas(_tabela(doc, "Etapa", "Prazo"), _linhas_prazos(res, opcao, params))
 
     hon = _tabela(doc, "Descrição", "Qtd.")
     _preencher_linhas(hon, _linhas_honorarios(cat, params, opcao, res), manter_ultima=True)
