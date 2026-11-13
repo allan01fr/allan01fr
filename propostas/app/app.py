@@ -1159,7 +1159,7 @@ with abas[6]:
                                      for n, d in todos])
                     st.rerun()
             else:
-                st.caption("PDF indisponível: instale o LibreOffice")
+                st.caption("PDF indisponível aqui: instale o LibreOffice (ou, no Windows com Word, pip install docx2pdf). O DOCX também pode ser salvo como PDF no Word ou no seu leitor de PDF.")
             buf = BytesIO()
             with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
                 zf.writestr(nome_x, xlsx)
@@ -1501,7 +1501,7 @@ with abas[9]:
                     st.rerun()
                 _botao_pdf(_nome_rel, ss.relatorio_viab[0], "v_rel_pdf_dl")
             else:
-                st.caption("PDF indisponível: instale o LibreOffice")
+                st.caption("PDF indisponível aqui: instale o LibreOffice (ou, no Windows com Word, pip install docx2pdf). O DOCX também pode ser salvo como PDF no Word ou no seu leitor de PDF.")
     else:
         st.info("Adicione alternativas na tabela acima (nome, CAPEX ou opção vinculada, redução de consumo, manutenção).")
 

@@ -12,13 +12,40 @@ import subprocess
 import tempfile
 
 
+_CAMINHOS_WINDOWS = (r"C:\Program Files\LibreOffice\program\soffice.exe",
+                     r"C:\Program Files (x86)\LibreOffice\program\soffice.exe")
+
+
 def _binario():
-    return shutil.which("soffice") or shutil.which("libreoffice")
+    achado = shutil.which("soffice") or shutil.which("libreoffice")
+    if achado:
+        return achado
+    return next((c for c in _CAMINHOS_WINDOWS if os.path.isfile(c)), None)
+
+
+def _word_disponivel() -> bool:
+    """Windows com Microsoft Word e o pacote docx2pdf (pip install docx2pdf)."""
+    if os.name != "nt":
+        return False
+    try:
+        import docx2pdf  # noqa: F401
+    except ImportError:
+        return False
+    return True
+
+
+def motor_pdf():
+    """'libreoffice', 'word' ou None — qual programa vai gerar o PDF."""
+    if _binario():
+        return "libreoffice"
+    if _word_disponivel():
+        return "word"
+    return None
 
 
 def disponivel() -> bool:
-    """True quando o LibreOffice (soffice ou libreoffice) está instalado."""
-    return _binario() is not None
+    """True quando há como gerar PDF: LibreOffice (qualquer sistema) ou Word no Windows (docx2pdf)."""
+    return motor_pdf() is not None
 
 
 def docx_para_pdf(caminho_docx, pasta_saida=None, timeout=120) -> str:
@@ -30,7 +57,10 @@ def docx_para_pdf(caminho_docx, pasta_saida=None, timeout=120) -> str:
     """
     binario = _binario()
     if binario is None:
-        raise RuntimeError("LibreOffice não encontrado (soffice/libreoffice).")
+        if _word_disponivel():
+            return _docx_para_pdf_word(caminho_docx, pasta_saida)
+        raise RuntimeError("Nenhum conversor de PDF: instale o LibreOffice ou, no Windows com Word, "
+                           "o pacote docx2pdf (pip install docx2pdf). Também dá para abrir o DOCX e salvar como PDF.")
 
     origem = os.path.abspath(os.fspath(caminho_docx))
     if not os.path.isfile(origem):
@@ -66,7 +96,8 @@ def docx_para_pdf(caminho_docx, pasta_saida=None, timeout=120) -> str:
 def bytes_docx_para_pdf(dados: bytes, nome="documento.docx") -> bytes:
     """Converte o conteúdo de um .docx (bytes) e devolve o PDF em bytes."""
     if not disponivel():
-        raise RuntimeError("LibreOffice não encontrado (soffice/libreoffice).")
+        raise RuntimeError("Nenhum conversor de PDF: instale o LibreOffice ou, no Windows com Word, "
+                           "o pacote docx2pdf (pip install docx2pdf).")
 
     nome_base = os.path.basename(nome) or "documento.docx"
     if not nome_base.lower().endswith(".docx"):
@@ -79,3 +110,16 @@ def bytes_docx_para_pdf(dados: bytes, nome="documento.docx") -> bytes:
         destino = docx_para_pdf(caminho, pasta_saida=pasta)
         with open(destino, "rb") as f:
             return f.read()
+
+
+def _docx_para_pdf_word(caminho_docx, pasta_saida=None) -> str:
+    """Conversão pelo Microsoft Word (Windows), via docx2pdf."""
+    from docx2pdf import convert
+    origem = os.path.abspath(os.fspath(caminho_docx))
+    saida = os.path.abspath(os.fspath(pasta_saida)) if pasta_saida else os.path.dirname(origem)
+    os.makedirs(saida, exist_ok=True)
+    destino = os.path.join(saida, os.path.splitext(os.path.basename(origem))[0] + ".pdf")
+    convert(origem, destino)
+    if not os.path.isfile(destino):
+        raise RuntimeError("O Word não gerou o PDF.")
+    return destino
