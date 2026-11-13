@@ -94,6 +94,7 @@ def _assinaturas(d, linhas):
 MODELO_CONTRATO = os.path.join(RAIZ, "modelos", "contrato_padrao.docx")
 MODELO_RECIBO = os.path.join(RAIZ, "modelos", "recibo_padrao.docx")
 _PH = re.compile(r"\{\{\s*(\w+)\s*\}\}")
+_DASH = re.compile(r"^—\s+")
 
 
 def listar_placeholders(caminho):
@@ -134,7 +135,7 @@ def _preencher(doc, valores):
             continue
         vistos.add(id(par._p))
         texto = par.text
-        unico = _PH.fullmatch(texto.strip())
+        unico = _PH.fullmatch(_DASH.sub("", texto.strip()))
         v = valores.get(unico.group(1)) if unico else None
         if isinstance(v, (list, tuple)):
             linhas = [str(x) for x in v] or [""]
@@ -158,6 +159,9 @@ def _preencher(doc, valores):
 
 def _definir_texto(par, texto):
     runs = par.runs
+    if len(runs) >= 2 and runs[0].text.startswith("—") and not runs[0].text.strip("— "):
+        texto = _DASH.sub("", texto)       # item de lista do modelo: run 0 é o travessão, mantido
+        runs = runs[1:]
     if not runs:
         par.add_run(texto)
         return

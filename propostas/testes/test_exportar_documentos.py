@@ -55,7 +55,8 @@ def test_modelo_preenche_tudo(caso, tmp_path):
     for caminho in (c, r):
         assert "{{" not in _texto(caminho)
     t = _texto(c)
-    assert ed.AVISO in t and "Rev. 01" in t and "escopo fechado" in t and "sobre o valor da execução" in t
+    assert ed.AVISO in t and "Rev. 01" in t and "escopo fechado" in t
+    assert "CREA-RJ" in "".join(c.text for s in Document(c).sections for tb in s.header.tables for r in tb.rows for c in r.cells) and "sobre o valor da execução" in t
 
 
 def test_modelo_proprio(caso, tmp_path):

@@ -33,6 +33,7 @@ FRASE_DESLOCAMENTO = ("Não estão inclusos deslocamentos fora da Região Metrop
 TEXTO_ART_NEUTRO = ("A Anotação de Responsabilidade Técnica (ART) de execução não está incluída neste preço; "
                     "quando exigida, será recolhida e cobrada à parte.")
 FRASE_ART_MISTA = "A ART cobre as fases de serviços de engenharia e não inclui a execução."
+FRASE_ART_EXECUCAO = "As ARTs cobrem as fases de projeto, acompanhamento e execução desta proposta."
 PREMISSAS_FINAIS = [
     "Os prazos são contados em dias corridos a partir do cumprimento cumulativo das premissas acima.",
     "Atraso na liberação de acesso ou de documentação suspende a contagem dos prazos, sem ônus para a contratada.",
@@ -226,6 +227,24 @@ def _linhas_pacote(fr, prefixo):
              "sob demanda")]
 
 
+def _agrupar_execucao(fornecimentos):
+    """Soma os fornecimentos de execução repetidos (mesma descrição, unidade e unitário); os demais ficam como estão."""
+    saida, vistos = [], {}
+    for f in fornecimentos:
+        if f.get("origem") != "execucao":
+            saida.append(f)
+            continue
+        qtd = float(f.get("qtd") or 0)
+        chave = (f.get("descricao"), f.get("unid"), round(f["preco"] / qtd, 2) if qtd else None)
+        if chave in vistos and qtd:
+            vistos[chave]["qtd"] += qtd
+            vistos[chave]["preco"] = round(vistos[chave]["preco"] + f["preco"], 2)
+        else:
+            vistos[chave] = dict(f)
+            saida.append(vistos[chave])
+    return saida
+
+
 def _linhas_fase(cat, params, opcao, fr, prefixo="", detalhar=True):
     """Linhas de honorários de uma fase. `detalhar` (fase única) lista serviços, perfis e fornecimentos."""
     linhas = []
@@ -254,10 +273,12 @@ def _linhas_fase(cat, params, opcao, fr, prefixo="", detalhar=True):
         linhas.append((f"{prefixo}escopo fechado", "1 vb", moeda(fr["preco_servicos"]), moeda(fr["preco_servicos"])))
     if fr["fornecimentos"]:
         if detalhar or not fr["servicos"]:      # fase só de fornecimentos (execução): item a item, como na fase única
-            for f in fr["fornecimentos"]:
+            for f in _agrupar_execucao(fr["fornecimentos"]):
                 qtd = float(f.get("qtd") or 0)
                 unit = f["preco"] / qtd if qtd else f["preco"]
                 q_txt = f"{qtd:g} {f.get('unid', '')}".strip().replace(".", ",")
+                if f.get("origem") == "execucao" and f.get("unid") == "h":     # mão de obra: valor global, sem horas
+                    q_txt, unit = "1 vb", f["preco"]
                 linhas.append((prefixo + f.get("descricao", "Fornecimento"), q_txt, moeda(unit), moeda(f["preco"])))
         else:
             linhas.append((f"{prefixo}fornecimentos", "1 vb", moeda(fr["preco_fornec"]), moeda(fr["preco_fornec"])))
@@ -500,6 +521,11 @@ def _num_br(v):
     return f"{v:,.1f}".replace(",", "X").replace(".", ",").replace("X", ".").replace(",0", "") if v != int(v) else f"{int(v):,}".replace(",", ".")
 
 
+def _execucao_ativa(opcao, res):
+    ids = {f["id"] for f in opcao["fases"] if f.get("modulo") == "execucao" and f.get("ativa", True)}
+    return bool(opcao.get("itens_execucao")) and any(fr["id"] in ids for fr in res["fases"])
+
+
 def _textos_acompanhamento(res, opcao):
     """Frases voltadas ao cliente sobre a cobrança do acompanhamento de obra (pacote "obra" ou % sobre a execução)."""
     cfg = {f["id"]: f for f in opcao["fases"]}
@@ -591,7 +617,7 @@ def gerar_opcao(cat, proposta, opcao, res, varias=False):
             if situacao == "sem_art":
                 _definir(par, TEXTO_ART_NEUTRO)
             elif situacao == "mista":
-                _definir(par, par.text + " " + FRASE_ART_MISTA)
+                _definir(par, par.text + " " + (FRASE_ART_EXECUCAO if _execucao_ativa(opcao, res) else FRASE_ART_MISTA))
     if par_art is not None:
         _inserir_arts(par_art, res.get("arts"))
 

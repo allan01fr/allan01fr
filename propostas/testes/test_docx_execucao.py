@@ -40,6 +40,9 @@ def test_secao_execucao(textos):
     assert "Tubulação frigorífica de cobre" in textos
     assert "6 dias úteis (9 dias corridos) | Conclusão da execução" in textos or "6 dias úteis (9 dias corridos)" in textos
     assert "a definir" not in textos and "sem Execução" not in textos
+    assert textos.count("Execução: Tubulação frigorífica") == 1 and "30 m" in textos
+    assert "32,5 h" not in textos and "Mão de obra de execução — Ajudante" in textos
+    assert "cobrem as fases de projeto, acompanhamento e execução" in textos and "não inclui a execução" not in textos
 
 
 def test_acompanhamento_pacote_obra(textos):
