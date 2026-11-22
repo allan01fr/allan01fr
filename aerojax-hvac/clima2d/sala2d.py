@@ -24,9 +24,8 @@ informada é preservada, logo os balanços de energia e de umidade estão corret
 Para um split real (saída de ~0,8 m) o alcance do jato tende a ser subestimado.
 """
 
-from dataclasses import dataclass, field
-from functools import partial
-from typing import NamedTuple, Optional, Sequence, Tuple
+from dataclasses import dataclass
+from typing import NamedTuple, Tuple
 
 import jax
 import jax.numpy as jnp

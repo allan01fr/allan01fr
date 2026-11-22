@@ -31,8 +31,8 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 
-from hvac import psicrometria as psi
-from hvac.sala2d import (Sala, Abertura, FonteCalor, Obstaculo, Insuflamento, montar_geometria,
+from clima2d import psicrometria as psi
+from clima2d.sala2d import (Sala, Abertura, FonteCalor, Obstaculo, Insuflamento, montar_geometria,
                          estado_inicial, simular, indicadores)
 
 sala = Sala(

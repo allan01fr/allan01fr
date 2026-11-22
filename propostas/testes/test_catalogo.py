@@ -1,4 +1,5 @@
 import copy
+import json
 
 import pytest
 
@@ -66,3 +67,79 @@ def test_servico_que_nao_e_objeto_nao_quebra_a_validacao(cat):
     ruim = copy.deepcopy(cat)
     ruim["servicos"].append("texto solto")
     assert "o serviço precisa ser um objeto JSON ({...})" in ct.validar(ruim)
+
+
+@pytest.mark.parametrize("estrago", [
+    lambda s: s["atividades"][0].update(b="abc"), lambda s: s["atividades"][0].update(fixo="10"),
+    lambda s: s["atividades"][0].update(fatores=3), lambda s: s["atividades"][0].update(driver=["x"]),
+    lambda s: s["dados"][0].update(padrao="abc", tipo="float"),
+    lambda s: s["atividades"][0].update(driver="round(1, 0-15000000)"),
+    lambda s: s["atividades"][0].update(driver="+".join(["1"] * 60000)),
+    lambda s: s["atividades"][0].update(b=10 ** 400), lambda s: s["atividades"][0].update(calibracao=float("nan")),
+    lambda s: s["atividades"][0].update(fixo={"eng": float("inf")}), lambda s: s["dados"][0].update(rotulo=5),
+    lambda s: s["dados"].append({"id": "y", "rotulo": "Y", "tipo": "int", "padrao": 1, "min": "x"}),
+    lambda s: s["dados"].append({"id": "z", "rotulo": "Z", "tipo": "bool", "padrao": "sim"}),
+])
+def test_valor_de_tipo_errado_vira_erro_sem_excecao(cat, estrago):
+    ruim = copy.deepcopy(cat)
+    estrago(ruim["servicos"][0])
+    assert ct.validar(ruim)
+
+
+def test_divisao_por_zero_no_padrao_nao_trava_o_catalogo(cat):
+    ok = copy.deepcopy(cat)
+    s = ok["servicos"][0]
+    s["atividades"][0]["driver"] = f"1/({s['dados'][0]['id']}*0)"
+    assert ct.validar(ok) == []
+
+
+def test_exemplos_continuam_validos(cat, params):
+    from conftest import EXEMPLOS, abrir_exemplo
+    for caminho in EXEMPLOS:
+        abrir_exemplo(caminho, cat, params)
+    assert ct.validar(cat) == []
+
+
+def test_divisao_por_zero_no_padrao_nao_esconde_outro_erro(cat):
+    ruim = copy.deepcopy(cat)
+    s = ruim["servicos"][0]
+    campo = next(c["id"] for c in s["dados"] if c["tipo"] in ("int", "float"))
+    s["dados"] = [dict(c, padrao=0) if c["id"] == campo else c for c in s["dados"]]
+    s["atividades"][0]["driver"] = f"round(1/{campo}, 99)"
+    assert any("casas" in e for e in ct.validar(ruim))
+
+
+# ----------------------------------------------------------------------------- hvac.inspecao_conformidade
+def _horas_inspecao(cat, params, **dados):
+    p = pp.padrao(params)
+    item = pp.novo_item(ct.servico(cat, "hvac.inspecao_conformidade"))
+    item["dados"].update(dados)
+    linhas, _ = motor.linhas_item(cat, p, item, 0)
+    return sum(l["total_h"] for l in linhas)
+
+
+def test_inspecao_conformidade_existe_como_laudo_e_valida(cat):
+    s = ct.servico(cat, "hvac.inspecao_conformidade")
+    assert s["tipo"] == "laudo" and s["disciplina"] == "HVAC-R"
+    assert ct.validar(cat) == []
+    ids = [x["id"] for x in cat["servicos"]]
+    assert ids.index("hvac.inspecao_conformidade") == ids.index("hvac.desempenho") + 1
+    assert not any("RE ANVISA" in n or "09/2003" in n for n in s["normas"])
+    assert "09/2003" not in json.dumps(s, ensure_ascii=False)       # norma revogada: nem em textos, nem em premissas
+    assert [a["id"] for a in s["atividades"]].count("medicoes_pontuais") == 1
+    assert "medicoes" not in [a["id"] for a in s["atividades"]]     # o dado "medicoes" é outra coisa
+
+
+def test_inspecao_conformidade_precifica_proposta_minima(cat, params):
+    p = pp.padrao(params)
+    p["opcoes"][0]["itens"] = [pp.novo_item(ct.servico(cat, "hvac.inspecao_conformidade"))]
+    r = motor.precificar(cat, p)["opcoes"][0]
+    assert r["total_h"] > 0 and r["preco"] > 0
+
+
+def test_inspecao_conformidade_medicoes_e_area_aumentam_horas(cat, params):
+    sem = _horas_inspecao(cat, params, medicoes=False)
+    com = _horas_inspecao(cat, params, medicoes=True)
+    assert sem > 0 and com > sem
+    assert _horas_inspecao(cat, params, area=5000.0) > _horas_inspecao(cat, params, area=1000.0)
+    assert _horas_inspecao(cat, params, ambientes=40) > _horas_inspecao(cat, params, ambientes=10)

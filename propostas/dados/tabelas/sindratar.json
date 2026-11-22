@@ -1,0 +1,24 @@
+{
+  "nota": "estrutura de exemplo — substituir pelos dados oficiais (fonte, data-base)",
+  "fonte_url": "",
+  "provisorio": true,
+  "fonte": "SINDRATAR - preços referenciais de serviços de refrigeração/PMOC [entidade a confirmar; estrutura de exemplo]",
+  "tipo": "custo_unitario",
+  "data_base": "2024-01",
+  "itens": [
+    {
+      "codigo": "EX-PMOC-01",
+      "descricao": "PMOC visita mensal (EXEMPLO FICTÍCIO)",
+      "unidade": "un",
+      "custo_unitario": 100.0,
+      "data_base": "2024-01"
+    },
+    {
+      "codigo": "EX-LIMP-01",
+      "descricao": "Limpeza de split (EXEMPLO FICTÍCIO)",
+      "unidade": "un",
+      "custo_unitario": 50.0,
+      "data_base": "2024-01"
+    }
+  ]
+}

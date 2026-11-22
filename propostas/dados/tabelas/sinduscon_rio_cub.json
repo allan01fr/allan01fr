@@ -1,0 +1,18 @@
+{
+  "nota": "estrutura de exemplo — substituir pelos dados oficiais (fonte, data-base)",
+  "fonte_url": "",
+  "provisorio": true,
+  "fonte": "SINDUSCON-RIO - CUB/m² (NBR 12721, mensal) [estrutura de exemplo]",
+  "tipo": "indice_m2",
+  "data_base": "2024-02",
+  "series": {
+    "2024-01": {
+      "R8-N": 1000.0,
+      "CSL-8": 900.0
+    },
+    "2024-02": {
+      "R8-N": 1010.0,
+      "CSL-8": 905.0
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "fonte": "CEHOP-SE - tabela de honorários de projetos (valores máximos)",
+  "data_base": "2023-01",
+  "tipo": "honorario_por_faixa",
+  "fonte_url": "",
+  "provisorio": true,
+  "nota": "valores a conferir com o PDF oficial; apenas 4,83 e 4,11 (projeto básico) são exemplo confirmado",
+  "indice_sugerido": "INCC",
+  "itens": [
+    {"id": "clim_projeto_basico", "descricao": "Projeto básico de climatização", "unidade": "m2", "modo": "cheia",
+     "faixas": [{"ate": 500, "valor": 4.83}, {"ate": null, "valor": 4.11}], "minimo": 2500.00},
+    {"id": "clim_projeto_executivo", "descricao": "Projeto executivo de climatização", "unidade": "m2", "modo": "cheia",
+     "faixas": [{"ate": 500, "valor": 7.20}, {"ate": null, "valor": 6.10}], "minimo": 3500.00},
+    {"id": "clim_as_built", "descricao": "Projeto as built de climatização", "unidade": "m2", "modo": "cheia",
+     "faixas": [{"ate": 500, "valor": 2.40}, {"ate": null, "valor": 2.05}], "minimo": 1200.00},
+    {"id": "clim_compatibilizacao", "descricao": "Compatibilização de projetos", "unidade": "m2", "modo": "cheia",
+     "faixas": [{"ate": 500, "valor": 1.20}, {"ate": null, "valor": 1.00}], "minimo": 800.00},
+    {"id": "clim_laudo_vistoria", "descricao": "Laudo de vistoria", "unidade": "m2", "modo": "escalonada",
+     "faixas": [{"ate": 500, "valor": 1.80}, {"ate": 2000, "valor": 1.30}, {"ate": null, "valor": 0.90}], "minimo": 900.00}
+  ],
+  "acrescimos": {
+    "reforma": 0.20,
+    "complexidade_hospitalar": 0.30,
+    "coordenacao": 0.05,
+    "repeticao": [
+      {"de": 2, "ate": 10, "pct": 0.20},
+      {"de": 11, "ate": null, "pct": 0.05}
+    ],
+    "repeticao_teto_multiplo": 5
+  },
+  "deslocamento_rs_km": 1.50
+}

@@ -39,3 +39,23 @@ def base_referencias_temporaria(tmp_path_factory):
         os.environ.pop("KAPTEK_REFERENCIAS", None)
     else:
         os.environ["KAPTEK_REFERENCIAS"] = anterior
+
+
+CODIGOS_ERRO_XLSX = ("#NAME?", "#VALUE!", "#REF!", "#DIV/0!", "#N/A", "#NUM!", "#NULL!", "Err:")
+
+
+def recalcular_xlsx(conteudo, pasta):
+    """Recalcula a planilha no LibreOffice e devolve a pasta de trabalho com os valores (data_only)."""
+    import subprocess
+
+    from openpyxl import load_workbook
+    arq = pasta / "proposta.xlsx"
+    arq.write_bytes(conteudo)
+    subprocess.run(["soffice", "--headless", "--calc", "--convert-to", "xlsx", "--outdir", str(pasta / "rec"), str(arq)],
+                   check=True, capture_output=True, timeout=180)
+    return load_workbook(pasta / "rec" / "proposta.xlsx", data_only=True)
+
+
+def erros_xlsx(wb):
+    return [f"{ws.title}!{c.coordinate}" for ws in wb for row in ws.iter_rows() for c in row
+            if isinstance(c.value, str) and c.value.startswith(CODIGOS_ERRO_XLSX)]

@@ -31,7 +31,11 @@ def main(argv=None):
         return 2
     with open(a.proposta, encoding="utf-8") as f:
         p = pp.completar(pp.carregar_json(f.read()), cat, pm.carregar())
-    res = motor.precificar(cat, p)
+    try:
+        res = motor.precificar(cat, p)
+    except ValueError as e:
+        print(f"Erro: {e}", file=sys.stderr)
+        return 2
     os.makedirs(a.saida, exist_ok=True)
 
     m = exportar_docx.moeda

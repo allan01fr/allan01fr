@@ -1,12 +1,11 @@
 import io
 import shutil
-import subprocess
 
 import pytest
 from docx import Document
 from openpyxl import load_workbook
 
-from conftest import EXEMPLOS, abrir_exemplo
+from conftest import EXEMPLOS, abrir_exemplo, erros_xlsx, recalcular_xlsx
 from orcamento import exportar_docx, exportar_xlsx, motor
 
 ROTULOS = {"Horas técnicas": "total_h", "Prazo (dias corridos)": "prazo_dias_corridos",
@@ -32,16 +31,8 @@ def test_xlsx_tem_formulas_e_abas(caminho, cat, params):
 def test_xlsx_recalculado_bate_com_o_motor(caminho, cat, params, tmp_path):
     p = abrir_exemplo(caminho, cat, params)
     res = motor.precificar(cat, p)
-    arq = tmp_path / "proposta.xlsx"
-    arq.write_bytes(exportar_xlsx.gerar(cat, p, res))
-    saida = tmp_path / "rec"
-    subprocess.run(["soffice", "--headless", "--calc", "--convert-to", "xlsx", "--outdir", str(saida), str(arq)],
-                   check=True, capture_output=True, timeout=180)
-    wb = load_workbook(saida / "proposta.xlsx", data_only=True)
-    codigos = ("#NAME?", "#VALUE!", "#REF!", "#DIV/0!", "#N/A", "#NUM!", "#NULL!", "Err:")
-    erros = [f"{ws.title}!{c.coordinate}" for ws in wb for row in ws.iter_rows() for c in row
-             if isinstance(c.value, str) and c.value.startswith(codigos)]
-    assert not erros
+    wb = recalcular_xlsx(exportar_xlsx.gerar(cat, p, res), tmp_path)
+    assert not erros_xlsx(wb)
     ws = wb["Resumo"]
     linha = {ws.cell(r, 1).value: r for r in range(1, ws.max_row + 1)}
     for i, r in enumerate(res["opcoes"]):
@@ -111,14 +102,8 @@ def _todas_as_cobrancas(cat, params):
 def test_xlsx_recalculado_com_todas_as_cobrancas(cat, params, tmp_path):
     p = _todas_as_cobrancas(cat, params)
     res = motor.precificar(cat, p)
-    arq = tmp_path / "fases.xlsx"
-    arq.write_bytes(exportar_xlsx.gerar(cat, p, res))
-    subprocess.run(["soffice", "--headless", "--calc", "--convert-to", "xlsx", "--outdir", str(tmp_path / "rec"), str(arq)],
-                   check=True, capture_output=True, timeout=180)
-    wb = load_workbook(tmp_path / "rec" / "fases.xlsx", data_only=True)
-    codigos = ("#NAME?", "#VALUE!", "#REF!", "#DIV/0!", "#N/A", "#NUM!", "#NULL!", "Err:")
-    assert not [c.coordinate for ws in wb for row in ws.iter_rows() for c in row
-                if isinstance(c.value, str) and c.value.startswith(codigos)]
+    wb = recalcular_xlsx(exportar_xlsx.gerar(cat, p, res), tmp_path)
+    assert not erros_xlsx(wb)
     r = res["opcoes"][0]
     ws = wb["Opção A"]
     rot = {ws.cell(k, 2).value: k for k in range(1, ws.max_row + 1) if ws.cell(k, 2).value}

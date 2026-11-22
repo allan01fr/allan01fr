@@ -15,6 +15,9 @@ perfil, os custos diretos, o preço de cada fase e o prazo, e gera:
 
 ## Como abrir
 
+Requer Python 3.11 ou mais novo ([python.org](https://www.python.org/downloads/), marcando
+"Add to PATH" na instalação).
+
 Windows: dê **dois cliques em `iniciar.bat`**. Na primeira vez ele cria o ambiente e
 instala as dependências, o que leva alguns minutos. Depois a interface abre no navegador.
 
@@ -26,6 +29,25 @@ Sem interface, pela linha de comando:
 python -m orcamento.cli exemplos/hvac_retrofit_fases.json --xlsx --docx --viabilidade --saida saida/
 ```
 
+### Versão de teste com os escopos separados
+
+A versão em desenvolvimento fica na branch `ccr-1ff54909-xbul6a`. Há duas formas de abri-la:
+
+- **No computador (Linux):**
+
+  ```bash
+  git fetch origin
+  git checkout ccr-1ff54909-xbul6a
+  git pull
+  cd propostas
+  ./iniciar.sh
+  ```
+
+  A interface abre no navegador. As propostas e os parâmetros ficam na sua máquina.
+- **Na prévia online:** siga os passos abaixo trocando a branch por `ccr-1ff54909-xbul6a`. Se já
+  existe um app publicado a partir de outra branch, crie um segundo app com outro endereço (por
+  exemplo `kaptek-propostas-teste`): o Community Cloud não troca a branch de um app publicado.
+
 ### Prévia online (Streamlit Community Cloud)
 
 Para testar no navegador, inclusive no celular, sem instalar nada:
@@ -34,8 +56,8 @@ Para testar no navegador, inclusive no celular, sem instalar nada:
    vez, conecte o GitHub em **Workspaces** → **Connect GitHub account** → **Authorize streamlit**.
 2. Clique em **Create app** (canto superior direito). Na pergunta "Do you already have an app?",
    escolha **Yup, I have an app**.
-3. Repositório `allan01fr/allan01fr`, branch `claude/wonderful-wright-m65umc`, arquivo
-   principal `propostas/app/app.py`. Em **App URL**, escolha um endereço curto, por exemplo
+3. Repositório `allan01fr/allan01fr`, a branch da qual o app foi publicado (a versão de teste
+   está hoje na branch `ccr-1ff54909-xbul6a`), arquivo principal `propostas/app/app.py`. Em **App URL**, escolha um endereço curto, por exemplo
    `kaptek-propostas`; sem isso o endereço gerado fica enorme.
 4. Em **Advanced settings**, confira **Python version** = 3.12 (já é o padrão) e clique em
    **Save**. Depois clique em **Deploy**. A versão do Python não muda depois de publicado: para
@@ -48,19 +70,21 @@ do repositório, cópia do `propostas/.streamlit/config.toml`. Testes garantem q
 Para restringir o acesso: em [share.streamlit.io](https://share.streamlit.io), clique em ⋮ ao
 lado do app → **Settings** → **Sharing**. Em "Who can view this app", escolha **Only specific
 people can view this app**, inclua os e-mails e clique em **Save**. Com o app aberto, o mesmo
-menu fica em **Manage app** (canto inferior direito) → ⋮ → **Settings**. O menu do canto
-superior direito do app só muda a aparência.
+menu fica em **Manage app** (canto inferior direito) → ⋮ → **Settings**. O botão **Share**
+(canto superior direito) também convida e-mails e alterna entre público e privado; o menu ⋮
+desse canto só tem aparência, impressão e gravação de tela.
 - O repositório é público, então o app nasce público e é indexado por buscadores até ser
   restrito. O código e os arquivos de `dados/` continuam visíveis no GitHub.
-- A conta gratuita permite um app privado por vez.
+- Cada workspace do Community Cloud pode ter só um app privado. Se já houver outro, torne-o
+  público ou apague-o antes de restringir este.
 - Os convidados entram com conta Google ou com um link enviado por e-mail, sem precisar de
   GitHub. Eles também veem as estatísticas de acesso dos apps públicos da conta e podem
   convidar outras pessoas.
 
 Limites da prévia:
 - O que é salvo pela interface (parâmetros, catálogo, histórico e bases importadas na aba 10)
-  fica no servidor da prévia. É compartilhado por quem usa o link e pode se perder quando o app
-  reinicia, hiberna ou é republicado.
+  fica no servidor da prévia e é compartilhado por quem usa o link. O Community Cloud não
+  garante que esses arquivos sejam preservados: trate tudo como temporário.
 - Para guardar uma proposta, use **💾 Salvar proposta (.json)** na barra lateral e carregue o
   arquivo de novo em **📂 Abrir proposta (.json)**.
 - No celular, a barra lateral continua aberta depois de carregar um exemplo. Feche-a («) para
@@ -103,6 +127,33 @@ Limites da prévia:
 9. **Viabilidade**: estudo técnico-econômico para o cliente (seção própria abaixo).
 10. **Bases de referência**: importação de tabelas de preço, convenções coletivas, CUB,
     encargos, índices e faixas de ART (seção própria abaixo).
+
+## Escopos separados
+
+Uma proposta pode levar só uma parte do trabalho. Na aba **2 · Escopo**, a barra **Incluir
+módulo** cria a fase já configurada, com os serviços do catálogo e a forma de cobrança:
+
+| Módulo | O que entra | Cobrança inicial |
+|---|---|---|
+| **Projeto** | Cálculo de carga térmica e projeto de climatização | Escopo fechado |
+| **Acompanhamento de obra** | Acompanhamento técnico e fiscalização | Pacote de horas |
+| **Execução** | Materiais, equipamentos e mão de obra, lançados na aba 3 como fornecimentos desta fase | Escopo fechado |
+| **Inspeção com laudo de conformidade** | Vistoria, verificação contra norma e projeto, e laudo | Escopo fechado |
+| **Avaliação de desempenho** | Medição do desempenho real e comparação com o projeto | Escopo fechado |
+
+- Cada fase tem a chave **Incluir** ("Incluir esta fase na proposta"). A fase desligada continua na lista, com tudo
+  o que foi preenchido, mas fica fora do preço, do cronograma, do pagamento, da planilha e da
+  proposta. A tela mantém pelo menos uma fase incluída.
+- A aba **4 · Preço** mostra o subtotal de cada fase incluída, o total da opção e, abaixo, as
+  fases que ficaram fora.
+- O mesmo módulo pode entrar mais de uma vez (dois prédios, por exemplo); a segunda fase ganha um
+  número no nome.
+- Uma opção só com **Execução** é precificada a partir dos fornecimentos com BDI e não leva ART
+  no preço; o cronograma mostra "a definir" até o **Prazo de execução** ser preenchido na aba 3.
+- Na planilha, o Resumo mostra "a definir" no prazo e "—" na margem efetiva e no R$/h de uma
+  opção sem horas de serviço.
+- As horas do serviço de inspeção com laudo são iniciais e devem ser calibradas na aba 8 com
+  trabalhos encerrados.
 
 ## Proposta em fases e formas de cobrança
 
@@ -320,7 +371,7 @@ por hora excedente. A base pode ser:
 
 | Disciplina | Serviços |
 |---|---|
-| HVAC-R | carga térmica, projeto 2D/3D/BIM (sistema de climatização + ventilação: VRF, água gelada, DOAS, VAV...), as-built 2D/3D/BIM, desempenho real × projeto, TAB, CFD, simulação energética, PMOC, qualidade do ar (RE 09), comissionamento, plano emergencial, viabilidade (CAPEX/OPEX/breakeven/payback) |
+| HVAC-R | carga térmica, projeto 2D/3D/BIM (sistema de climatização + ventilação: VRF, água gelada, DOAS, VAV...), as-built 2D/3D/BIM, desempenho real × projeto, TAB, CFD, simulação energética, PMOC, qualidade do ar (NBR 17037), comissionamento, plano emergencial, viabilidade (CAPEX/OPEX/breakeven/payback) |
 | Mecânica e utilidades | ar comprimido, vapor e condensado, redes de gases, bombeamento, inspeção NR-13, prontuário NR-13, ensaios de pressão |
 | Segurança do trabalho | NR-12, insalubridade (NR-15), periculosidade (NR-16), LTCAT, PGR, inspeção NR-10/33/35, perícia |
 | Hidráulica e incêndio | hidrossanitário, SPCI, aprovação no CBMERJ, vistoria de incêndio, teste de hidrantes e bombas |

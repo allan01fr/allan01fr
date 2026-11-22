@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clima2d"
+dynamic = ["version"]
+description = "Distribuição de ar, conforto térmico e umidade em ambientes climatizados (CFD 2D com JAX)"
+requires-python = ">=3.10"
+dependencies = ["jax>=0.4.30", "numpy>=1.24", "matplotlib>=3.5", "ezdxf>=1.1"]
+
+[project.optional-dependencies]
+app = ["streamlit>=1.50", "pandas>=2.0"]
+dev = ["pytest>=7", "ruff"]
+
+[tool.setuptools]
+packages = ["clima2d"]
+
+[tool.setuptools.dynamic]
+version = { attr = "clima2d.__version__" }
