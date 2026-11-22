@@ -11,7 +11,8 @@ o resto curto. Histórico longo vai para o git, não para cá.
   Confirmação veio de fonte secundária; conferir no catálogo oficial do SGS quando possível.
 - P-10 feita: tabela por fase da aba Preço cabe na tela, com a Margem visível (`761dc63`).
 - Manual do usuário criado em `docs/manual/propostas/` (uma página por aba).
-- Agenda: o conector do Google Agenda recusou a autenticação; os eventos ainda não foram criados.
+- Agenda: 18 eventos no Google Agenda (contato@kaptek.com.br): prazos M0–M8 (lembrete 3 dias antes),
+  8 tarefas do Allan da M0 (lembrete na véspera) e revisão semanal às sextas 17h.
 
 ## Meta atual
 
