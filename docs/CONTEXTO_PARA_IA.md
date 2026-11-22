@@ -144,18 +144,14 @@ python -m pytest -q
 python -m clima2d exemplos/projetos/escritorio_rapido.json relatorio.html
 ```
 
-## 7. Estado em 2026-11-09 (trabalho pausado pelo dono até o fim da semana)
+## 7. Estado atual
 
-- **T0:** as tarefas 1–8 foram revisadas e mescladas no ramo da sessão. Dois commits existem só no
-  worktree local `t0-fundacao` (`d9ba6be` reforços pedidos na revisão da tarefa 8; `7b3a29d` tarefa
-  9, armazenamento S3). **Não foram revisados nem enviados.** Se não estiverem no GitHub, refaça a
-  tarefa 9 a partir do plano.
-- **T5:** as tarefas 1–11 estão aprovadas. A tarefa 12 (`ee856b1`, divisão da base comum dos
-  difusores) está no GitHub, mas a revisão foi interrompida. Ela criou 7 módulos; confira se o plano
-  pedia os 7.
-- **T6:** as tarefas 1–6 estão aprovadas. A tarefa 7 espera a T0.
-- **Ainda não há interface nova da suíte.** O que dá para usar: o app desktop do `hvac-duct-dx`,
-  o app e a CLI do `clima2d` e a API da suíte pelo `/docs`.
+**Veja `docs/ESTADO.md`** (onde paramos e próximo passo), `docs/DECISOES.md` (o que o Allan já
+decidiu) e a planilha de controle (link no `CLAUDE.md`). Esta seção não guarda mais o estado.
+
+Desde 09/11 a prioridade foi a ferramenta de precificação (`propostas/`): blocos B1 a B7 prontos,
+391 testes, PR #4 em rascunho. T0, T5 e T6 seguem pausadas até a meta M1 do roteiro
+(`docs/superpowers/plans/2026-11-22-roteiro.md`).
 
 ### Pendências anotadas para a revisão final / endurecimento
 - Limite de tentativas de login; auditoria de tentativas falhas; revogar sessões ao trocar a senha.
