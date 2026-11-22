@@ -66,12 +66,16 @@ def _eletrico(x):
 def _necessidades(opcao, cat, fase):
     """Lista de (atividade, modalidade, tipo) exigidas por uma fase, pelos serviços e fornecimentos."""
     fid, nec = fase["id"], []
+    ids = [f["id"] for f in opcao.get("fases", [])]
+
+    def da_fase(x):     # mesma regra do motor: fase inválida -> primeira fase
+        return (x.get("fase") if x.get("fase") in ids else ids[0]) == fid
     for it in opcao.get("itens", []):
-        if it.get("fase") == fid:
+        if da_fase(it):
             a, m = _art_servico(cat, it["servico"])
             nec.append((a, m, "obra_servico"))
     for f in opcao.get("fornecimentos", []):
-        if f.get("fase") != fid:
+        if not da_fase(f):
             continue
         if f.get("categoria") == "subcontrato" and f.get("art_propria"):
             nec.append(("execucao", f.get("modalidade") or MODALIDADE_PADRAO, "subcontratado"))

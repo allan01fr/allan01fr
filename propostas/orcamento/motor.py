@@ -263,12 +263,13 @@ def _margem_efetiva(honorarios, custo, imp):
 CHAVE_EXECUCAO = "__execucao__"     # reservada em `estimativas`: valor da execução da opção, calculado antes das demais fases
 
 
-def valor_execucao(cat, proposta, opcao, fases_cfg, estimativas=None):
+def valor_execucao(cat, proposta, opcao, fases_cfg, estimativas=None, taxa_fase=None):
     """Fornecimentos com BDI ("obra") e preço total ("global") das fases ativas do módulo Execução da opção."""
     v = {"obra": 0.0, "global": 0.0}
     for f in fases_cfg:
         if f.get("modulo") == "execucao":
-            r = precificar_fase(cat, proposta, opcao, f, estimativas)
+            r = precificar_fase(cat, proposta, opcao, f, estimativas,
+                                art_fixo=None if taxa_fase is None else taxa_fase.get(f["id"], 0.0))
             v["obra"] += r["preco_fornec"]
             v["global"] += r["preco"]
     return v
@@ -296,6 +297,10 @@ def base_obra(fase, res_fase, estimativas):
 def _dias_uteis_execucao(opcao, params):
     """Dias úteis de obra do plano de execução da opção; None sem plano."""
     from . import execucao_itens as ei      # import tardio: evita ciclo
+    cfg = ei.config_da_opcao(opcao)
+    fase = next((f for f in opcao.get("fases", []) if f["id"] == cfg.get("fase")), None)
+    if fase is None or not _ativa(fase):     # execução desligada: o plano não vale
+        return None
     plano = ei.calcular_execucao(opcao, params).get("plano")
     dias = float((plano or {}).get("prazo_dias_uteis") or 0)
     return dias if dias > 0 else None
@@ -338,8 +343,11 @@ def precificar_fase(cat, proposta, opcao, fase, estimativas=None, art_fixo=None)
         meses = int(fase["obra"].get("meses") or 0)      # 0 = prazo pelas horas dos serviços (% sem obra acompanhada)
         hp = cb.honorario_percentual(fase["percentual"], base, max(1, meses), fase["obra"].get("curva", "s"))
         honorarios = hp["total"]
+        # com plano de ARTs a taxa da fase é reembolsada ao cliente (como nas demais cobranças)
+        art_cobrada = (r["art"] * (1 + float(params["reembolsaveis_adm"])) / (1 - imp)) if art_fixo is not None else 0.0
         r.update(percentual=hp, base=base, base_origem=origem,
-                 preco=honorarios + r["preco_fornec"], preco_fixo=hp["fixo"] + r["preco_fornec"], preco_estimado=hp["estimado"],
+                 preco=honorarios + r["preco_fornec"] + art_cobrada,
+                 preco_fixo=hp["fixo"] + r["preco_fornec"] + art_cobrada, preco_estimado=hp["estimado"],
                  pct_minimo=r["preco_minimo_servicos"] / base if base > 0 else None,
                  pct_equivalente_fechado=r["preco_servicos"] / base if base > 0 else None)
     elif cob == "pacote":
@@ -408,23 +416,33 @@ def precificar_opcao(cat, proposta, opcao, estimativas=None):
         raise ValueError(f"A opção {opcao['id']} não tem nenhuma fase incluída na proposta.")
     desligadas = [] if estimativa else [{"id": f["id"], "nome": f["nome"], "modulo": f.get("modulo", "")}
                                         for f in opcao["fases"] if not _ativa(f)]
-    if not estimativa and any(f["cobranca"] in ("percentual", "pacote") and (f.get("obra") or {}).get("base_modo") == "execucao"
-                              for f in fases_cfg):
-        estimativas = {**(estimativas or {}), CHAVE_EXECUCAO: valor_execucao(cat, proposta, opcao, fases_cfg, estimativas)}
-    arts = None
-    if opcao.get("plano_arts") and not estimativa:
+    com_plano = bool(opcao.get("plano_arts")) and not estimativa
+
+    def plano_de_arts(est):
         # B7: valor base de cada fase sem ART -> plano de ARTs -> taxa rateada pelas fases de cada ART
         from . import arts as pa
-        base = [precificar_fase(cat, proposta, opcao, f, estimativas, art_fixo=0.0) for f in fases_cfg]
+        base = [precificar_fase(cat, proposta, opcao, f, est, art_fixo=0.0) for f in fases_cfg]
         vf = {f["id"]: f["preco"] for f in base}
-        arts = pa.planejar_arts(opcao, cat, params, vf)
-        taxa_fase = {f["id"]: 0.0 for f in fases_cfg}
-        for a in arts:
+        pl = pa.planejar_arts(opcao, cat, params, vf)
+        taxa = {f["id"]: 0.0 for f in fases_cfg}
+        for a in pl:
             if not a.get("no_preco"):
                 continue
             for fid in a["fases"]:      # rateio proporcional ao valor base da fase na ART
                 part = vf.get(fid, 0.0) / a["valor_base"] if a["valor_base"] > 0 else 1.0 / len(a["fases"])
-                taxa_fase[fid] = taxa_fase.get(fid, 0.0) + a["taxa"] * part
+                taxa[fid] = taxa.get(fid, 0.0) + a["taxa"] * part
+        return pl, taxa
+
+    if not estimativa and any(f["cobranca"] in ("percentual", "pacote") and (f.get("obra") or {}).get("base_modo") == "execucao"
+                              for f in fases_cfg):
+        estimativas = {**(estimativas or {}), CHAVE_EXECUCAO: valor_execucao(cat, proposta, opcao, fases_cfg, estimativas)}
+        if com_plano:   # o valor global da execução inclui a ART que a fase de execução paga
+            for _ in range(2):
+                _, taxa = plano_de_arts(estimativas)
+                estimativas[CHAVE_EXECUCAO] = valor_execucao(cat, proposta, opcao, fases_cfg, estimativas, taxa)
+    arts = None
+    if com_plano:
+        arts, taxa_fase = plano_de_arts(estimativas)
         fases = [precificar_fase(cat, proposta, opcao, f, estimativas, art_fixo=taxa_fase[f["id"]]) for f in fases_cfg]
     else:
         fases = [precificar_fase(cat, proposta, opcao, f, estimativas) for f in fases_cfg]

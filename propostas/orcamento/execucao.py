@@ -158,17 +158,23 @@ def fornecimentos_execucao(plano, itens, funcoes, fase, encargos=1.0):
         info = funcoes.get(f)
         if not info or float(info.get("custo_hora", 0)) <= 0:
             raise ErroEntrada("funcao_sem_custo", f"A função '{f}' não tem custo-hora.", {"funcao": f})
-        out.append(pp.novo_fornecimento(descricao=f"Mão de obra de execução — {info['nome']}",
-                                        categoria="mo_execucao", unid="h", qtd=hh,
-                                        custo_unit=float(info["custo_hora"]) * encargos,
-                                        fonte="HH de execução", fase=fase))
+        fo = pp.novo_fornecimento(descricao=f"Mão de obra de execução — {info['nome']}",
+                                  categoria="mo_execucao", unid="h", qtd=hh,
+                                  custo_unit=float(info["custo_hora"]) * encargos,
+                                  fonte="HH de execução", fase=fase)
+        fo["origem"] = "execucao"
+        if f == "eletricista":
+            fo["modalidade"] = "eletrica"      # ART elétrica: profissional próprio (arts._eletrico)
+        out.append(fo)
     for it in itens:
         mat = _material_unit(it)
         if mat > 0:
-            out.append(pp.novo_fornecimento(descricao=it.get("descricao") or it["item"],
-                                            categoria=it.get("categoria_material", "material"),
-                                            unid=it["unidade"], qtd=it["quantidade"], custo_unit=mat,
-                                            fonte="item de execução", fase=fase))
+            fo = pp.novo_fornecimento(descricao=it.get("descricao") or it["item"],
+                                      categoria=it.get("categoria_material", "material"),
+                                      unid=it["unidade"], qtd=it["quantidade"], custo_unit=mat,
+                                      fonte="item de execução", fase=fase)
+            fo["origem"] = "execucao"
+            out.append(fo)
     return out
 
 
@@ -186,6 +192,7 @@ def precificar_com_execucao(cat, proposta, itens_por_opcao, produtividade, funco
             raise ErroEntrada("fase_inexistente", f"A fase de execução '{cfg['fase']}' não existe na opção {o['id']}.",
                               {"opcao": o["id"], "fase": cfg["fase"]})
         plano = planejar_execucao(itens, produtividade, cfg)
+        o["fornecimentos"] = [x for x in o.get("fornecimentos", []) if x.get("origem") != "execucao"]
         o["fornecimentos"].extend(fornecimentos_execucao(plano, itens, funcoes, cfg["fase"], encargos))
         o["prazo_execucao_dias"] = plano["prazo_dias_uteis"]
         planos[o["id"]] = plano

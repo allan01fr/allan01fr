@@ -67,6 +67,8 @@ def baixar_serie(nome, de="2000-01", ate=None, http_get=None):
 def atualizar_banco(con, nome, de="2000-01"):
     var = baixar_serie(nome, de)
     indice = rf.indice_de_variacoes(var)
+    if not var or not indice:      # série vazia: preserva o histórico existente
+        return 0
     con.execute("DELETE FROM indices WHERE nome=?", (nome,))
     rf.importar_indices(con, nome, indice)
     return len(var)

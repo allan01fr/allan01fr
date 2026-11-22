@@ -35,7 +35,7 @@ def _lista(opcao):
 def _fatores_opcao(opcao):
     """Fatores neutros, trocados pelos escolhidos na aba Execução (execucao.fator_padrao) quando válidos."""
     pad = (opcao.get("execucao") or {}).get("fator_padrao") or {}
-    return {**_NEUTROS, **{n: v for n, v in pad.items() if v in ex.FATORES_PADRAO.get(n, {})}}
+    return {**_NEUTROS, **{n: v for n, v in pad.items() if isinstance(v, str) and v in ex.FATORES_PADRAO.get(n, {})}}
 
 
 def itens_da_opcao(opcao):

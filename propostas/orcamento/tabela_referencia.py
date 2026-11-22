@@ -46,6 +46,8 @@ def _num(v):
 def _base(item, qtd, memoria):
     un = item["unidade"]
     faixas = item["faixas"]
+    if faixas and faixas[-1]["ate"] is not None and qtd > faixas[-1]["ate"]:
+        faixas = faixas[:-1] + [{**faixas[-1], "ate": None}]      # acima da última faixa: ela se estende
     if item["modo"] == "cheia":
         for f in faixas:
             if f["ate"] is None or qtd <= f["ate"]:
