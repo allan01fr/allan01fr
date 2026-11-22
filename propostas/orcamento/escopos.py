@@ -144,8 +144,10 @@ def dimensionar_acompanhamento(opcao, params):
         return 0
     fases_acomp = {f["id"] for f in opcao["fases"] if f.get("modulo") == "acompanhamento" and f.get("ativa", True)}
     n = 0
+    ids = [f["id"] for f in opcao["fases"]]
     for it in opcao.get("itens", []):
-        if it.get("servico") != "geral.acompanhamento_obra" or it.get("fase") not in fases_acomp:
+        fid = it.get("fase") if it.get("fase") in ids else (ids[0] if ids else None)   # mesma regra do motor
+        if it.get("servico") != "geral.acompanhamento_obra" or fid not in fases_acomp:
             continue
         d = it.setdefault("dados", {})
         if dias_corridos <= 30:

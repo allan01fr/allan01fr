@@ -171,7 +171,7 @@ def fornecimentos_execucao(plano, itens, funcoes, fase, encargos=1.0):
         if mat > 0:
             fo = pp.novo_fornecimento(descricao=it.get("descricao") or it["item"],
                                       categoria=it.get("categoria_material", "material"),
-                                      unid=it["unidade"], qtd=it["quantidade"], custo_unit=mat,
+                                      unid=it.get("unidade") or "un", qtd=it["quantidade"], custo_unit=mat,
                                       fonte="item de execução", fase=fase)
             fo["origem"] = "execucao"
             out.append(fo)

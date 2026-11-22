@@ -64,7 +64,11 @@ def config_da_opcao(opcao):
         fase = next((f["id"] for f in ativas if f.get("modulo") == "execucao"),      # a fase do módulo Execução
                     ativas[0]["id"] if ativas else (fases[0]["id"] if fases else "F1"))
         opcao["execucao"] = ex.config_padrao(fase)
-    return opcao["execucao"]
+    cfg = opcao["execucao"]
+    if not cfg.get("fase"):      # config parcial (ex.: vinda da tela sem a fase)
+        fases = opcao.get("fases") or []
+        cfg["fase"] = next((f["id"] for f in fases if f.get("modulo") == "execucao"), fases[0]["id"] if fases else "F1")
+    return cfg
 
 
 def _funcoes(params):

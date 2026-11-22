@@ -93,3 +93,23 @@ def test_fator_padrao_nao_hashavel_ignorado(cat, params):
     prop, o = _kit_opcao(params, cat)
     o["execucao"]["fator_padrao"] = {"altura": ["x"]}
     assert ei.calcular_execucao(o, params)["plano"] is not None
+
+
+def test_config_parcial_sem_fase_e_item_sem_unidade(cat, params):
+    prop, o = _kit_opcao(params, cat)
+    o["execucao"].pop("fase")
+    assert ei.sincronizar_fornecimentos(o, params) > 0
+    p = ex.planejar_execucao([{"id": "1", "frente": "a", "item": "k", "quantidade": 1, "altura": "ate_3m",
+                               "acesso": "livre", "ocupacao": "desocupado", "turno": "diurno"}],
+                             [{"item": "k", "funcao": "eletricista", "hh_por_unidade": 1}], ex.config_padrao())
+    ex.fornecimentos_execucao(p, [{"item": "k", "quantidade": 1, "material": 10}],
+                              {"eletricista": {"nome": "E", "custo_hora": 58}}, "F1")
+
+
+def test_acompanhamento_fase_invalida_dimensionado(cat, params):
+    prop, o = _kit_opcao(params, cat)
+    for i in o["itens"]:
+        if i.get("servico") == "geral.acompanhamento_obra":
+            i["fase"] = "ZZ"
+    o["fases"].reverse()          # a primeira fase passa a ser a de acompanhamento
+    assert escopos.dimensionar_acompanhamento(o, params) > 0
