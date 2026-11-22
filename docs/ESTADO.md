@@ -39,5 +39,6 @@ o resto curto. Histórico longo vai para o git, não para cá.
 | Seleção (`ductdx`) | repositório `hvac-duct-dx` |
 | Spec da precificação (blocos B1–B8) | `docs/superpowers/specs/2026-11-09-precificacao-design.md` |
 | Spec mestre da suíte | `docs/superpowers/specs/2026-11-08-suite-hvacr-design.md` |
+| Manual do usuário, uma página por aba | `docs/manual/propostas/` |
 | Pesquisa de fontes de preço | `docs/pesquisa/tabelas_referencia_precos.md` |
 | Dados da empresa achados no Drive | fora do repositório (privado); pedir ao Allan |

@@ -22,6 +22,10 @@ direto. Ramo de trabalho: `ccr-1ff54909-xbul6a`.
   (arquivos que podem mexer, testes a rodar, resposta em poucas linhas). A sessão principal só junta.
 - Poucos testes novos por tarefa; bateria completa uma vez no fim. Não pule nem desligue testes.
 - Mostre o resultado com print da tela quando a mudança for visual.
+- **Manual do usuário:** toda mudança visível ao usuário atualiza, no mesmo commit, a seção
+  correspondente em `docs/manual/` (texto e linha nova no "Histórico" do arquivo). Seção nova da
+  tela ganha arquivo novo e entra no índice (`README.md` da pasta). Uma tarefa não está pronta sem
+  isso.
 
 ## Limites que não se discutem
 
