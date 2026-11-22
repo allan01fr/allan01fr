@@ -965,14 +965,23 @@ with abas[4]:
                              "Fixo": moeda(R["preco_fixo"]), "Estimado": moeda(R["preco_estimado"]),
                              "Custo": moeda(R["custo_servicos"]), "Margem efetiva": pct(R["margem_efetiva"]),
                              "Horas": num_br(R["total_h"]), "Prazo (dias)": R["prazo_dias_corridos"]})
-            df_f = pd.DataFrame(linhas_f)
-            if all(f["nome"] == modulo_nome(f["id"]) for f in R["fases"]):      # o módulo só repetiria o nome da fase
+            df_f = pd.DataFrame(linhas_f).drop(columns=["Custo"])     # a Margem já mostra a relação com o custo
+            if all(f["nome"] == modulo_nome(f["id"]) for f in R["fases"]):   # módulo igual ao nome só repetiria
                 df_f = df_f.drop(columns=["Módulo"])
+            if not any(f["preco_estimado"] for f in R["fases"]):      # sem parcela estimada, Fixo repetiria o Preço
+                df_f = df_f.drop(columns=["Fixo", "Estimado"])
+            # largura total ~900 px (Módulo, quando aparece, usa 160 px)
             st.dataframe(df_f, hide_index=True, width="stretch", column_config={
-                "Nº": st.column_config.TextColumn("Nº", width="small"),
-                "Fase": st.column_config.TextColumn("Fase", width="large"),
-                "Módulo": st.column_config.TextColumn("Módulo", width="large"),
-                "Cobrança": st.column_config.TextColumn("Cobrança", width="medium")})
+                "Nº": st.column_config.TextColumn("Nº", width=40),
+                "Fase": st.column_config.TextColumn("Fase", width=220),
+                "Módulo": st.column_config.TextColumn("Módulo", width=160),
+                "Cobrança": st.column_config.TextColumn("Cobrança", width=110),
+                "Preço": st.column_config.TextColumn("Preço", width=110),
+                "Fixo": st.column_config.TextColumn("Fixo", width=110),
+                "Estimado": st.column_config.TextColumn("Estimado", width=110),
+                "Margem efetiva": st.column_config.TextColumn("Margem", width=80),
+                "Horas": st.column_config.TextColumn("Horas", width=60),
+                "Prazo (dias)": st.column_config.TextColumn("Prazo", width=60)})
             if R["fases_desligadas"]:
                 st.caption(md("Fora desta proposta: " + "; ".join(
                     d["nome"] + (f" ({escopos.MODULOS[d['modulo']]['nome']})"

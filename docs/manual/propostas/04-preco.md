@@ -11,7 +11,7 @@ Mostra quanto a proposta custa, como o preço se forma em cada fase e como cada 
 | Parcela fixa | Parte do preço com valor certo | Depende da forma de cobrança de cada fase |
 | Parcela estimada | Parte que depende de medição ou de horas | Hora técnica e % sobre as medições da obra |
 | Margem efetiva | Margem real da proposta depois de impostos e custos | Negativa quando a cobrança não cobre o custo |
-| Tabela por fase | Uma linha por fase, com Preço, Fixo, Estimado, Custo, Margem efetiva, Horas e Prazo | A linha "Total" soma tudo |
+| Tabela por fase | Uma linha por fase, com Nº, Fase, Cobrança, Preço, Fixo, Estimado, Margem, Horas e Prazo | Margem é a margem efetiva da fase. Fixo e Estimado somem quando nenhuma fase tem parcela estimada; Módulo aparece só quando difere do nome da fase; Custo não aparece na tabela (a Margem mostra a relação com o custo). A linha "Total" soma tudo |
 | Detalhar a fase | Escolhe a fase para ver a formação do preço e as horas | Mostra a cadeia de custos e o que é próprio da cobrança |
 | Planejar ARTs automaticamente | Liga o plano de ARTs da opção | Regras provisórias: confirmar com o CREA-RJ |
 | ARTs previstas | Lista das ARTs que o orçamento exige, com taxa e se entra no preço | Aparece quando há plano de ARTs |
@@ -73,3 +73,4 @@ A **margem efetiva** é o que sobra de honorários depois de impostos, descontad
 | Data | Mudança |
 |---|---|
 | 2026-11-22 | Versão inicial do manual |
+| 2026-11-22 | Tabela por fase cabe na tela; coluna Margem visível (P-10) |
