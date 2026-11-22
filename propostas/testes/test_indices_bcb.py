@@ -42,3 +42,8 @@ def test_erro_rede():
         raise OSError("bloqueado")
     with pytest.raises(RuntimeError, match="CSV"):
         bcb.baixar_serie("IPCA", http_get=falha)
+
+
+def test_codigos_incc():
+    assert bcb.SERIES["INCC-M"] == 7456
+    assert bcb.SERIES["INCC-DI"] == 192

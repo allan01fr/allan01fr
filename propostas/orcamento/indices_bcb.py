@@ -9,7 +9,10 @@ SERIES = {
     "IGP-M": 189,
     "INPC": 188,
     "IPCA": 433,
-    "INCC-M": 192,  # VERIFICAR: 192 = INCC-M (variação mensal) no SGS; 7456 seria alternativa
+    # INCC-M (FGV) e INCC-DI, variação mensal no SGS. Conferido em jan/2026-nov/2026 contra
+    # o valor de set/2026 (INCC-M 0,25%; INCC-DI 0,22%) publicado em fonte secundária.
+    "INCC-M": 7456,
+    "INCC-DI": 192,
 }
 
 

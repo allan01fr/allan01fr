@@ -53,11 +53,10 @@ Guarda as tabelas de preço, os pisos das convenções coletivas, o CUB e os ín
 
   Exemplo: um item de R$ 100,00 com índice 200 na data-base e 210 na data-alvo vale 100 × 210 ÷ 200 = R$ 105,00.
 
-- Os índices vêm do Banco Central: INPC (série 188), IGP-M (189), IPCA (433) e INCC-M. Se a série não estiver disponível, o sistema mantém o histórico que já existe.
+- Os índices vêm do Banco Central: INPC (série 188), IGP-M (189), IPCA (433) e INCC-M (série 7456). Se a série não estiver disponível, o sistema mantém o histórico que já existe.
 
 **Cuidados e limitações**
 - Tabelas de referência em JSON (por exemplo, CEHOP-SE) podem trazer valores de exemplo marcados como provisórios. A tela mostra a coluna "Provisório"; confira esses valores com o documento oficial antes de usar em proposta.
-- A série do INCC-M ainda precisa ser confirmada no Banco Central. Até lá, importe o INCC-M por CSV ou informe o número-índice mês a mês.
 - Índice manual vale só para o mês informado. Para corrigir valores, a data-base e a data-alvo precisam ter índice gravado.
 - Cotação de fornecedor é referência, não tabela oficial. Use-a na cesta com critério claro e registre a fonte.
 
@@ -66,3 +65,4 @@ Guarda as tabelas de preço, os pisos das convenções coletivas, o CUB e os ín
 | Data | Mudança |
 |---|---|
 | 2026-11-22 | Versão inicial do manual |
+| 2026-11-22 | Código da série INCC-M confirmado (P-09) |
