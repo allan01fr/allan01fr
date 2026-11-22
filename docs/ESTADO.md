@@ -5,12 +5,13 @@ o resto curto. Histórico longo vai para o git, não para cá.
 
 ## Última sessão (22/11/2026)
 
-- Revisão do motor de preço: 9 erros confirmados corrigidos (`5ac0a1f`), 391 testes passando.
-  Relatório da revisão com mais 10 erros "possíveis" ainda não verificados (tarefa P-08).
-- Planilha de controle criada e roteiro com metas M0–M8 gravado
-  (`docs/superpowers/plans/2026-11-22-roteiro.md`).
-- Cérebro externo criado: `CLAUDE.md`, este arquivo e `docs/DECISOES.md`.
-- PR #4 (rascunho) atualizado: https://github.com/allan01fr/allan01fr/pull/4
+- P-08 feita: dos 10 erros possíveis da revisão, 3 corrigidos e 7 descartados (`fca598c`);
+  bateria com 394 testes.
+- P-09 feita: INCC-M é a série 7456 do Banco Central; INCC-DI (192) incluído (`dd11427`).
+  Confirmação veio de fonte secundária; conferir no catálogo oficial do SGS quando possível.
+- P-10 feita: tabela por fase da aba Preço cabe na tela, com a Margem visível (`761dc63`).
+- Manual do usuário criado em `docs/manual/propostas/` (uma página por aba).
+- Agenda: o conector do Google Agenda recusou a autenticação; os eventos ainda não foram criados.
 
 ## Meta atual
 
@@ -18,8 +19,7 @@ o resto curto. Histórico longo vai para o git, não para cá.
 
 ## Próximo passo
 
-- Claude, sem depender do Allan: P-08 (verificar os 10 erros possíveis), P-09 (código da série
-  INCC-M no Banco Central), P-10 (tabela da aba Preço corta a coluna de margem).
+- Claude: nada pendente sem dados do Allan na M0. Próximas tarefas dependem de P-01, P-02, P-04 e P-06.
 - Allan: P-01 custo/h, P-02 regime tributário com o contador, P-04 PDF da CEHOP e tabelas
   EMOP/SINAPI-RJ/CUB, P-06 regras de ART com o CREA-RJ.
 
