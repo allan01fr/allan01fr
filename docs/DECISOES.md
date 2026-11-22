@@ -5,6 +5,12 @@ no topo da seção certa.
 
 ## Prioridade e forma de trabalho
 
+- 2026-11-22 — Prioridade pela receita: hoje a KAPTEK fatura com projeto e PMOC. Ordem: M0
+  precificação → M1 PMOC → M2 projeto mais rápido → M3 diagnóstico de energia → M4 suíte web →
+  financeiro → técnico avançado. Ferramentas novas nascem leves e migram depois.
+- 2026-11-22 — Vender o software a outros escritórios só depois de tudo provado, com métricas da
+  própria KAPTEK (meta M7, 2028).
+
 - 2026-11-09 — A ferramenta de precificação vem antes de qualquer outra parte da suíte; T0, T5 e T6
   pausadas até ela estar em uso.
 - 2026-11-11 — Menos testes e revisões; subagentes baratos com tarefas bem definidas; prévias de tela

@@ -14,6 +14,8 @@ o resto curto. Histórico longo vai para o git, não para cá.
 - Agenda: 18 eventos no Google Agenda (contato@kaptek.com.br): prazos M0–M8 (lembrete 3 dias antes),
   8 tarefas do Allan da M0 (lembrete na véspera) e revisão semanal às sextas 17h.
 
+- Prioridades revistas pela receita (ver `docs/DECISOES.md` e o roteiro): depois da M0 vem o PMOC.
+
 ## Meta atual
 
 **M0 — Precificação v1 em uso real**, de 23/11 a 06/12/2026.
